@@ -1,0 +1,2470 @@
+<!DOCTYPE html>
+<!-- saved from url=(0048)https://oxygen-afraid-youre-too-tired.pages.dev/ -->
+<html lang="zh"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>氧气 · 怕你太累了</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none;}
+  canvas{display:block;width:100vw;height:100vh;}
+
+  /* ====== 语言切换按钮 ====== */
+  #langBtn{
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    right: 12px;
+    z-index: 600;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 2px solid rgba(120,240,255,0.65);
+    background: rgba(5,30,50,0.85);
+    color: #a0f0ff;
+    font-size: 23px;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: 0 0 24px rgba(120,240,255,0.45), 0 0 0 4px rgba(120,240,255,0.08);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .12s ease, box-shadow .15s;
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  #langBtn:hover{ box-shadow: 0 0 30px rgba(120,240,255,0.75), 0 0 0 4px rgba(120,240,255,0.14); }
+  #langBtn:active{ transform: scale(.9); }
+
+  /* ====== 弹窗（氧气风格）====== */
+  .oxyModalMask {
+    position: fixed; inset: 0;
+    background: rgba(0,10,25,0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 20px;
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .oxyModalMask.show { display: flex; }
+
+  .oxyModal {
+    width: 100%;
+    max-width: 440px;
+    background: linear-gradient(180deg, #0a2a45 0%, #06172a 100%);
+    border: 2px solid rgba(120,240,255,0.45);
+    border-radius: 20px;
+    padding: 22px 20px 18px;
+    color: #dffaff;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 50px rgba(120,240,255,0.18);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  .oxyModal::-webkit-scrollbar { width: 6px; }
+  .oxyModal::-webkit-scrollbar-thumb { background: rgba(120,240,255,0.3); border-radius: 3px; }
+
+  .oxyModal h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    color: #a0f0ff;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(120,240,255,0.5);
+  }
+  .oxyModal p {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: rgba(160,220,255,0.7);
+    font-weight: 600;
+  }
+
+  .oxyModal textarea {
+    width: 100%;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(120,240,255,0.35);
+    background: rgba(5,25,45,0.7);
+    color: #a0f0ff;
+    outline: none;
+    resize: none;
+    word-break: break-all;
+    height: 120px;
+    box-sizing: border-box;
+  }
+
+  .oxyModal .codeBox {
+    width: 100%;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(120,240,255,0.35);
+    background: rgba(5,25,45,0.7);
+    color: #a0f0ff;
+    text-align: left;
+    max-height: 130px;
+    overflow-y: auto;
+    word-break: break-all;
+    user-select: text;
+    -webkit-user-select: text;
+    box-sizing: border-box;
+  }
+
+  .oxyModal .modalBtns {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .oxyModal button {
+    flex: 1 1 auto;
+    min-width: 88px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 14px;
+    border: 1.5px solid rgba(120,240,255,0.45);
+    border-radius: 10px;
+    padding: 11px 14px;
+    background: rgba(120,240,255,0.1);
+    color: #a0f0ff;
+    cursor: pointer;
+    transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .oxyModal button:hover {
+    background: rgba(120,240,255,0.22);
+    border-color: #a0f0ff;
+  }
+  .oxyModal button:active {
+    transform: scale(0.97);
+  }
+  .oxyModal button.primary {
+    background: linear-gradient(180deg, rgba(120,240,255,0.42), rgba(80,180,255,0.28));
+    border-color: #a0f0ff;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(120,240,255,0.3);
+  }
+  .oxyModal button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .oxyModal .linkRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 11px 14px;
+    background: rgba(5,25,45,0.55);
+    border: 1px solid rgba(120,240,255,0.15);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .oxyModal .linkRow span {
+    color: #a0f0ff;
+    font-weight: 900;
+  }
+
+  .oxyModal .hint {
+    font-size: 12px;
+    color: rgba(160,220,255,0.6);
+    margin-top: 8px;
+    line-height: 1.6;
+    text-align: left;
+  }
+  .oxyModal .ok { color: #7fffd0; font-weight: 800; }
+  .oxyModal .bad { color: #ff8a8a; font-weight: 800; }
+
+  #oxyToast {
+    position: fixed;
+    left: 50%;
+    top: calc(env(safe-area-inset-top, 0) + 80px);
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(5,25,45,0.92);
+    border: 1.5px solid rgba(120,240,255,0.5);
+    color: #a0f0ff;
+    font-family: system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 300;
+    max-width: 90vw;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(120,240,255,0.3);
+  }
+  #oxyToast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<canvas id="game" width="1358" height="684"></canvas>
+
+<button id="langBtn" title="Switch to English">🇨🇳</button>
+
+<!-- ===== 存档迁移弹窗 ===== -->
+<div class="oxyModalMask" id="transferMask">
+  <div class="oxyModal">
+    <h2 data-zh="存档迁移" data-en="Save Transfer">存档迁移</h2>
+    <p id="transferDesc" data-zh="把存档变成一段密文，在另一台设备导入" data-en="Turn your save into a cipher, then import it on another device">把存档变成一段密文，在另一台设备导入</p>
+
+    <div id="transferChoice">
+      <div class="hint" data-zh="&lt;b style=&#39;color:#a0f0ff&#39;&gt;导出&lt;/b&gt;：生成一段密文，复制到另一台设备。&lt;br&gt;&lt;b style=&#39;color:#a0f0ff&#39;&gt;导入&lt;/b&gt;：粘贴另一台设备的密文，覆盖本机进度。" data-en="&lt;b style=&#39;color:#a0f0ff&#39;&gt;Export&lt;/b&gt;: generate a cipher and copy it to another device.&lt;br&gt;&lt;b style=&#39;color:#a0f0ff&#39;&gt;Import&lt;/b&gt;: paste a cipher from another device to overwrite this one."><b style="color:#a0f0ff">导出</b>：生成一段密文，复制到另一台设备。<br><b style="color:#a0f0ff">导入</b>：粘贴另一台设备的密文，覆盖本机进度。</div>
+    </div>
+
+    <div id="transferExport" style="display:none">
+      <div class="codeBox" id="exportCode"></div>
+      <div class="hint" id="exportMeta" style="margin-top:8px"></div>
+    </div>
+
+    <div id="transferImport" style="display:none">
+      <textarea id="importCode" placeholder="把密文粘贴到这里…" spellcheck="false"></textarea>
+      <div class="hint" id="importStatus" style="margin-top:8px">等待粘贴…</div>
+    </div>
+
+    <div class="modalBtns" id="transferBtnsChoice">
+      <button class="primary" id="btnExport" data-zh="导出存档" data-en="Export">导出存档</button>
+      <button id="btnImport" data-zh="导入存档" data-en="Import">导入存档</button>
+      <button id="btnTransferClose" data-zh="关闭" data-en="Close">关闭</button>
+    </div>
+
+    <div class="modalBtns" id="transferBtnsExport" style="display:none">
+      <button class="primary" id="btnCopyCode" data-zh="复制密文" data-en="Copy">复制密文</button>
+      <button id="btnDownloadFile" data-zh="保存文件" data-en="Save File">保存文件</button>
+      <button id="btnScreenshot" data-zh="截屏" data-en="Screenshot">截屏</button>
+      <button id="btnExportBack" data-zh="返回" data-en="Back">返回</button>
+    </div>
+
+    <div class="modalBtns" id="transferBtnsImport" style="display:none">
+      <button class="primary" id="btnConfirmImport" data-zh="确认导入" data-en="Confirm Import">确认导入</button>
+      <button id="btnImportBack" data-zh="返回" data-en="Back">返回</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 互联互通弹窗 ===== -->
+<div class="oxyModalMask" id="linkMask">
+  <div class="oxyModal">
+    <h2 data-zh="互联互通" data-en="Cross-Game Link">互联互通</h2>
+    <p data-zh="氧气 × 米皮糖小摊" data-en="Oxygen × MipiTang Stall">氧气 × 米皮糖小摊</p>
+    <div class="linkRow"><span data-zh="历史总拯救" data-en="All-time rescues">历史总拯救</span><span id="linkTotalSaved">0</span></div>
+    <div class="linkRow"><span data-zh="可兑换余额" data-en="Exchangeable balance">可兑换余额</span><span id="linkBalance">0</span></div>
+    <div class="linkRow"><span data-zh="可兑换金币" data-en="Coins available">可兑换金币</span><span id="linkCanExchange">0</span></div>
+    <div class="linkRow"><span data-zh="已兑换金币" data-en="Coins redeemed">已兑换金币</span><span id="linkGoldExchanged">0</span></div>
+    <div class="hint" style="text-align:center;margin-top:10px" data-zh="每 50 个可兑换余额 = 1 枚米皮糖金币&lt;br&gt;点「生成互通码」后到米皮糖小摊兑换" data-en="Every 50 exchangeable balance = 1 MipiTang coin&lt;br&gt;Generate a code, then redeem inside MipiTang">每 50 个可兑换余额 = 1 枚米皮糖金币<br>点「生成互通码」后到米皮糖小摊兑换</div>
+    <p style="font-size:12px;color:rgba(160,220,255,.6);line-height:1.7;text-align:left;margin:10px 0 0" data-zh="互通码：点「生成」→ 长按复制 → 到米皮糖小摊粘贴导入。&lt;br&gt;生成时余额就被扣下，一个码只能用一次。" data-en="Link code: Generate → long-press to copy → paste into MipiTang.&lt;br&gt;Balance is locked when generated — each code works once.">互通码：点「生成」→ 长按复制 → 到米皮糖小摊粘贴导入。<br>生成时余额就被扣下，一个码只能用一次。</p>
+    <textarea id="xcBox" placeholder="生成的互通码会显示在这里" style="height:54px;margin-top:6px"></textarea>
+    <button id="xcOutBtn" style="width:100%;margin-top:8px;font-size:13px;padding:9px 10px" data-zh="生成互通码" data-en="Generate code">生成互通码</button>
+    <div id="xcMsg" style="font-size:12px;margin-top:6px;color:#7ee787;min-height:16px;line-height:1.5"></div>
+    <div class="modalBtns">
+      <button class="primary" id="btnLinkClose" data-zh="关闭" data-en="Close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="oxyToast"></div>
+
+<script>
+/* ============ 语言 ============ */
+let LANG = 'zh';
+function L(zh, en){ return LANG === 'zh' ? zh : en; }
+
+const cvs = document.getElementById('game');
+const ctx = cvs.getContext('2d');
+let W, H;
+function resize(){
+  W = cvs.width = window.innerWidth;
+  H = cvs.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', ()=>setTimeout(resize, 200));
+
+const STATE = { MENU:0, MODE:1, PLAY:2, OVER:3, PAUSE:4, LOG:5 };
+let state = STATE.MENU;
+
+let player, humans, particles, rings, bubbles, plants, motes;
+let scrollSpeed, spawnTimer, spawnInterval;
+let lives, score, missed, distance, shakeTime, redFlash;
+let lineY = 0;
+let lineInset = 60;
+
+let mode = 'normal';
+let totalHumans = 0;
+let spawnedCount = 0;
+let handledCount = 0;
+
+let modeSelection = 0;
+let overSelection = 0;
+let pauseSelection = 0;
+
+let logScroll = 0;
+let logMaxScroll = 0;
+let logTouchStartY = null;
+let logTouchStartScroll = 0;
+
+let mouseX = -1, mouseY = -1;
+let inputMode = 'keyboard';
+
+let btnLog = null;
+let btnTransfer = null;
+let btnLink = null;
+let btnMenuStart = null;
+let btnLogClose = null;
+let btnModeBack = null;
+let btnPauseTop = null;
+let btnMode = [];
+let btnPause = [];
+let btnOver = [];
+
+// ====== 存档数据 ======
+let totalSaved = 0;
+let savedBalance = 0;
+let goldExchanged = 0;
+const LS_TOTAL = 'oxy_total_saved';
+const LS_BALANCE = 'oxy_saved_balance';
+const LS_GOLD = 'oxy_gold_exchanged';
+const LS_GOLD_FOR_MPT = 'oxy_gold_for_mpt';
+const EXCHANGE_RATE = 50;
+
+function loadOxyStats(){
+  try {
+    totalSaved    = parseInt(localStorage.getItem(LS_TOTAL))   || 0;
+    savedBalance  = parseInt(localStorage.getItem(LS_BALANCE)) || 0;
+    goldExchanged = parseInt(localStorage.getItem(LS_GOLD))    || 0;
+  } catch(e){}
+}
+function saveOxyStats(){
+  try {
+    localStorage.setItem(LS_TOTAL,   String(totalSaved));
+    localStorage.setItem(LS_BALANCE, String(savedBalance));
+    localStorage.setItem(LS_GOLD,    String(goldExchanged));
+  } catch(e){}
+}
+
+// ====== Toast ======
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById('oxyToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+/* ====== 更新日志 ====== */
+const CHANGELOG = {
+  zh: [
+    { ver: 'v1.2', date: '互通修复', items: [
+      '修复 iPhone 上互联互通读不到米皮糖数据的问题',
+      '装进「米皮糖中枢」后与米皮糖共用一份存档，数据自动互通',
+      '新增一次性互通码：生成即扣下，导入时按编号去重；本作不再直接兑换，统一到米皮糖',
+      '同一存档环境下数据改动实时同步',
+      '兑换后写入米皮糖金币总额，打开米皮糖自动到账',
+    ]},
+    { ver: 'v1.1', date: '互通版', items: [
+      '存档迁移（导出/导入密文）',
+      '互联互通：拯救换米皮糖金币',
+      '主页新增两个入口',
+    ]},
+    { ver: 'v1.0', date: '累计版', items: [
+      '无尽模式累计拯救数',
+      '数据本地保存，关掉再开还在',
+      '主页显示历史总拯救',
+    ]},
+    { ver: 'v0.9', date: '暖心版', items: [
+      '结束文案重写',
+      '失败：你辜负了他们',
+      '成功：谢谢你，没有放弃',
+    ]},
+    { ver: 'v0.8', date: '暖心版', items: [
+      '下落速度微调（初始 1.6）',
+      '溺水者台词更温柔',
+      '救援成功有暖光扩散',
+    ]},
+    { ver: 'v0.7', date: '触屏版', items: [
+      '游戏中右上角加暂停按钮',
+      '手机点一下即可暂停',
+    ]},
+    { ver: 'v0.6', date: '纵版版', items: [
+      '改为纵版下落救援',
+      '模式选择：普通 / 无尽',
+      '判定线静止在底部',
+    ]},
+    { ver: 'v0.5', date: '兼容版', items: [
+      '竖屏模式适配',
+      '更新日志独立页可滚动',
+    ]},
+    { ver: 'v0.4', date: '海洋版', items: [
+      '场景改为海洋',
+      '氧气球与溺水者吐泡',
+    ]},
+    { ver: 'v0.1', date: '初版', items: [
+      '横板滚轴 · 上下移动',
+      '触碰得分 · 漏掉扣血',
+    ]},
+  ],
+  en: [
+    { ver: 'v1.2', date: 'Link Fix', items: [
+      'Fixed cross-game link reading nothing on iPhone',
+      'Embedded in the MipiTang hub so it shares one save with MipiTang — auto sync',
+      'Added one-time link codes: locked on generate, deduped by id on import; redemption now happens inside MipiTang only',
+      'Live sync when both run in the same save space',
+      'Redeemed coins are written to the total and claimed by MipiTang automatically',
+    ]},
+    { ver: 'v1.1', date: 'Link Update', items: [
+      'Save transfer (export / import cipher)',
+      'Cross-game link: rescues → MipiTang coins',
+      'Two new entries on the main menu',
+    ]},
+    { ver: 'v1.0', date: 'Cumulative', items: [
+      'Endless mode tracks total rescues',
+      'Saved locally — still there when you come back',
+      'Main menu shows your all-time rescues',
+    ]},
+    { ver: 'v0.9', date: 'Heartfelt', items: [
+      'Rewritten ending lines',
+      'Fail: you let them down',
+      "Win: thank you for not giving up",
+    ]},
+    { ver: 'v0.8', date: 'Heartfelt', items: [
+      'Sink speed tweaked (starts at 1.6)',
+      'Gentler lines from the drowning',
+      'Warm light burst on a successful rescue',
+    ]},
+    { ver: 'v0.7', date: 'Touch', items: [
+      'Pause button added at the top-right in game',
+      'One tap on mobile to pause',
+    ]},
+    { ver: 'v0.6', date: 'Vertical', items: [
+      'Switched to vertical falling rescue',
+      'Mode select: Normal / Endless',
+      'The line stays still at the bottom',
+    ]},
+    { ver: 'v0.5', date: 'Compatible', items: [
+      'Portrait mode support',
+      'Changelog is its own scrollable page',
+    ]},
+    { ver: 'v0.4', date: 'Ocean', items: [
+      'Scene changed to the ocean',
+      'Oxygen ball and the drowning blow bubbles',
+    ]},
+    { ver: 'v0.1', date: 'First build', items: [
+      'Side-scrolling · move up and down',
+      'Touch to score · miss to lose a life',
+    ]},
+  ]
+};
+
+const CRIES = {
+  zh: ['救我…', 'Help…', '拉我一把…', '别放手…', 'SOS',
+       '救命…', '我在这…', '快到了吗…', '咕噜…', '谢谢你…'],
+  en: ['Help me…', 'Help…', 'Pull me up…', "Don't let go…", 'SOS',
+       'Save me…', "I'm here…", 'Almost there?…', 'Blub…', 'Thank you…']
+};
+
+function initPlants(){
+  plants = [];
+  const n = Math.floor(W / 80);
+  for(let i=0;i<n;i++){
+    plants.push({
+      x: Math.random()*W,
+      baseY: H - Math.random()*10,
+      h: 40 + Math.random()*100,
+      sway: Math.random()*Math.PI*2,
+      swaySp: 0.01 + Math.random()*0.02,
+      color: Math.random() < 0.5 ? '#0d4a3a' : '#0a5a45',
+      blades: 3 + Math.floor(Math.random()*3)
+    });
+  }
+}
+
+function initMotes(){
+  motes = [];
+  const n = Math.floor((W*H) / 15000);
+  for(let i=0;i<n;i++){
+    motes.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: 0.5 + Math.random()*1.8,
+      sp: 0.2 + Math.random()*0.6,
+      drift: (Math.random()-0.5)*0.3,
+      a: 0.1 + Math.random()*0.3
+    });
+  }
+}
+
+function initGame(selectedMode){
+  mode = selectedMode;
+  const baseY = H - lineInset;
+
+  player = {
+    x: W / 2,
+    y: baseY - 50,
+    r: 20,
+    vx: 0,
+    accel: 1.4,
+    maxSpeed: 12,
+    friction: 0.86,
+    trail: [],
+    pulse: 0,
+    bubbleTimer: 0
+  };
+  lineY = baseY;
+
+  humans = [];
+  particles = [];
+  rings = [];
+  bubbles = [];
+  scrollSpeed = 1.6;
+  spawnInterval = 90;
+  spawnTimer = 0;
+  lives = 3;
+  score = 0;
+  missed = 0;
+  distance = 0;
+  shakeTime = 0;
+  redFlash = 0;
+  pauseSelection = 0;
+
+  totalHumans = (mode === 'normal') ? 50 : Infinity;
+  spawnedCount = 0;
+  handledCount = 0;
+
+  initPlants();
+  initMotes();
+  spawnHuman();
+}
+
+const keys = {};
+let pointerX = null;
+let usingPointer = false;
+
+function anyModalOpen(){
+  return document.getElementById('transferMask').classList.contains('show') ||
+         document.getElementById('linkMask').classList.contains('show');
+}
+
+window.addEventListener('keydown', e=>{
+  if(anyModalOpen()) return;
+  keys[e.key] = true;
+
+  if(state===STATE.MENU){
+    if(e.key===' '||e.key==='Enter'){ state = STATE.MODE; modeSelection = 0; return; }
+  }
+  if(state===STATE.LOG){
+    if(e.key==='Escape' || e.key===' ' || e.key==='Enter'){
+      state = STATE.MENU; return;
+    }
+    if(e.key==='ArrowDown') logScroll = Math.min(logMaxScroll, logScroll + 40);
+    if(e.key==='ArrowUp') logScroll = Math.max(0, logScroll - 40);
+    return;
+  }
+  if(state===STATE.MODE){
+    if(e.key==='ArrowLeft' || e.key==='a' || e.key==='A') modeSelection = 0;
+    else if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') modeSelection = 1;
+    else if(e.key==='Escape') state = STATE.MENU;
+    else if(e.key===' '||e.key==='Enter'){
+      startGame(modeSelection === 0 ? 'normal' : 'endless');
+    }
+    return;
+  }
+  if(state===STATE.PLAY && (e.key==='p' || e.key==='P' || e.key==='Tab' || e.key==='Escape')){
+    e.preventDefault();
+    pauseGame(); return;
+  }
+  if(state===STATE.PAUSE){
+    if(e.key==='ArrowUp' || e.key==='w' || e.key==='W') pauseSelection = 0;
+    else if(e.key==='ArrowDown' || e.key==='s' || e.key==='S') pauseSelection = 1;
+    else if(e.key==='p' || e.key==='P') resumeGame();
+    else if(e.key===' '||e.key==='Enter'){
+      if(pauseSelection === 0) resumeGame();
+      else backToMenu();
+    }
+    return;
+  }
+  if(state===STATE.OVER){
+    if(e.key==='ArrowLeft' || e.key==='a' || e.key==='A') overSelection = 0;
+    else if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') overSelection = 1;
+    else if(e.key===' '||e.key==='Enter'){
+      if(overSelection === 0) startGame(mode);
+      else backToMenu();
+    }
+    return;
+  }
+
+  if(['ArrowLeft','ArrowRight','a','A','d','D'].includes(e.key)){
+    usingPointer = false;
+    pointerX = null;
+    inputMode = 'keyboard';
+  }
+});
+window.addEventListener('keyup', e=>{ keys[e.key] = false; });
+
+function getPos(e){
+  const r = cvs.getBoundingClientRect();
+  if(e.touches && e.touches[0]){
+    return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+  }
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+cvs.addEventListener('mousemove', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  mouseX = p.x; mouseY = p.y;
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)) return;
+    pointerX = p.x;
+    usingPointer = true;
+    inputMode = 'mouse';
+  } else {
+    inputMode = 'mouse';
+  }
+});
+
+cvs.addEventListener('wheel', e=>{
+  if(state===STATE.LOG){
+    logScroll = Math.max(0, Math.min(logMaxScroll, logScroll + e.deltaY));
+    e.preventDefault();
+  }
+}, {passive:false});
+
+cvs.addEventListener('touchstart', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  mouseX = p.x; mouseY = p.y;
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)) return;
+    pointerX = p.x;
+    usingPointer = true;
+    inputMode = 'mouse';
+  }
+  if(state===STATE.LOG){
+    logTouchStartY = p.y;
+    logTouchStartScroll = logScroll;
+  }
+  e.preventDefault();
+}, {passive:false});
+
+cvs.addEventListener('touchmove', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  mouseX = p.x; mouseY = p.y;
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)) return;
+    pointerX = p.x;
+    usingPointer = true;
+  }
+  if(state===STATE.LOG && logTouchStartY !== null){
+    const dy = logTouchStartY - p.y;
+    logScroll = Math.max(0, Math.min(logMaxScroll, logTouchStartScroll + dy));
+  }
+  e.preventDefault();
+}, {passive:false});
+
+cvs.addEventListener('touchend', e=>{
+  if(anyModalOpen()) return;
+  if(state===STATE.LOG){
+    logTouchStartY = null;
+  }
+  if(state !== STATE.PLAY){
+    handleTap(mouseX, mouseY);
+  } else {
+    if(btnPauseTop && hitRect(mouseX, mouseY, btnPauseTop)){
+      pauseGame();
+    }
+  }
+  e.preventDefault();
+}, {passive:false});
+
+function handleTap(x, y){
+  if(state===STATE.MENU){
+    if(btnLog && hitRect(x, y, btnLog)){
+      state = STATE.LOG;
+      logScroll = 0;
+      return;
+    }
+    if(btnTransfer && hitRect(x, y, btnTransfer)){
+      openTransferModal();
+      return;
+    }
+    if(btnLink && hitRect(x, y, btnLink)){
+      openLinkModal();
+      return;
+    }
+    state = STATE.MODE;
+    modeSelection = 0;
+    return;
+  }
+  if(state===STATE.LOG){
+    if(btnLogClose && hitRect(x, y, btnLogClose)){
+      state = STATE.MENU; return;
+    }
+    return;
+  }
+  if(state===STATE.MODE){
+    if(btnModeBack && hitRect(x, y, btnModeBack)){
+      state = STATE.MENU; return;
+    }
+    for(const b of btnMode){
+      if(hitRect(x, y, b)){
+        startGame(b.mode);
+        return;
+      }
+    }
+    return;
+  }
+  if(state===STATE.PAUSE){
+    for(const b of btnPause){
+      if(hitRect(x, y, b)){
+        if(b.action === 'resume') resumeGame();
+        else backToMenu();
+        return;
+      }
+    }
+    return;
+  }
+  if(state===STATE.OVER){
+    for(const b of btnOver){
+      if(hitRect(x, y, b)){
+        if(b.action === 'restart') startGame(mode);
+        else backToMenu();
+        return;
+      }
+    }
+    return;
+  }
+}
+
+cvs.addEventListener('click', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)){
+      pauseGame();
+    }
+    return;
+  }
+  handleTap(p.x, p.y);
+});
+
+function hitRect(x, y, r){
+  return r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+}
+
+function startGame(m){
+  loadOxyStats();
+  initGame(m);
+  pointerX = null;
+  usingPointer = false;
+  state = STATE.PLAY;
+}
+function backToMenu(){
+  state = STATE.MENU;
+}
+function pauseGame(){
+  pauseSelection = 0;
+  state = STATE.PAUSE;
+}
+function resumeGame(){
+  state = STATE.PLAY;
+}
+
+function spawnHuman(){
+  if(spawnedCount >= totalHumans) return;
+  const r = 15 + Math.random()*7;
+  humans.push({
+    x: r + 30 + Math.random() * (W - r*2 - 60),
+    y: -r - 20,
+    r: r,
+    vy: scrollSpeed,
+    wobble: Math.random()*Math.PI*2,
+    sink: Math.random() * Math.PI * 2,
+    bubbleTimer: Math.random()*40,
+    rescued: false,
+    cry: CRIES[LANG][Math.floor(Math.random()*CRIES[LANG].length)],
+    cryTimer: 0,
+    cryDuration: 120 + Math.random()*60,
+    cryVisible: true,
+    armPhase: Math.random()*Math.PI*2,
+    legPhase: Math.random()*Math.PI*2,
+    bodyTilt: (Math.random()-0.5)*0.3,
+    driftX: (Math.random()-0.5) * 0.3
+  });
+  spawnedCount++;
+}
+
+function spawnBubble(x, y, r, vx=0, vy=-0.5, life=1){
+  bubbles.push({
+    x, y, r,
+    vx: vx + (Math.random()-0.5)*0.3,
+    vy: vy - Math.random()*0.4,
+    life,
+    wob: Math.random()*Math.PI*2,
+    wobSp: 0.05 + Math.random()*0.08
+  });
+}
+
+function burst(x, y, color, count=14){
+  for(let i=0;i<count;i++){
+    const a = Math.random()*Math.PI*2;
+    const s = 1.5 + Math.random()*5;
+    particles.push({
+      x, y,
+      vx: Math.cos(a)*s,
+      vy: Math.sin(a)*s,
+      life: 1, color,
+      size: 2 + Math.random()*3
+    });
+  }
+}
+function shockwave(x, y, color){
+  rings.push({ x, y, r: 8, max: 70, life: 1, color });
+}
+
+function updateBubblesOnly(){
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b = bubbles[i];
+    b.wob += b.wobSp;
+    b.x += b.vx + Math.sin(b.wob)*0.3;
+    b.y += b.vy;
+    b.vy *= 0.99;
+    b.life -= 0.004;
+    if(b.y < -20 || b.life <= 0 || b.x < -20) bubbles.splice(i,1);
+  }
+}
+
+function update(){
+  if(shakeTime > 0) shakeTime *= 0.88;
+  if(redFlash > 0) redFlash *= 0.9;
+  if(state === STATE.OVER){ shakeTime = 0; redFlash = 0; }
+
+  if(state !== STATE.PLAY){
+    updateBubblesOnly();
+    return;
+  }
+
+  const keyLeft  = keys['ArrowLeft']  || keys['a'] || keys['A'];
+  const keyRight = keys['ArrowRight'] || keys['d'] || keys['D'];
+
+  if(keyLeft || keyRight){
+    if(keyLeft)  player.vx -= player.accel;
+    if(keyRight) player.vx += player.accel;
+    inputMode = 'keyboard';
+  } else if(usingPointer && pointerX !== null){
+    const diff = pointerX - player.x;
+    player.vx += diff * 0.014;
+  }
+
+  player.vx *= player.friction;
+  if(player.vx >  player.maxSpeed) player.vx =  player.maxSpeed;
+  if(player.vx < -player.maxSpeed) player.vx = -player.maxSpeed;
+  player.x += player.vx;
+
+  const margin = player.r + 10;
+  if(player.x < margin){ player.x = margin; player.vx = -player.vx * 0.3; }
+  if(player.x > W - margin){ player.x = W - margin; player.vx = -player.vx * 0.3; }
+
+  const baseY = H - lineInset;
+  player.y = baseY - 45 + Math.sin(Date.now()*0.002)*3;
+
+  player.pulse += 0.08;
+  player.trail.push({ x: player.x, y: player.y, life: 1 });
+  if(player.trail.length > 18) player.trail.shift();
+  for(const t of player.trail) t.life -= 0.06;
+
+  player.bubbleTimer++;
+  if(player.bubbleTimer > 6){
+    player.bubbleTimer = 0;
+    spawnBubble(
+      player.x + (Math.random()-0.5)*10,
+      player.y + (Math.random()-0.5)*10,
+      2 + Math.random()*3,
+      (Math.random()-0.5)*0.3, -0.3, 1
+    );
+  }
+
+  scrollSpeed += 0.0004;
+  if(scrollSpeed > 6.0) scrollSpeed = 6.0;
+
+  spawnTimer++;
+  if(humans.length === 0 && spawnTimer > spawnInterval){
+    spawnTimer = 0;
+    spawnHuman();
+  }
+  spawnInterval = Math.max(40, 90 - (handledCount * 0.6));
+
+  for(let i=humans.length-1; i>=0; i--){
+    const h = humans[i];
+    h.vy = Math.min(h.vy + 0.007, 6.0);
+    h.y += h.vy;
+    h.x += h.driftX;
+    if(h.x < h.r + 10) { h.x = h.r + 10; h.driftX *= -1; }
+    if(h.x > W - h.r - 10){ h.x = W - h.r - 10; h.driftX *= -1; }
+
+    h.wobble += 0.05;
+    h.sink += 0.04;
+    h.armPhase += 0.08;
+    h.legPhase += 0.05;
+
+    h.cryTimer++;
+    if(h.cryTimer < h.cryDuration) h.cryVisible = true;
+    else if(h.cryTimer < h.cryDuration + 40) h.cryVisible = false;
+    else {
+      h.cryTimer = 0;
+      h.cry = CRIES[LANG][Math.floor(Math.random()*CRIES[LANG].length)];
+    }
+
+    h.bubbleTimer++;
+    if(h.bubbleTimer > 25 + Math.random()*20){
+      h.bubbleTimer = 0;
+      spawnBubble(
+        h.x + (Math.random()-0.5)*8,
+        h.y - h.r*0.8,
+        1.5 + Math.random()*2.5,
+        (Math.random()-0.5)*0.3, -0.8, 1
+      );
+    }
+
+    const dx = h.x - player.x;
+    const dy = h.y - player.y;
+    const dist = Math.hypot(dx, dy);
+    if(!h.rescued && dist < h.r + player.r + 8){
+      h.rescued = true;
+      score++;
+      handledCount++;
+      if(mode === 'endless'){
+        totalSaved++;
+        savedBalance++;
+        saveOxyStats();
+      }
+      burst(h.x, h.y, '#aff5ff', 22);
+      burst(h.x, h.y, '#ffd9a0', 10);
+      shockwave(h.x, h.y, 'rgba(180,255,240,0.9)');
+      shockwave(h.x, h.y, 'rgba(255,220,160,0.5)');
+      for(let k=0;k<12;k++){
+        spawnBubble(h.x + (Math.random()-0.5)*30, h.y + (Math.random()-0.5)*30,
+          2 + Math.random()*4, 0, -1 - Math.random(), 1);
+      }
+      humans.splice(i,1);
+      continue;
+    }
+
+    if(h.y - h.r > lineY){
+      lives--;
+      missed++;
+      handledCount++;
+      burst(h.x, lineY, '#f44', 22);
+      shockwave(h.x, lineY, 'rgba(255,80,80,0.8)');
+      shakeTime = 14;
+      redFlash = 1;
+      humans.splice(i,1);
+      if(lives <= 0){
+        state = STATE.OVER;
+        overSelection = 0;
+        return;
+      }
+      continue;
+    }
+  }
+
+  if(mode === 'normal' && handledCount >= totalHumans && humans.length === 0){
+    state = STATE.OVER;
+    overSelection = 0;
+  }
+
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b = bubbles[i];
+    b.wob += b.wobSp;
+    b.x += b.vx + Math.sin(b.wob)*0.3;
+    b.y += b.vy;
+    b.vy *= 0.99;
+    b.life -= 0.004;
+    if(b.y < -20 || b.life <= 0 || b.x < -20) bubbles.splice(i,1);
+  }
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.95; p.vy *= 0.95;
+    p.vy -= 0.05;
+    p.life -= 0.025;
+    if(p.life <= 0) particles.splice(i,1);
+  }
+  for(let i=rings.length-1;i>=0;i--){
+    const r = rings[i];
+    r.r += (r.max - r.r) * 0.15;
+    r.life -= 0.05;
+    if(r.life <= 0) rings.splice(i,1);
+  }
+
+  distance += scrollSpeed;
+
+  for(const m of motes){
+    m.x -= m.drift;
+    m.y -= m.sp;
+    if(m.x < -10) m.x = W + 10;
+    if(m.x > W + 10) m.x = -10;
+    if(m.y < -10) m.y = H + 10;
+  }
+}
+
+function drawWater(){
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,   '#1e7a98');
+  g.addColorStop(0.25,'#105870');
+  g.addColorStop(0.55,'#0a3250');
+  g.addColorStop(1,   '#04121f');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  const sunX = W * 0.7;
+  const sun = ctx.createRadialGradient(sunX, -50, 20, sunX, -50, H*0.6);
+  sun.addColorStop(0, 'rgba(255,240,200,0.9)');
+  sun.addColorStop(1, 'rgba(255,240,200,0)');
+  ctx.fillStyle = sun;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  const wave = ctx.createLinearGradient(0, 0, 0, 90);
+  wave.addColorStop(0, 'rgba(220,250,255,0.9)');
+  wave.addColorStop(1, 'rgba(220,250,255,0)');
+  ctx.fillStyle = wave;
+  ctx.fillRect(0, 0, W, 90);
+  ctx.restore();
+}
+
+function drawMotes(){
+  for(const m of motes){
+    ctx.globalAlpha = m.a;
+    ctx.fillStyle = '#a0e8ff';
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, m.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPlants(){
+  for(const p of plants){
+    ctx.save();
+    ctx.translate(p.x, p.baseY);
+    for(let b=0;b<p.blades;b++){
+      const sway = Math.sin(p.sway + b*0.7) * 12;
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2 + b*0.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(sway*0.5, -p.h*0.5, sway, -p.h);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawJudgeLine(){
+  if(state !== STATE.PLAY && state !== STATE.PAUSE) return;
+
+  const t = Date.now() * 0.003;
+  const pulse = 0.6 + Math.sin(t) * 0.4;
+
+  const dg = ctx.createLinearGradient(0, lineY, 0, H);
+  dg.addColorStop(0, 'rgba(255,40,40,0.05)');
+  dg.addColorStop(1, 'rgba(255,40,40,0.28)');
+  ctx.fillStyle = dg;
+  ctx.fillRect(0, lineY, W, H - lineY);
+
+  ctx.save();
+  ctx.shadowColor = '#ff5050';
+  ctx.shadowBlur = 16 * pulse;
+
+  ctx.strokeStyle = 'rgba(255,110,110,' + (0.7 + pulse*0.3) + ')';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, lineY);
+  ctx.lineTo(W, lineY);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(255,200,200,' + (0.5 + pulse*0.4) + ')';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, lineY);
+  ctx.lineTo(W, lineY);
+  ctx.stroke();
+
+  ctx.restore();
+
+  ctx.fillStyle = 'rgba(255,140,140,0.55)';
+  ctx.font = 'bold 11px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(L('↓ 危险区', '↓ Danger Zone'), W/2, lineY + 10);
+}
+
+function drawBubbles(){
+  for(const b of bubbles){
+    ctx.globalAlpha = b.life * 0.7;
+    ctx.strokeStyle = 'rgba(180,240,255,0.8)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(200,250,255,0.25)';
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r*0.9, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath();
+    ctx.arc(b.x - b.r*0.3, b.y - b.r*0.3, Math.max(0.5, b.r*0.25), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPlayer(){
+  for(let i=0;i<player.trail.length;i++){
+    const t = player.trail[i];
+    if(t.life <= 0) continue;
+    const r = player.r * (i/player.trail.length) * 0.9;
+    ctx.globalAlpha = t.life * 0.35;
+    ctx.fillStyle = '#7fe8ff';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.save();
+  ctx.translate(player.x, player.y);
+  const pulse = 1 + Math.sin(player.pulse)*0.08;
+
+  const glow = ctx.createRadialGradient(0,0,2,0,0,player.r*3.2);
+  glow.addColorStop(0,'rgba(200,255,255,0.95)');
+  glow.addColorStop(0.35,'rgba(120,230,255,0.5)');
+  glow.addColorStop(1,'rgba(80,200,255,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(0,0,player.r*3.2,0,Math.PI*2);
+  ctx.fill();
+
+  const core = ctx.createRadialGradient(-4,-4,2,0,0,player.r*pulse);
+  core.addColorStop(0,'#ffffff');
+  core.addColorStop(0.45,'#c8f5ff');
+  core.addColorStop(1,'#5fc8ff');
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.arc(0,0,player.r*pulse,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.arc(-6,-7,player.r*0.3,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawHumans(){
+  for(const h of humans){
+    const bob = Math.sin(h.wobble) * 4;
+    const tilt = Math.sin(h.sink) * 0.25 + h.bodyTilt;
+
+    ctx.save();
+    ctx.translate(h.x, h.y + bob);
+    ctx.rotate(tilt);
+
+    const r = h.r;
+    const armL = Math.sin(h.armPhase) * 0.6;
+    const armR = Math.sin(h.armPhase + Math.PI) * 0.6;
+    const legL = Math.sin(h.legPhase) * 0.4;
+    const legR = Math.sin(h.legPhase + 1.7) * 0.4;
+
+    ctx.strokeStyle = 'rgba(180,210,240,0.5)';
+    ctx.lineWidth = 1.5;
+    for(let i=0;i<5;i++){
+      const ang = -Math.PI/2 + (i-2)*0.35 + Math.sin(h.wobble*0.8 + i)*0.15;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ang)*r*0.35, -r*0.8 + Math.sin(ang)*r*0.2);
+      ctx.quadraticCurveTo(
+        Math.cos(ang)*r*0.6, -r*1.0,
+        Math.cos(ang)*r*0.75 + Math.sin(h.wobble+i)*3, -r*1.3
+      );
+      ctx.stroke();
+    }
+
+    const headY = -r*0.75;
+    ctx.fillStyle = 'rgba(245,250,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(0, headY, r*0.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(150,200,230,0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(180,210,230,0.35)';
+    ctx.beginPath();
+    ctx.arc(r*0.1, headY + r*0.15, r*0.22, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#3a5a7a';
+    ctx.beginPath();
+    ctx.arc(-r*0.15, headY - r*0.08, r*0.08, 0, Math.PI*2);
+    ctx.arc( r*0.15, headY - r*0.08, r*0.08, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(80,40,60,0.7)';
+    ctx.beginPath();
+    ctx.ellipse(0, headY + r*0.18, r*0.1, r*0.13, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(220,235,255,0.9)';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -r*0.25);
+    ctx.quadraticCurveTo(Math.sin(h.wobble*1.2)*r*0.15, r*0.25, 0, r*0.7);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(120,170,220,0.6)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -r*0.15);
+    ctx.lineTo(0, r*0.6);
+    ctx.stroke();
+
+    const laX = -r*0.7, laY = -r*0.9 + armL*r*0.4;
+    ctx.strokeStyle = 'rgba(220,235,255,0.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.05);
+    ctx.quadraticCurveTo(-r*0.4, -r*0.2, laX, laY);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(245,250,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(laX, laY, r*0.15, 0, Math.PI*2);
+    ctx.fill();
+
+    const raX = r*0.7, raY = -r*0.9 + armR*r*0.4;
+    ctx.strokeStyle = 'rgba(220,235,255,0.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.05);
+    ctx.quadraticCurveTo(r*0.4, -r*0.2, raX, raY);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(245,250,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(raX, raY, r*0.15, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(200,225,245,0.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.7);
+    ctx.quadraticCurveTo(-r*0.25, r*0.95 + legL*r*0.2, -r*0.35, r*1.25 + legL*r*0.3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.7);
+    ctx.quadraticCurveTo(r*0.25, r*0.95 + legR*r*0.2, r*0.35, r*1.25 + legR*r*0.3);
+    ctx.stroke();
+
+    ctx.restore();
+
+    if(h.cryVisible){
+      drawCryBubble(h.x, h.y + bob - h.r*1.8, h.cry);
+    }
+  }
+}
+
+function drawCryBubble(cx, cy, text){
+  ctx.save();
+  ctx.font = 'bold 13px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const tw = ctx.measureText(text).width;
+  const padX = 10;
+  const bw = tw + padX*2;
+  const bh = 22;
+
+  const bx = cx - bw/2;
+  const by = cy - bh/2;
+
+  ctx.fillStyle = 'rgba(255,250,240,0.95)';
+  roundRect(bx, by, bw, bh, 10);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(180,220,240,0.7)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,250,240,0.95)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, by + bh);
+  ctx.lineTo(cx + 5, by + bh);
+  ctx.lineTo(cx + 1, by + bh + 6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#3a5a7a';
+  ctx.fillText(text, cx, cy + 1);
+
+  ctx.restore();
+}
+
+function drawParticles(){
+  for(const p of particles){
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawRings(){
+  for(const r of rings){
+    ctx.globalAlpha = r.life * 0.8;
+    ctx.strokeStyle = r.color;
+    ctx.lineWidth = 3 * r.life;
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, r.r, 0, Math.PI*2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function roundRect(x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+function drawPauseButton(){
+  if(state !== STATE.PLAY) return;
+
+  const size = 52;
+  const margin = 16;
+  const bx = W - size - margin;
+  const by = 90;
+
+  btnPauseTop = { x: bx, y: by, w: size, h: size };
+
+  const hov = hitRect(mouseX, mouseY, btnPauseTop);
+
+  ctx.fillStyle = hov ? 'rgba(120,240,255,0.35)' : 'rgba(5,30,50,0.75)';
+  roundRect(bx, by, size, size, 12);
+  ctx.fill();
+  ctx.strokeStyle = hov ? '#a0f0ff' : 'rgba(120,240,255,0.55)';
+  ctx.lineWidth = hov ? 2.5 : 2;
+  ctx.stroke();
+
+  const iconW = 6, iconH = 20, gap = 8;
+  const cx = bx + size/2;
+  const cy = by + size/2;
+
+  ctx.fillStyle = hov ? '#ffffff' : '#a0f0ff';
+  roundRect(cx - gap/2 - iconW, cy - iconH/2, iconW, iconH, 2);
+  ctx.fill();
+  roundRect(cx + gap/2, cy - iconH/2, iconW, iconH, 2);
+  ctx.fill();
+}
+
+function drawHUD(){
+  ctx.fillStyle = 'rgba(5,30,50,0.65)';
+  roundRect(16, 16, 150, 60, 10);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(120,240,255,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = '#7fd4ff';
+  ctx.font = '12px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(L('已拯救', 'Saved'), 30, 34);
+
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 22px system-ui, sans-serif';
+  ctx.fillText(score, 30, 56);
+
+  if(mode === 'normal'){
+    ctx.fillStyle = 'rgba(120,240,255,0.5)';
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(handledCount + ' / ' + totalHumans, 152, 34);
+  }
+
+  for(let i=0;i<3;i++){
+    const cx = W - 40 - i*44;
+    const cy = 40;
+    const alive = i < lives;
+    ctx.globalAlpha = alive ? 1 : 0.18;
+    if(alive){
+      const g = ctx.createRadialGradient(cx-4,cy-4,1,cx,cy,18);
+      g.addColorStop(0,'#ffffff');
+      g.addColorStop(0.5,'#a0e8ff');
+      g.addColorStop(1,'#3aa0ff');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = '#1a2a3a';
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, 13, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = alive ? 'rgba(200,245,255,0.8)' : 'rgba(80,100,120,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  const barX = 24, barY = H - 26, barW = Math.min(180, W*0.35), barH = 8;
+  ctx.fillStyle = 'rgba(120,240,255,0.6)';
+  ctx.font = '12px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(L('下沉速度', 'Sink Speed'), barX, barY - 8);
+
+  ctx.fillStyle = 'rgba(120,240,255,0.15)';
+  roundRect(barX, barY, barW, barH, 4);
+  ctx.fill();
+
+  const spd = Math.min(1, (scrollSpeed - 1.6) / 4.4);
+  if(spd > 0.01){
+    const g = ctx.createLinearGradient(barX,0,barX+barW,0);
+    g.addColorStop(0,'#5fc8ff');
+    g.addColorStop(1,'#a0f0ff');
+    ctx.fillStyle = g;
+    roundRect(barX, barY, barW*spd, barH, 4);
+    ctx.fill();
+  }
+
+  if(mode === 'endless'){
+    const text = L('累计拯救 ' + totalSaved, 'Total saved ' + totalSaved);
+    ctx.font = 'bold 14px system-ui, sans-serif';
+    const tw = ctx.measureText(text).width;
+    const padX = 14, boxH = 30;
+    const boxW = tw + padX*2;
+    const bx = W/2 - boxW/2;
+    const by = 16;
+
+    ctx.fillStyle = 'rgba(5,30,50,0.7)';
+    roundRect(bx, by, boxW, boxH, 10);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120,240,255,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#a0f0ff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, W/2, by + boxH/2);
+  }
+
+  drawPauseButton();
+}
+
+function drawMenu(){
+  ctx.fillStyle = 'rgba(0,10,25,0.5)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const g = ctx.createRadialGradient(W/2, H/2-80, 10, W/2, H/2-80, 300);
+  g.addColorStop(0,'rgba(160,240,255,0.35)');
+  g.addColorStop(1,'rgba(160,240,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  const zhTitle = LANG === 'zh';
+  const titleSize = zhTitle ? Math.min(96, W * 0.18) : Math.min(58, W * 0.115);
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold ' + titleSize + 'px system-ui, sans-serif';
+  ctx.shadowColor = '#5fc8ff';
+  ctx.shadowBlur = 50;
+  ctx.fillText(L('氧 气', 'O X Y G E N'), W/2, H/2 - 140);
+  ctx.shadowBlur = 0;
+
+  ctx.font = Math.min(20, W*0.045) + 'px system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(200,240,255,0.85)';
+  ctx.fillText(L('怕你太累了', "Afraid You're Too Tired"), W/2, H/2 - 60);
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+  ctx.fillText(L('他们在下沉 · 去接住他们', 'They are sinking · Go catch them'), W/2, H/2 - 15);
+
+  if(totalSaved > 0){
+    ctx.fillStyle = 'rgba(160,240,255,0.6)';
+    ctx.font = Math.min(14, W*0.032) + 'px system-ui, sans-serif';
+    ctx.fillText(L('累计拯救 ' + totalSaved + ' 人', 'Saved ' + totalSaved + ' in total'), W/2, H/2 + 15);
+  }
+
+  const btnW = Math.min(280, W * 0.65);
+  const btnH = 60;
+  const bx = W/2 - btnW/2;
+  const by = H/2 + 50;
+  btnMenuStart = { x: bx, y: by, w: btnW, h: btnH };
+
+  const hov = hitRect(mouseX, mouseY, btnMenuStart);
+  const blink = 0.6 + Math.sin(Date.now()*0.004)*0.4;
+
+  const bg = ctx.createLinearGradient(bx, by, bx, by+btnH);
+  if(hov){
+    bg.addColorStop(0,'rgba(120,240,255,0.55)');
+    bg.addColorStop(1,'rgba(80,180,255,0.35)');
+  } else {
+    bg.addColorStop(0,'rgba(120,240,255,0.25)');
+    bg.addColorStop(1,'rgba(80,180,255,0.12)');
+  }
+  ctx.fillStyle = bg;
+  roundRect(bx, by, btnW, btnH, 14);
+  ctx.fill();
+
+  ctx.strokeStyle = hov ? '#a0f0ff' : '#7fd4ff';
+  ctx.lineWidth = hov ? 3 : 2;
+  ctx.globalAlpha = hov ? 1 : blink;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = hov ? '#ffffff' : '#dffaff';
+  ctx.font = 'bold 24px system-ui, sans-serif';
+  ctx.fillText(L('开始游戏', 'Start Game'), W/2, by + btnH/2);
+
+  const sw = Math.min(200, W * 0.55);
+  const sh = 42;
+  const sx = W/2 - sw/2;
+  const sy = by + btnH + 18;
+  const sgap = 8;
+
+  btnLog      = { x: sx, y: sy,                     w: sw, h: sh };
+  btnTransfer = { x: sx, y: sy + sh + sgap,         w: sw, h: sh };
+  btnLink     = { x: sx, y: sy + (sh + sgap) * 2,   w: sw, h: sh };
+
+  drawSmallBtn(btnLog,      L('更新日志', 'Changelog'));
+  drawSmallBtn(btnTransfer, L('存档迁移', 'Save Transfer'));
+  drawSmallBtn(btnLink,     L('互联互通', 'Cross-Game Link'));
+}
+
+function drawSmallBtn(rect, label){
+  const hov = hitRect(mouseX, mouseY, rect);
+  ctx.fillStyle = hov ? 'rgba(120,240,255,0.22)' : 'rgba(120,240,255,0.08)';
+  roundRect(rect.x, rect.y, rect.w, rect.h, 10);
+  ctx.fill();
+  ctx.strokeStyle = hov ? '#7fd4ff' : 'rgba(120,240,255,0.35)';
+  ctx.lineWidth = hov ? 2 : 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = hov ? '#ffffff' : '#a0e0ff';
+  ctx.font = 'bold 16px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, rect.x + rect.w/2, rect.y + rect.h/2);
+}
+
+function drawLog(){
+  const LOGS = CHANGELOG[LANG];
+
+  ctx.fillStyle = 'rgba(0,10,25,0.92)';
+  ctx.fillRect(0,0,W,H);
+
+  const headerH = 70;
+  ctx.fillStyle = 'rgba(5,25,45,0.95)';
+  ctx.fillRect(0, 0, W, headerH);
+  ctx.strokeStyle = 'rgba(120,240,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, headerH);
+  ctx.lineTo(W, headerH);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 24px system-ui, sans-serif';
+  ctx.fillText(L('更新日志', 'Changelog'), W/2, headerH/2);
+
+  const cbW = 80, cbH = 36;
+  const cbx = W - cbW - 16;
+  const cby = (headerH - cbH) / 2;
+  btnLogClose = { x: cbx, y: cby, w: cbW, h: cbH };
+
+  const hovClose = hitRect(mouseX, mouseY, btnLogClose);
+  ctx.fillStyle = hovClose ? 'rgba(120,240,255,0.25)' : 'rgba(120,240,255,0.1)';
+  roundRect(cbx, cby, cbW, cbH, 8);
+  ctx.fill();
+  ctx.strokeStyle = hovClose ? '#7fd4ff' : 'rgba(120,240,255,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = hovClose ? '#ffffff' : '#7fd4ff';
+  ctx.font = 'bold 14px system-ui, sans-serif';
+  ctx.fillText(L('关闭', 'Close'), cbx + cbW/2, cby + cbH/2);
+
+  const contentY = headerH + 20;
+  const contentH = H - contentY - 20;
+  const pad = 24;
+  const boxW = Math.min(560, W - pad*2);
+  const boxX = (W - boxW) / 2;
+
+  const lineH = 22;
+  const verH = 30;
+  let totalH = 0;
+  for(const log of LOGS){
+    totalH += verH + log.items.length * lineH + 16;
+  }
+  logMaxScroll = Math.max(0, totalH - contentH + 20);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, contentY, W, contentH);
+  ctx.clip();
+
+  let cy = contentY - logScroll;
+
+  for(const log of LOGS){
+    ctx.fillStyle = 'rgba(10,35,60,0.7)';
+    roundRect(boxX, cy, boxW, verH + log.items.length * lineH + 16, 10);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120,240,255,0.25)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#a0f0ff';
+    ctx.font = 'bold 18px system-ui, sans-serif';
+    ctx.fillText(log.ver, boxX + 16, cy + 10);
+
+    ctx.fillStyle = 'rgba(160,220,255,0.5)';
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.fillText(log.date, boxX + 16 + 70, cy + 14);
+
+    let iy = cy + verH + 6;
+    for(const item of log.items){
+      ctx.fillStyle = 'rgba(200,235,255,0.85)';
+      ctx.font = '14px system-ui, sans-serif';
+      ctx.fillText('· ' + item, boxX + 24, iy);
+      iy += lineH;
+    }
+
+    cy += verH + log.items.length * lineH + 16;
+  }
+
+  ctx.restore();
+
+  if(logMaxScroll > 0){
+    const trackX = W - 8;
+    const trackY = contentY;
+    const trackH = contentH;
+    const thumbH = Math.max(30, trackH * (contentH / (totalH + 20)));
+    const thumbY = trackY + (trackH - thumbH) * (logScroll / logMaxScroll);
+
+    ctx.fillStyle = 'rgba(120,240,255,0.1)';
+    ctx.fillRect(trackX, trackY, 4, trackH);
+    ctx.fillStyle = 'rgba(120,240,255,0.5)';
+    roundRect(trackX, thumbY, 4, thumbH, 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.4)';
+  ctx.font = '12px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(L('滑动 / 滚轮 查看', 'Swipe / scroll to browse'), W/2, H - 6);
+}
+
+function drawModeSelect(){
+  ctx.fillStyle = 'rgba(0,10,25,0.75)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const bkX = 16, bkY = 16, bkW = 90, bkH = 40;
+  btnModeBack = { x: bkX, y: bkY, w: bkW, h: bkH };
+
+  const hovBk = hitRect(mouseX, mouseY, btnModeBack);
+  ctx.fillStyle = hovBk ? 'rgba(120,240,255,0.22)' : 'rgba(120,240,255,0.08)';
+  roundRect(bkX, bkY, bkW, bkH, 10);
+  ctx.fill();
+  ctx.strokeStyle = hovBk ? '#7fd4ff' : 'rgba(120,240,255,0.35)';
+  ctx.lineWidth = hovBk ? 2 : 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = hovBk ? '#ffffff' : '#a0e0ff';
+  ctx.font = 'bold 15px system-ui, sans-serif';
+  ctx.fillText(L('← 返回', '← Back'), bkX + bkW/2, bkY + bkH/2);
+
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 42px system-ui, sans-serif';
+  ctx.shadowColor = '#5fc8ff';
+  ctx.shadowBlur = 30;
+  ctx.fillText(L('选择模式', 'Select Mode'), W/2, H/2 - 180);
+  ctx.shadowBlur = 0;
+
+  if(totalSaved > 0){
+    ctx.fillStyle = 'rgba(160,240,255,0.6)';
+    ctx.font = '15px system-ui, sans-serif';
+    ctx.fillText(L('历史累计拯救 ' + totalSaved + ' 人', 'All-time saved: ' + totalSaved), W/2, H/2 - 130);
+  }
+
+  const isNarrow = W < 600;
+  const btnW = isNarrow ? Math.min(280, W*0.85) : Math.min(260, W*0.32);
+  const btnH = isNarrow ? 100 : 200;
+  const gap = isNarrow ? 24 : 40;
+  const totalW = isNarrow ? btnW : btnW*2 + gap;
+  const bx = W/2 - totalW/2;
+  const by = H/2 - (isNarrow ? 40 : btnH/2);
+
+  btnMode = [];
+  const opts = [
+    { key: 'normal', label: L('普通模式', 'Normal'), desc: L('50 位溺水者\n全部救完即胜利', '50 people in the water\nSave them all to win'), color: '#5fc8ff' },
+    { key: 'endless', label: L('无尽模式', 'Endless'), desc: L('持续下沉\n看你能救多少', 'They keep sinking\nSee how many you can save'), color: '#a0f0ff' }
+  ];
+
+  for(let i=0;i<2;i++){
+    const x = isNarrow ? bx : bx + i*(btnW + gap);
+    const y = isNarrow ? by + i*(btnH + gap) : by;
+    const rect = { x, y, w: btnW, h: btnH, mode: opts[i].key };
+    btnMode.push(rect);
+
+    const hov = hitRect(mouseX, mouseY, rect);
+    const selected = modeSelection === i || hov;
+
+    if(selected){
+      const g = ctx.createLinearGradient(x, y, x, y+btnH);
+      g.addColorStop(0,'rgba(120,240,255,0.35)');
+      g.addColorStop(1,'rgba(80,180,255,0.15)');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = 'rgba(10,30,50,0.7)';
+    }
+    roundRect(x, y, btnW, btnH, 14);
+    ctx.fill();
+    ctx.strokeStyle = selected ? opts[i].color : 'rgba(120,200,255,0.3)';
+    ctx.lineWidth = selected ? 3 : 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = selected ? '#ffffff' : 'rgba(200,230,255,0.8)';
+    ctx.font = 'bold ' + (isNarrow ? 24 : 28) + 'px system-ui, sans-serif';
+    ctx.fillText(opts[i].label, x + btnW/2, y + (isNarrow ? 36 : 70));
+
+    ctx.fillStyle = selected ? 'rgba(220,240,255,0.85)' : 'rgba(160,200,230,0.6)';
+    ctx.font = (isNarrow ? 14 : 15) + 'px system-ui, sans-serif';
+    const lines = opts[i].desc.split('\n');
+    for(let k=0;k<lines.length;k++){
+      ctx.fillText(lines[k], x + btnW/2, y + (isNarrow ? 68 : 120) + k*22);
+    }
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = '14px system-ui, sans-serif';
+  ctx.fillText(
+    isNarrow
+      ? L('点击选择   或点左上角返回', 'Tap to choose   or tap top-left to go back')
+      : L('← → 选择   空格 / 回车 确认   点左上角返回', '← → choose   Space / Enter confirm   Top-left to go back'),
+    W/2, by + (isNarrow ? 2*(btnH+gap) : btnH) + 50
+  );
+}
+
+function drawPause(){
+  ctx.fillStyle = 'rgba(0,10,25,0.75)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 64px system-ui, sans-serif';
+  ctx.shadowColor = '#5fc8ff';
+  ctx.shadowBlur = 30;
+  ctx.fillText(L('暂 停', 'P A U S E'), W/2, H/2 - 130);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = 'rgba(200,240,255,0.7)';
+  ctx.font = '18px system-ui, sans-serif';
+  ctx.fillText(L('已拯救 ' + score + ' 人   剩余 ' + lives + ' 生命',
+                 'Saved ' + score + '   Lives ' + lives), W/2, H/2 - 50);
+
+  const btnW = Math.min(280, W*0.7), btnH = 64, gap = 20;
+  const bx = W/2 - btnW/2;
+  const by = H/2 + 20;
+
+  btnPause = [];
+  const opts = [
+    { label: L('继续游戏', 'Resume'), action: 'resume' },
+    { label: L('返回主页', 'Main Menu'), action: 'menu' }
+  ];
+
+  for(let i=0;i<2;i++){
+    const y = by + i*(btnH + gap);
+    const rect = { x: bx, y, w: btnW, h: btnH, action: opts[i].action };
+    btnPause.push(rect);
+
+    const hov = hitRect(mouseX, mouseY, rect);
+    const selected = pauseSelection === i || hov;
+
+    if(selected){
+      const g = ctx.createLinearGradient(bx, y, bx, y+btnH);
+      g.addColorStop(0,'rgba(120,240,255,0.35)');
+      g.addColorStop(1,'rgba(80,180,255,0.2)');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = 'rgba(10,30,50,0.6)';
+    }
+    roundRect(bx, y, btnW, btnH, 12);
+    ctx.fill();
+    ctx.strokeStyle = selected ? '#7fd4ff' : 'rgba(120,200,255,0.3)';
+    ctx.lineWidth = selected ? 2.5 : 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = selected ? '#ffffff' : 'rgba(200,230,255,0.7)';
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    ctx.fillText(opts[i].label, bx + btnW/2, y + btnH/2);
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = '14px system-ui, sans-serif';
+  ctx.fillText(L('点击按钮选择   或 P 继续', 'Tap a button   or press P to resume'), W/2, by + 2*btnH + gap + 40);
+}
+
+function drawOver(){
+  ctx.fillStyle = 'rgba(0,5,15,0.85)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const finished = (mode === 'normal' && handledCount >= totalHumans && lives > 0);
+
+  if(finished){
+    ctx.fillStyle = '#7fffd0';
+    ctx.font = 'bold ' + Math.min(68, W*0.12) + 'px system-ui, sans-serif';
+    ctx.shadowColor = '#30ffa0';
+    ctx.shadowBlur = 40;
+    ctx.fillText(L('都救上来了', 'Everyone Is Safe'), W/2, H/2 - 160);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(200,255,240,0.85)';
+    ctx.font = Math.min(22, W*0.05) + 'px system-ui, sans-serif';
+    ctx.fillText(L('谢谢你，没有放弃', 'Thank you for not giving up'), W/2, H/2 - 95);
+
+    ctx.fillStyle = 'rgba(160,240,220,0.55)';
+    ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+    ctx.fillText(L('这一口气，值得', 'That breath was worth it'), W/2, H/2 - 55);
+  } else {
+    ctx.fillStyle = '#ff6b6b';
+    ctx.font = 'bold ' + Math.min(68, W*0.12) + 'px system-ui, sans-serif';
+    ctx.shadowColor = '#ff3030';
+    ctx.shadowBlur = 40;
+    ctx.fillText(L('氧气耗尽', 'Out of Oxygen'), W/2, H/2 - 160);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(255,200,200,0.9)';
+    ctx.font = Math.min(22, W*0.05) + 'px system-ui, sans-serif';
+    ctx.fillText(L('你辜负了他们', 'You Let Them Down'), W/2, H/2 - 95);
+
+    ctx.fillStyle = 'rgba(255,180,180,0.55)';
+    ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+    ctx.fillText(L('他们还在等你……', "They're still waiting for you…"), W/2, H/2 - 55);
+  }
+
+  ctx.fillStyle = 'rgba(200,240,255,0.9)';
+  ctx.font = Math.min(18, W*0.04) + 'px system-ui, sans-serif';
+  ctx.fillText(L('已拯救人数', 'People Saved'), W/2, H/2 + 5);
+
+  ctx.fillStyle = '#7fd4ff';
+  ctx.font = 'bold 56px system-ui, sans-serif';
+  ctx.fillText(score, W/2, H/2 + 60);
+
+  ctx.fillStyle = 'rgba(160,220,255,0.7)';
+  ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+  if(mode === 'normal'){
+    ctx.fillText(L('漏掉 ' + missed + ' 人   共 ' + totalHumans + ' 人',
+                   'Missed ' + missed + '   of ' + totalHumans), W/2, H/2 + 110);
+  } else {
+    ctx.fillText(L('漏掉 ' + missed + ' 人', 'Missed ' + missed), W/2, H/2 + 110);
+    if(totalSaved > 0){
+      ctx.fillStyle = 'rgba(160,240,255,0.6)';
+      ctx.fillText(L('累计拯救 ' + totalSaved + ' 人', 'Total saved ' + totalSaved), W/2, H/2 + 135);
+    }
+  }
+
+  const isNarrow = W < 500;
+  const btnW = isNarrow ? Math.min(260, W*0.7) : 200;
+  const btnH = 64;
+  const gap = isNarrow ? 16 : 40;
+  const totalW = isNarrow ? btnW : btnW*2 + gap;
+  const bx = W/2 - totalW/2;
+  const by = H/2 + 170;
+
+  btnOver = [];
+  const opts = [
+    { label: L('再来一次', 'Try Again'), action: 'restart' },
+    { label: L('返回主页', 'Main Menu'), action: 'menu' }
+  ];
+
+  for(let i=0;i<2;i++){
+    const x = isNarrow ? bx : bx + i*(btnW + gap);
+    const y = isNarrow ? by + i*(btnH + gap) : by;
+    const rect = { x, y, w: btnW, h: btnH, action: opts[i].action };
+    btnOver.push(rect);
+
+    const hov = hitRect(mouseX, mouseY, rect);
+    const selected = overSelection === i || hov;
+
+    if(selected){
+      const g = ctx.createLinearGradient(x, y, x, y+btnH);
+      g.addColorStop(0,'rgba(120,240,255,0.35)');
+      g.addColorStop(1,'rgba(80,180,255,0.2)');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = 'rgba(10,30,50,0.6)';
+    }
+    roundRect(x, y, btnW, btnH, 12);
+    ctx.fill();
+    ctx.strokeStyle = selected ? '#7fd4ff' : 'rgba(120,200,255,0.3)';
+    ctx.lineWidth = selected ? 2.5 : 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = selected ? '#ffffff' : 'rgba(200,230,255,0.7)';
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    ctx.fillText(opts[i].label, x + btnW/2, y + btnH/2);
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = '14px system-ui, sans-serif';
+  ctx.fillText(
+    isNarrow
+      ? L('点击选择', 'Tap to choose')
+      : L('← → 选择   空格 / 回车 确认   也可直接点击', '← → choose   Space / Enter confirm   or just tap'),
+    W/2, (isNarrow ? by + 2*(btnH+gap) : by + btnH) + 40
+  );
+}
+
+function draw(){
+  ctx.save();
+
+  if(shakeTime > 0.5){
+    ctx.translate(
+      (Math.random()-0.5) * shakeTime,
+      (Math.random()-0.5) * shakeTime
+    );
+  }
+
+  drawWater();
+  drawMotes();
+
+  if(state === STATE.PLAY || state === STATE.OVER || state === STATE.PAUSE){
+    drawPlants();
+    drawJudgeLine();
+    drawHumans();
+    drawRings();
+    drawPlayer();
+    drawBubbles();
+    drawParticles();
+  } else {
+    drawPlants();
+    if(Math.random() < 0.15){
+      spawnBubble(Math.random()*W, H+10, 2 + Math.random()*4, 0, -0.5, 1);
+    }
+    drawBubbles();
+  }
+
+  ctx.restore();
+
+  if(redFlash > 0.01){
+    ctx.fillStyle = 'rgba(255,40,40,' + (redFlash*0.35) + ')';
+    ctx.fillRect(0,0,W,H);
+  }
+
+  if(state === STATE.PLAY) drawHUD();
+  if(state === STATE.MENU) drawMenu();
+  if(state === STATE.MODE) drawModeSelect();
+  if(state === STATE.PAUSE) drawPause();
+  if(state === STATE.OVER) drawOver();
+  if(state === STATE.LOG) drawLog();
+}
+
+function loop(){
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// =============================================================
+// 密文编码 / 解码
+// =============================================================
+const CODE_PREFIX = 'OXY1';
+
+function utf8Encode(str){
+  if(typeof TextEncoder !== 'undefined') return new TextEncoder().encode(str);
+  const utf8 = unescape(encodeURIComponent(str));
+  const arr = new Uint8Array(utf8.length);
+  for(let i=0;i<utf8.length;i++) arr[i] = utf8.charCodeAt(i);
+  return arr;
+}
+function utf8Decode(bytes){
+  if(typeof TextDecoder !== 'undefined') return new TextDecoder('utf-8').decode(bytes);
+  let s = '';
+  for(let i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+  return decodeURIComponent(escape(s));
+}
+function bytesToBase64(bytes){
+  let bin = '';
+  for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function base64ToBytes(b64){
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+function checksum(bytes){
+  let sum = 0;
+  for(let i=0;i<bytes.length;i++) sum = (sum + bytes[i]) % 65521;
+  return sum.toString(36);
+}
+function encodeOxySave(obj){
+  const json = JSON.stringify(obj);
+  const bytes = utf8Encode(json);
+  let b64 = bytesToBase64(bytes);
+  b64 = b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  return CODE_PREFIX + '-' + b64 + '-' + checksum(bytes);
+}
+function decodeOxySave(code){
+  code = (code || '').trim().replace(/\s+/g,'');
+  if(code.indexOf(CODE_PREFIX + '-') !== 0) return { ok:false, msg: L('密文格式不对','Bad cipher format') };
+  const rest = code.slice(CODE_PREFIX.length + 1);
+  const lastDash = rest.lastIndexOf('-');
+  if(lastDash < 0) return { ok:false, msg: L('密文不完整','Incomplete cipher') };
+  let b64 = rest.slice(0, lastDash);
+  const cs = rest.slice(lastDash + 1);
+  if(!b64 || !cs) return { ok:false, msg: L('密文不完整','Incomplete cipher') };
+  b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
+  while(b64.length % 4) b64 += '=';
+  let bytes;
+  try { bytes = base64ToBytes(b64); } catch(e){ return { ok:false, msg: L('密文损坏','Corrupted cipher') }; }
+  if(checksum(bytes) !== cs) return { ok:false, msg: L('校验失败','Checksum failed') };
+  let json;
+  try { json = utf8Decode(bytes); } catch(e){ return { ok:false, msg: L('密文损坏','Corrupted cipher') }; }
+  let obj;
+  try { obj = JSON.parse(json); } catch(e){ return { ok:false, msg: L('数据无效','Invalid data') }; }
+  if(!obj || typeof obj !== 'object') return { ok:false, msg: L('数据无效','Invalid data') };
+  return { ok:true, data:obj };
+}
+
+// =============================================================
+// 存档迁移
+// =============================================================
+let lastExportCode = '';
+let transferShouldClear = false;
+
+function openTransferModal(){
+  transferShouldClear = false;
+  document.getElementById('transferMask').classList.add('show');
+  showTransferChoice();
+}
+function showTransferChoice(){
+  document.getElementById('transferChoice').style.display = '';
+  document.getElementById('transferExport').style.display = 'none';
+  document.getElementById('transferImport').style.display = 'none';
+  document.getElementById('transferBtnsChoice').style.display = 'flex';
+  document.getElementById('transferBtnsExport').style.display = 'none';
+  document.getElementById('transferBtnsImport').style.display = 'none';
+  document.getElementById('transferDesc').textContent =
+    L('把存档变成一段密文，在另一台设备导入', 'Turn your save into a cipher, then import it on another device');
+}
+function closeTransferModal(){
+  if(transferShouldClear){
+    transferShouldClear = false;
+    clearOxySave();
+    toast(L('存档已清空', 'Save cleared'));
+  }
+  document.getElementById('transferMask').classList.remove('show');
+}
+function clearOxySave(){
+  try {
+    localStorage.removeItem(LS_TOTAL);
+    localStorage.removeItem(LS_BALANCE);
+  } catch(e){}
+  totalSaved = 0;
+  savedBalance = 0;
+}
+
+function doExport(){
+  const payload = {
+    game: 'oxy',
+    totalSaved: totalSaved,
+    savedBalance: savedBalance,
+    goldExchanged: goldExchanged,
+    exportedAt: Date.now()
+  };
+  const code = encodeOxySave(payload);
+  lastExportCode = code;
+  document.getElementById('exportCode').textContent = code;
+  document.getElementById('exportMeta').textContent = L(
+    '历史总拯救 ' + totalSaved + ' 人 · 可兑换余额 ' + savedBalance + ' · 已兑换 ' + goldExchanged + ' 枚',
+    'All-time saved ' + totalSaved + ' · Balance ' + savedBalance + ' · Redeemed ' + goldExchanged
+  );
+
+  document.getElementById('transferChoice').style.display = 'none';
+  document.getElementById('transferExport').style.display = '';
+  document.getElementById('transferImport').style.display = 'none';
+  document.getElementById('transferBtnsChoice').style.display = 'none';
+  document.getElementById('transferBtnsExport').style.display = 'flex';
+  document.getElementById('transferBtnsImport').style.display = 'none';
+  document.getElementById('transferDesc').textContent =
+    L('复制这段密文，在另一台设备导入', 'Copy this cipher and import it on another device');
+}
+
+function doCopyCode(){
+  if(!lastExportCode){ toast(L('还没有生成密文', 'No cipher generated yet')); return; }
+  function fallbackCopy(){
+    const ta = document.createElement('textarea');
+    ta.value = lastExportCode;
+    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast(L('密文已复制', 'Cipher copied')); transferShouldClear = true; }
+    catch(e){ toast(L('复制失败', 'Copy failed')); }
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(lastExportCode).then(()=>{
+      toast(L('密文已复制', 'Cipher copied'));
+      transferShouldClear = true;
+    }).catch(fallbackCopy);
+  } else fallbackCopy();
+}
+
+function doDownloadFile(){
+  if(!lastExportCode){ toast(L('还没有生成密文', 'No cipher generated yet')); return; }
+  try {
+    const blob = new Blob([lastExportCode], { type:'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'oxygen_save_' + Date.now() + '.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    toast(L('已保存为文件', 'Saved as file'));
+    transferShouldClear = true;
+  } catch(e){ toast(L('保存失败', 'Save failed')); }
+}
+
+function doScreenshot(){
+  if(!lastExportCode){ toast(L('还没有生成密文', 'No cipher generated yet')); return; }
+  try {
+    const text = lastExportCode;
+    const canvas = document.createElement('canvas');
+    const c = canvas.getContext('2d');
+    const lineH = 18;
+    const maxChars = 52;
+    const lines = Math.ceil(text.length / maxChars);
+    canvas.width = 460;
+    canvas.height = 100 + lines * lineH + 40;
+
+    const bg = c.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, '#0a2a45');
+    bg.addColorStop(1, '#06172a');
+    c.fillStyle = bg;
+    c.fillRect(0, 0, canvas.width, canvas.height);
+
+    c.strokeStyle = 'rgba(120,240,255,0.55)';
+    c.lineWidth = 2;
+    c.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+    c.fillStyle = '#a0f0ff';
+    c.font = 'bold 17px system-ui, sans-serif';
+    c.fillText(L('氧气 · 存档密文', 'Oxygen · Save Cipher'), 22, 34);
+
+    c.fillStyle = 'rgba(160,220,255,0.7)';
+    c.font = '12px system-ui, sans-serif';
+    c.fillText(L('历史总拯救 ' + totalSaved + ' 人 · 余额 ' + savedBalance,
+                'All-time saved ' + totalSaved + ' · Balance ' + savedBalance), 22, 56);
+
+    c.fillStyle = '#a0f0ff';
+    c.font = '12px monospace';
+    for(let i=0;i<lines;i++){
+      c.fillText(text.substr(i*maxChars, maxChars), 22, 86 + i*lineH);
+    }
+
+    canvas.toBlob(function(blob){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'oxygen_save_' + Date.now() + '.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      toast(L('已截屏保存', 'Screenshot saved'));
+      transferShouldClear = true;
+    }, 'image/png');
+  } catch(e){ toast(L('截屏失败', 'Screenshot failed')); }
+}
+
+function showImportView(){
+  document.getElementById('transferChoice').style.display = 'none';
+  document.getElementById('transferExport').style.display = 'none';
+  document.getElementById('transferImport').style.display = '';
+  document.getElementById('transferBtnsChoice').style.display = 'none';
+  document.getElementById('transferBtnsExport').style.display = 'none';
+  document.getElementById('transferBtnsImport').style.display = 'flex';
+  document.getElementById('transferDesc').textContent = L('把密文粘贴到这里', 'Paste the cipher here');
+  document.getElementById('importCode').value = '';
+  document.getElementById('importStatus').innerHTML = L('等待粘贴…', 'Waiting for paste…');
+  setTimeout(()=>document.getElementById('importCode').focus(), 120);
+}
+
+function doConfirmImport(){
+  const code = document.getElementById('importCode').value || '';
+  if(!code.trim()){
+    document.getElementById('importStatus').innerHTML = '<span class="bad">' + L('请先粘贴密文', 'Please paste a cipher first') + '</span>';
+    return;
+  }
+  const res = decodeOxySave(code);
+  if(!res.ok){
+    document.getElementById('importStatus').innerHTML = '<span class="bad">' + L('导入失败：', 'Import failed: ') + res.msg + '</span>';
+    return;
+  }
+  const d = res.data;
+  if(!d || typeof d !== 'object'){
+    document.getElementById('importStatus').innerHTML = '<span class="bad">' + L('数据无效', 'Invalid data') + '</span>';
+    return;
+  }
+  if(!confirm(L('导入会覆盖本机当前进度，确定吗？', 'Importing will overwrite your current progress. Continue?'))) return;
+
+  totalSaved    = parseInt(d.totalSaved)    || 0;
+  savedBalance  = parseInt(d.savedBalance)  || 0;
+  goldExchanged = parseInt(d.goldExchanged) || 0;
+  saveOxyStats();
+
+  document.getElementById('importStatus').innerHTML = '<span class="ok">' + L('导入成功！', 'Imported successfully!') + '</span>';
+  toast(L('存档导入成功', 'Save imported'));
+  setTimeout(()=>{
+    transferShouldClear = false;
+    document.getElementById('transferMask').classList.remove('show');
+  }, 1000);
+}
+
+// =============================================================
+// 互联互通
+// =============================================================
+function openLinkModal(){
+  loadOxyStats();
+  document.getElementById('linkTotalSaved').textContent = totalSaved;
+  document.getElementById('linkBalance').textContent = savedBalance;
+  const canEx = Math.floor(savedBalance / EXCHANGE_RATE);
+  document.getElementById('linkCanExchange').textContent = canEx;
+  document.getElementById('linkGoldExchanged').textContent = goldExchanged;
+  document.getElementById('linkMask').classList.add('show');
+}
+function closeLinkModal(){
+  document.getElementById('linkMask').classList.remove('show');
+}
+
+// =============================================================
+// 跨游戏共享存档：装进「米皮糖中枢」后同源，数据自动互通
+// =============================================================
+var XSYNC_MAP = {
+  eggTot: ['eggduck_total_score', 'mitang_eggduck_total_score'],
+  eggRed: ['eggduck_redeemed', 'mitang_eggduck_redeemed'],
+  jwTot: ['jwdb_total'],
+  jwRed: ['jwdb_redeemed'],
+  oxyTot: ['oxy_total_saved'],
+  oxyBal: ['oxy_saved_balance'],
+  oxyGold: ['oxy_gold_exchanged', 'oxy_gold_for_mpt'],
+  jwGold: ['mpt_jiangwei_gold'],
+  coins: ['totalCoins']
+};
+var XSYNC_MEM = {};
+function xsRead(k) {
+  try { return parseInt(localStorage.getItem(k) || '0', 10) || 0; } catch (e) { return XSYNC_MEM[k] || 0; }
+}
+function xsWrite(k, v) {
+  XSYNC_MEM[k] = v;
+  try { localStorage.setItem(k, String(v)); } catch (e) {}
+}
+function xsExport() {
+  var d = {}, k, ks, i, v, mx;
+  for (k in XSYNC_MAP) {
+    ks = XSYNC_MAP[k]; mx = 0;
+    for (i = 0; i < ks.length; i++) { v = xsRead(ks[i]); if (v > mx) mx = v; }
+    if (mx) d[k] = mx;
+  }
+  return 'X1|' + JSON.stringify(d);
+}
+
+
+/* ===== 一次性互通码：生成时就从余额里扣下，米皮糖按编号去重 ===== */
+function oxyOutCode() {
+  loadOxyStats();
+  var box = document.getElementById('xcBox');
+  var msg = document.getElementById('xcMsg');
+  var amt = Math.floor(savedBalance);
+  if (amt < EXCHANGE_RATE) {
+    if (msg) msg.textContent = L('暂无可导出的余额', 'Nothing to export yet');
+    return;
+  }
+  var payload = {
+    v: 2,
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    from: 'oxy',
+    oxyBal: amt
+  };
+  var code = 'X2|' + JSON.stringify(payload);
+  savedBalance -= amt;
+  saveOxyStats();
+  if (box) {
+    box.value = code;
+    try { box.focus(); box.setSelectionRange(0, code.length); } catch (e) {}
+  }
+  var ok = false;
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(code); ok = true; } } catch (e) {}
+  if (msg) msg.textContent = (ok ? L('已复制', 'Copied') : L('已生成，长按复制', 'Generated — long-press to copy'))
+    + L('（导出 ' + amt + ' 余额，只能导入一次）', ' (' + amt + ' balance, single use)');
+  document.getElementById('linkBalance').textContent = savedBalance;
+  openLinkModal();
+}
+document.getElementById('xcOutBtn').addEventListener('click', oxyOutCode);
+
+var XSYNC_LAST = null;
+function xsAutoWatch(onChange) {
+  function tick() {
+    var cur = xsExport();
+    if (XSYNC_LAST === null) { XSYNC_LAST = cur; return; }
+    if (cur !== XSYNC_LAST) { XSYNC_LAST = cur; try { onChange(); } catch (e) {} }
+  }
+  XSYNC_LAST = xsExport();
+  try { window.addEventListener('storage', tick); } catch (e) {}
+  setInterval(tick, 2500);
+}
+xsAutoWatch(function () {
+  if (document.getElementById('linkMask').classList.contains('show')) openLinkModal();
+});
+
+// =============================================================
+// 关标签页时清空（如果已导出）
+// =============================================================
+window.addEventListener('beforeunload', ()=>{
+  if(transferShouldClear){
+    try {
+      localStorage.removeItem(LS_TOTAL);
+      localStorage.removeItem(LS_BALANCE);
+    } catch(e){}
+  }
+});
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden' && transferShouldClear){
+    try {
+      localStorage.removeItem(LS_TOTAL);
+      localStorage.removeItem(LS_BALANCE);
+    } catch(e){}
+  }
+});
+
+// =============================================================
+// 语言切换
+// =============================================================
+function applyLang(){
+  document.documentElement.lang = LANG === 'zh' ? 'zh' : 'en';
+  document.title = L('氧气 · 怕你太累了', "Oxygen · Afraid You're Too Tired");
+
+  const btn = document.getElementById('langBtn');
+  if(btn){
+    btn.textContent = LANG === 'zh' ? '🇨🇳' : '🇺🇸';
+    btn.title = LANG === 'zh' ? 'Switch to English' : '切换到中文';
+  }
+
+  document.querySelectorAll('[data-zh]').forEach(el=>{
+    const html = LANG === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+    if(html !== null) el.innerHTML = html;
+  });
+
+  const ta = document.getElementById('importCode');
+  if(ta) ta.placeholder = L('把密文粘贴到这里…', 'Paste the cipher here…');
+
+  const transferMask = document.getElementById('transferMask');
+  if(transferMask.classList.contains('show')){
+    if(document.getElementById('transferImport').style.display !== 'none'){
+      document.getElementById('transferDesc').textContent = L('把密文粘贴到这里', 'Paste the cipher here');
+    } else if(document.getElementById('transferExport').style.display !== 'none'){
+      document.getElementById('transferDesc').textContent = L('复制这段密文，在另一台设备导入', 'Copy this cipher and import it on another device');
+    } else {
+      document.getElementById('transferDesc').textContent = L('把存档变成一段密文，在另一台设备导入', 'Turn your save into a cipher, then import it on another device');
+    }
+  }
+
+  const linkMask = document.getElementById('linkMask');
+  if(linkMask.classList.contains('show')){
+    openLinkModal();
+  }
+}
+
+document.getElementById('langBtn').addEventListener('click', ()=>{
+  LANG = LANG === 'zh' ? 'en' : 'zh';
+  applyLang();
+  toast(L('已切换到中文', 'Switched to English'));
+});
+
+// =============================================================
+// 绑定弹窗按钮
+// =============================================================
+document.getElementById('btnExport').onclick = doExport;
+document.getElementById('btnImport').onclick = showImportView;
+document.getElementById('btnTransferClose').onclick = closeTransferModal;
+document.getElementById('btnCopyCode').onclick = doCopyCode;
+document.getElementById('btnDownloadFile').onclick = doDownloadFile;
+document.getElementById('btnScreenshot').onclick = doScreenshot;
+document.getElementById('btnExportBack').onclick = showTransferChoice;
+document.getElementById('btnConfirmImport').onclick = doConfirmImport;
+document.getElementById('btnImportBack').onclick = showTransferChoice;
+document.getElementById('importCode').addEventListener('input', function(){
+  const v = this.value.trim();
+  if(!v){ document.getElementById('importStatus').innerHTML = L('等待粘贴…', 'Waiting for paste…'); return; }
+  const res = decodeOxySave(v);
+  if(res.ok) document.getElementById('importStatus').innerHTML = '<span class="ok">' + L('密文有效', 'Valid cipher') + '</span>';
+  else document.getElementById('importStatus').innerHTML = '<span class="bad">' + res.msg + '</span>';
+});
+document.getElementById('btnLinkClose').onclick = closeLinkModal;
+
+// 点遮罩关闭
+document.getElementById('transferMask').addEventListener('click', function(e){
+  if(e.target === this) closeTransferModal();
+});
+document.getElementById('linkMask').addEventListener('click', function(e){
+  if(e.target === this) closeLinkModal();
+});
+
+// =============================================================
+// 启动
+// =============================================================
+plants = []; motes = []; bubbles = []; particles = []; rings = []; humans = [];
+scrollSpeed = 1.6; distance = 0; shakeTime = 0; redFlash = 0;
+initPlants();
+initMotes();
+score = 0; lives = 3; missed = 0; handledCount = 0; totalHumans = 50;
+
+loadOxyStats();
+applyLang();
+
+loop();
+</script>
+
+</body></html>
