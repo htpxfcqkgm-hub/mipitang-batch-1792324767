@@ -955,7 +955,7 @@ var UPDATES = [
       '新增设置页，分四组：身份、设置、数据、关于；首页的清空存档 / 改昵称移入设置页',
       '设置页也能切换语言，并标出当前语言',
       '清空存档文案改为：昵称保留，但玩家 ID 会重置，通讯录和交易记录将失效',
-      '交易码粘贴容错：换行、空格、全角字符、智能破折号、中文包裹都能识别；自动复制失败时会把交易码选中让你手动复制'
+      '交易码压缩到约 160~200 字符（原来 300+），转发不再被截断；旧交易码仍可识别，粘贴时换行、空格、全角、智能破折号、中文包裹都能容错；自动复制失败会帮你选中文本'
     ],
     itemsEn:[
       'Read-only blacklist support: fetched once at launch and cached for 24 hours',
@@ -965,7 +965,7 @@ var UPDATES = [
       'Added a settings screen with four groups: identity, settings, data, about; clear save / rename moved here',
       'Language can also be switched from settings, with the current one highlighted',
       'Clear-save warning is explicit now: nickname stays, but the player ID resets and contacts / trade history become invalid',
-      'Trade-code paste is tolerant now: line breaks, spaces, full-width characters, smart dashes and Chinese wrappers are handled; if auto-copy fails the code is selected for manual copying'
+      'Trade codes shrank to about 160~200 characters (was 300+), so forwarding no longer truncates them; old codes still parse, paste tolerates line breaks, spaces, full-width characters, smart dashes and wrappers, and the code is auto-selected when copying fails'
     ] },
   { ver:'v0.34', latest:false,
     titleZh:'赠与交易码',
@@ -1699,7 +1699,7 @@ function renderUpdates(){
     for (var i = 0; i < arr.length; i++) s += (arr[i] < 16 ? '0' : '') + arr[i].toString(16);
     return s;
   }
-  function utf8Bytes(str) {
+  function tradeUtf8Bytes(str) {
     var out = [];
     for (var i = 0; i < str.length; i++) {
       var c = str.charCodeAt(i);
@@ -1715,7 +1715,7 @@ function renderUpdates(){
     }
     return out;
   }
-  function utf8Decode(bytes) {
+  function tradeUtf8Decode(bytes) {
     var s = '', i = 0, n = bytes.length;
     while (i < n) {
       var b = bytes[i++];
@@ -1731,7 +1731,7 @@ function renderUpdates(){
     return s;
   }
   function b64uEncode(str) {
-    var bytes = utf8Bytes(str), bin = '';
+    var bytes = tradeUtf8Bytes(str), bin = '';
     for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
     return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
@@ -1740,17 +1740,17 @@ function renderUpdates(){
     while (t.length % 4) t += '=';
     var bin = atob(t), bytes = [];
     for (var i = 0; i < bin.length; i++) bytes.push(bin.charCodeAt(i));
-    return utf8Decode(bytes);
+    return tradeUtf8Decode(bytes);
   }
 
   /* 本地签名密钥（本地实现用；接服务端后由服务端持有） */
-  var TRADE_SIGN_KEY = utf8Bytes('mpt.trade.v1|7d3a91c4e58b2f60');
+  var TRADE_SIGN_KEY = tradeUtf8Bytes('mpt.trade.v1|7d3a91c4e58b2f60');
   var TradeCrypto = {
     /* 定序拼接，不依赖 JSON 键顺序；fromName 不进签名 */
     canonical: function (t) {
       return [t.id, t.from, t.to, Math.floor(Number(t.give && t.give.coins) || 0), t.createdAt, t.expireAt].join('|');
     },
-    sign: function (t) { return bytesToHex(hmacSha256(TRADE_SIGN_KEY, utf8Bytes(this.canonical(t)))); },
+    sign: function (t) { return bytesToHex(hmacSha256(TRADE_SIGN_KEY, tradeUtf8Bytes(this.canonical(t)))); },
     verify: function (t) { return typeof t.sig === 'string' && t.sig.length > 0 && t.sig === this.sign(t); }
   };
 
@@ -1763,7 +1763,63 @@ function renderUpdates(){
     for (var i = 0; i < n; i++) out += UID_ALPHABET[bytes[i] & 31];
     return out;
   }
-  function encodeTrade(t) { return 'MPTG1.' + b64uEncode(JSON.stringify(t)); }
+  /* ---- 交易码编解码：v2 用定序短串（约 180 字符），避免被聊天软件/输入框截断 ---- */
+  function hexToBytes(hex) {
+    var out = [];
+    for (var i = 0; i + 1 < hex.length; i += 2) out.push(parseInt(hex.substr(i, 2), 16));
+    return out;
+  }
+  function b64uToBytes(s) {
+    var t = String(s || '').replace(/-/g, '+').replace(/_/g, '/');
+    while (t.length % 4) t += '=';
+    var bin = atob(t), arr = [];
+    for (var i = 0; i < bin.length; i++) arr.push(bin.charCodeAt(i));
+    return arr;
+  }
+  function bytesToB64u(bytes) {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  /* 定序短串：id|from|to|coins|createdAt|expireAt|sig(b64url)|fromName（昵称放最后，可含 |） */
+  function tradeToText(t) {
+    return [
+      t.id, t.from, t.to, Math.floor(Number(t.give && t.give.coins) || 0),
+      Number(t.createdAt), Number(t.expireAt),
+      bytesToB64u(hexToBytes(t.sig)), String(t.fromName || '')
+    ].join('|');
+  }
+  function tradeFromText(txt) {
+    var s = String(txt == null ? '' : txt).replace(/^\s+|\s+$/g, '');
+    if (!s) return null;
+    /* 老格式：直接是 JSON */
+    if (s.charAt(0) === '{') {
+      var j = null;
+      try { j = JSON.parse(s); } catch (e) { return null; }
+      return (j && j.id && j.from && j.to) ? j : null;
+    }
+    var p = s.split('|');
+    if (p.length < 7) return null;
+    var bytes;
+    try { bytes = b64uToBytes(p[6]); } catch (e) { return null; }
+    if (bytes.length !== 32) return null;
+    var t = {
+      id: p[0], from: p[1], to: p[2],
+      give: { coins: Number(p[3]) },
+      createdAt: Number(p[4]), expireAt: Number(p[5]),
+      sig: bytesToHex(bytes),
+      fromName: p.slice(7).join('|')
+    };
+    if (!t.id || !isValidUid(t.from) || !isValidUid(t.to)) return null;
+    return t;
+  }
+  function encodeTrade(t) { return 'MPTG2.' + b64uEncode(tradeToText(t)); }
+  function decodeTradePayload(p) {
+    if (!p) return null;
+    var bytes, txt;
+    try { bytes = b64uToBytes(p); txt = tradeUtf8Decode(bytes); } catch (e) { return null; }
+    return tradeFromText(txt);
+  }
   /* 粘贴过来的文本可能被输入法/聊天软件改过：全角、智能破折号、零宽字符、引号、中文包裹 */
   function normalizeTradeText(raw) {
     var s = String(raw == null ? '' : raw);
@@ -1772,42 +1828,29 @@ function renderUpdates(){
     s = s.replace(/[\u2010-\u2015\u2212]/g, '-');      /* 各种破折号 → 半角 - */
     return s;
   }
-  function tryTradePayload(p) {
-    if (!p) return null;
-    var s = p.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
-    while (s.length % 4) s += '=';
-    var bin;
-    try { bin = atob(s); } catch (e) { return null; }
-    var bytes = [];
-    for (var i = 0; i < bin.length; i++) bytes.push(bin.charCodeAt(i));
-    var obj = null;
-    try { obj = JSON.parse(utf8Decode(bytes)); } catch (e) { obj = null; }
-    if (!obj || typeof obj !== 'object' || !obj.id || !obj.from || !obj.to) return null;
-    return obj;
-  }
   function parseTradeCode(raw) {
     var s = normalizeTradeText(raw);
     if (!s.replace(/\s/g, '')) return null;
     var obj = null, i;
-    /* 1. 直接粘的 JSON */
+    /* 1. 直接粘的 JSON（老格式） */
     if (s.replace(/\s/g, '').charAt(0) === '{') {
-      try { obj = JSON.parse(s); } catch (e) { obj = null; }
-      if (obj && obj.id && obj.from && obj.to) return obj;
+      obj = tradeFromText(s);
+      if (obj) return obj;
     }
-    /* 2. 找到 MPTG1 前缀：把它后面的一整段（允许中间夹换行/空格）拼起来解码 */
-    var pm = /MPTG\s*1/i.exec(s);
+    /* 2. 找到 MPTG1 / MPTG2 前缀：把它后面的一整段（允许中间夹换行/空格）拼起来解码 */
+    var pm = /MPTG\s*[12]/i.exec(s);
     if (pm) {
       var tail = s.slice(pm.index + pm[0].length).replace(/[^A-Za-z0-9+/=_-]/g, '');
-      obj = tryTradePayload(tail);
+      obj = decodeTradePayload(tail);
       if (obj) return obj;
     }
     /* 3. 没有前缀/前缀丢了：去掉引号、中文、空白后整体解码，再去掉可能残留的前缀 */
-    var cleaned = s.replace(/[^A-Za-z0-9+/=_-]/g, '').replace(/^MPTG1/i, '');
-    if (cleaned) { obj = tryTradePayload(cleaned); if (obj) return obj; }
+    var cleaned = s.replace(/[^A-Za-z0-9+/=_-]/g, '').replace(/^MPTG[12]/i, '');
+    if (cleaned) { obj = decodeTradePayload(cleaned); if (obj) return obj; }
     /* 4. 文本被括了其他内容：按最长片段试 */
     var parts = s.split(/[^A-Za-z0-9+/=_-]+/).filter(function (x) { return x.length > 40; });
     parts.sort(function (a, b) { return b.length - a.length; });
-    for (i = 0; i < parts.length && i < 3; i++) { obj = tryTradePayload(parts[i]); if (obj) return obj; }
+    for (i = 0; i < parts.length && i < 3; i++) { obj = decodeTradePayload(parts[i]); if (obj) return obj; }
     return null;
   }
   function makeTrade(toUid, coins) {
@@ -3468,7 +3511,7 @@ function renderUpdates(){
         var extra = '';
         if (res.code === 'badcode') {
           var got = raw.replace(/\s/g, '').length;
-          extra = L('（收到 ' + got + ' 个字符，完整交易码约 300 个）', ' (received ' + got + ' chars; a full code is about 300)');
+          extra = L('（收到 ' + got + ' 个字符，可能不完整，请重新复制整串）', ' (received ' + got + ' chars — possibly truncated; copy the whole string again)');
         }
         showTradeMsg(msg, tradeErr(res.code) + extra, true);
         return;
