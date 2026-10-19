@@ -746,7 +746,7 @@
     <div class="setWrap">
       <div class="setGroup">
         <div class="setGroupTitle" data-zh="添加联系人" data-en="Add Contact">添加联系人</div>
-        <div class="field"><input id="frUidInput" type="text" maxlength="12" placeholder="MPT-XXXX-XXXX" spellcheck="false" autocapitalize="characters"></div>
+        <div class="field"><input id="frUidInput" type="text" maxlength="16" placeholder="MPT-XXXX-XXXX" spellcheck="false" autocapitalize="characters" autocomplete="off" style="font-family: ui-monospace, Menlo, monospace; letter-spacing: .04em"></div>
         <div class="field"><input id="frNickInput" type="text" maxlength="12" placeholder="备注称呼"><button class="buy" id="frAddBtn" data-zh="添加" data-en="Add">添加</button></div>
         <div class="tradeMsg" id="frMsg"></div>
         <div class="setHint" data-zh="称呼只保存在你本机，不会同步对方的真名。" data-en="Labels stay on your device — the other player's name is never synced.">称呼只保存在你本机，不会同步对方的真名。</div>
@@ -954,7 +954,8 @@ var UPDATES = [
       '设置页显示黑名单状态：已加载 N 条 · 日期，失败则显示使用本地缓存',
       '新增设置页，分四组：身份、设置、数据、关于；首页的清空存档 / 改昵称移入设置页',
       '设置页也能切换语言，并标出当前语言',
-      '清空存档文案改为：昵称保留，但玩家 ID 会重置，通讯录和交易记录将失效'
+      '清空存档文案改为：昵称保留，但玩家 ID 会重置，通讯录和交易记录将失效',
+      '交易码粘贴容错：换行、空格、全角字符、智能破折号、中文包裹都能识别；自动复制失败时会把交易码选中让你手动复制'
     ],
     itemsEn:[
       'Read-only blacklist support: fetched once at launch and cached for 24 hours',
@@ -963,7 +964,8 @@ var UPDATES = [
       'Settings shows blacklist status: loaded N entries · date, or “using local cache” on failure',
       'Added a settings screen with four groups: identity, settings, data, about; clear save / rename moved here',
       'Language can also be switched from settings, with the current one highlighted',
-      'Clear-save warning is explicit now: nickname stays, but the player ID resets and contacts / trade history become invalid'
+      'Clear-save warning is explicit now: nickname stays, but the player ID resets and contacts / trade history become invalid',
+      'Trade-code paste is tolerant now: line breaks, spaces, full-width characters, smart dashes and Chinese wrappers are handled; if auto-copy fails the code is selected for manual copying'
     ] },
   { ver:'v0.34', latest:false,
     titleZh:'赠与交易码',
@@ -1058,8 +1060,7 @@ var UPDATES = [
       'Closing reworked: a business-hours bar at the top shows "Day N · mm:ss left", turns red in the last 30 seconds, and auto-close is no longer a surprise',
       'Business hours are one bar with a single "Close Early" entry — no duplicate button in the top bar. Closing early asks first and credits the hours you skip',
       'The panel title shows "Day N · Closing Time", and "Continue Tomorrow" became "Start Next Day"; both buttons settle and move on',
-      'Left / home or entering the game all settle the day first — you never re-enter into a closing panel',
-      'Closed state is saved; entering the game always starts a fresh day from now',
+      'Left / home or entering the game all settle the day first — you never re-enter into a closing panel, because the closed state is saved',
       'Rules page "Save Transfer" now has full steps (export → copy / file / screenshot → import → overwrite warning); feedback moved to the page footer',
       'Button system: each variant has its own pressed state instead of flashing the same brown base',
       'Disabled buttons keep their bottom shadow, so nothing jumps when they toggle',
@@ -1763,12 +1764,51 @@ function renderUpdates(){
     return out;
   }
   function encodeTrade(t) { return 'MPTG1.' + b64uEncode(JSON.stringify(t)); }
+  /* 粘贴过来的文本可能被输入法/聊天软件改过：全角、智能破折号、零宽字符、引号、中文包裹 */
+  function normalizeTradeText(raw) {
+    var s = String(raw == null ? '' : raw);
+    try { if (s.normalize) s = s.normalize('NFKC'); } catch (e) {}
+    s = s.replace(/[\u200B-\u200D\uFEFF]/g, '');      /* 零宽字符 */
+    s = s.replace(/[\u2010-\u2015\u2212]/g, '-');      /* 各种破折号 → 半角 - */
+    return s;
+  }
+  function tryTradePayload(p) {
+    if (!p) return null;
+    var s = p.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
+    while (s.length % 4) s += '=';
+    var bin;
+    try { bin = atob(s); } catch (e) { return null; }
+    var bytes = [];
+    for (var i = 0; i < bin.length; i++) bytes.push(bin.charCodeAt(i));
+    var obj = null;
+    try { obj = JSON.parse(utf8Decode(bytes)); } catch (e) { obj = null; }
+    if (!obj || typeof obj !== 'object' || !obj.id || !obj.from || !obj.to) return null;
+    return obj;
+  }
   function parseTradeCode(raw) {
-    var s = String(raw == null ? '' : raw).replace(/\s+/g, '');
-    if (!s) return null;
-    var i = s.indexOf('.');
-    if (i > 0 && s.slice(0, i).toUpperCase() === 'MPTG1') s = s.slice(i + 1);
-    try { return JSON.parse(b64uDecode(s)); } catch (e) { return null; }
+    var s = normalizeTradeText(raw);
+    if (!s.replace(/\s/g, '')) return null;
+    var obj = null, i;
+    /* 1. 直接粘的 JSON */
+    if (s.replace(/\s/g, '').charAt(0) === '{') {
+      try { obj = JSON.parse(s); } catch (e) { obj = null; }
+      if (obj && obj.id && obj.from && obj.to) return obj;
+    }
+    /* 2. 找到 MPTG1 前缀：把它后面的一整段（允许中间夹换行/空格）拼起来解码 */
+    var pm = /MPTG\s*1/i.exec(s);
+    if (pm) {
+      var tail = s.slice(pm.index + pm[0].length).replace(/[^A-Za-z0-9+/=_-]/g, '');
+      obj = tryTradePayload(tail);
+      if (obj) return obj;
+    }
+    /* 3. 没有前缀/前缀丢了：去掉引号、中文、空白后整体解码，再去掉可能残留的前缀 */
+    var cleaned = s.replace(/[^A-Za-z0-9+/=_-]/g, '').replace(/^MPTG1/i, '');
+    if (cleaned) { obj = tryTradePayload(cleaned); if (obj) return obj; }
+    /* 4. 文本被括了其他内容：按最长片段试 */
+    var parts = s.split(/[^A-Za-z0-9+/=_-]+/).filter(function (x) { return x.length > 40; });
+    parts.sort(function (a, b) { return b.length - a.length; });
+    for (i = 0; i < parts.length && i < 3; i++) { obj = tryTradePayload(parts[i]); if (obj) return obj; }
+    return null;
   }
   function makeTrade(toUid, coins) {
     ensureState();
@@ -1955,17 +1995,33 @@ function renderUpdates(){
       navigator.clipboard.writeText(text).then(function () { toast(okMsg, 'good'); }).catch(function () { copyTextFallback(text, okMsg); });
     } else copyTextFallback(text, okMsg);
   }
+  /* 选中已生成的交易码，方便手动长按复制 */
+  function selectTradeOut() {
+    var out = $('tradeOut');
+    if (!out || !out.value) return false;
+    try {
+      out.focus();
+      out.setSelectionRange(0, out.value.length);
+      return true;
+    } catch (e) { return false; }
+  }
   function copyTextFallback(text, okMsg) {
     try {
       var ta = document.createElement('textarea');
       ta.value = text;
-      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      ta.setAttribute('readonly', 'readonly');
+      ta.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:.01;border:0;padding:0;margin:0;';
       document.body.appendChild(ta);
+      ta.focus();
       ta.select();
-      document.execCommand('copy');
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
       document.body.removeChild(ta);
-      toast(okMsg, 'good');
-    } catch (e) { toast(L('复制失败，请手动选择', 'Copy failed — select manually')); }
+      if (ok) { toast(okMsg, 'good'); return; }
+    } catch (e) {}
+    /* 自动复制失败：把交易码选中，让用户手动复制 */
+    selectTradeOut();
+    toast(L('自动复制失败，请长按全选后手动复制', 'Auto-copy failed — select all and copy manually'));
   }
 
   function renderSettings() {
@@ -3380,6 +3436,11 @@ function renderUpdates(){
       uidIn.value = ''; nickIn.value = '';
       renderFriends();
     };
+    /* 玩家 ID 是 13 个字符（MPT-XXXX-XXXX），输入框留足余量并在失焦时纠正格式 */
+    $('frUidInput').addEventListener('blur', function () {
+      var v = normalizeUid(this.value);
+      if (isValidUid(v)) this.value = v;
+    });
     $('btnTradeMake').onclick = function () {
       var to = $('tradeTo').value;
       var coins = $('tradeCoins').value;
@@ -3403,7 +3464,15 @@ function renderUpdates(){
       var msg = $('tradeClaimMsg');
       if (!raw) { showTradeMsg(msg, L('先把交易码粘进来', 'Paste a trade code first'), true); return; }
       var res = claimTrade(raw);
-      if (!res.ok) { showTradeMsg(msg, tradeErr(res.code), true); return; }
+      if (!res.ok) {
+        var extra = '';
+        if (res.code === 'badcode') {
+          var got = raw.replace(/\s/g, '').length;
+          extra = L('（收到 ' + got + ' 个字符，完整交易码约 300 个）', ' (received ' + got + ' chars; a full code is about 300)');
+        }
+        showTradeMsg(msg, tradeErr(res.code) + extra, true);
+        return;
+      }
       showTradeMsg(msg, L(
         '已领取 ' + res.coins + ' 枚金币' + (res.fromName ? '（来自 ' + res.fromName + '）' : ''),
         'Claimed ' + res.coins + ' coin' + (res.coins > 1 ? 's' : '') + (res.fromName ? ' from ' + res.fromName : '')
