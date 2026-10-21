@@ -4,7 +4,7 @@ import WebKit
 
 // MARK: - 触觉反馈（震动）
 
-/// 三种力度：light 普通 / medium 重要 / selection 切换类（如中英文切换）
+/// 三种力度：light 普通 / medium 重要 / heavy 警报
 enum Haptics {
     private static let lightGen = UIImpactFeedbackGenerator(style: .light)
     private static let mediumGen = UIImpactFeedbackGenerator(style: .medium)
@@ -161,8 +161,7 @@ struct ContentView: View {
             if bridge.showNativeLang {
                 if #available(iOS 26.0, *) {
                     LangGlassButton(text: bridge.langText) {
-                        Haptics.play("selection")
-                        bridge.toggleLang()
+                        bridge.toggleLang()   // 语言切换不震
                     }
                     .padding(.top, 12)
                     .padding(.trailing, 12)
@@ -179,68 +178,8 @@ struct WebView: UIViewRepresentable {
 
     @ObservedObject var bridge: WebBridge
 
-    /// 注入网页的震动脚本：按到按钮→抬手且没滑动→震动
-    static let hapticJS = """
-    (function(){
-      if (window.__mptHaptic) { return; }
-      window.__mptHaptic = true;
-
-      // 连点型按钮不震动（想全都要就把这行改成 ''）
-      var SKIP = '.buy,.craft,.rush';
-      var MAX_MOVE = 12;
-      var down = false, sx = 0, sy = 0;
-
-      function findBtn(node){
-        while (node && node.nodeType === 1) {
-          if (node.matches('button, [role="button"], .btn')) { return node; }
-          node = node.parentElement;
-        }
-        return null;
-      }
-
-      function pick(el){
-        if (el.disabled) { return null; }
-        if (el.id === 'langBtn') { return 'selection'; }
-        if (el.classList.contains('primary') || el.classList.contains('vipBtn')) { return 'medium'; }
-        return 'light';
-      }
-
-      function press(x, y){ down = true; sx = x; sy = y; }
-
-      function release(x, y, target){
-        if (!down) { return; }
-        down = false;
-        if (Math.abs(x - sx) > MAX_MOVE || Math.abs(y - sy) > MAX_MOVE) { return; }
-        var el = findBtn(target);
-        if (!el) { return; }
-        if (SKIP && el.matches(SKIP)) { return; }
-        var type = pick(el);
-        if (!type) { return; }
-        try { webkit.messageHandlers.haptic.postMessage(type); } catch (err) {}
-      }
-
-      // pointer 事件（现代设备）
-      document.addEventListener('pointerdown', function(e){
-        if (e.pointerType === 'mouse' && e.button !== 0) { return; }
-        press(e.clientX, e.clientY);
-      }, true);
-      document.addEventListener('pointerup', function(e){
-        release(e.clientX, e.clientY, e.target);
-      }, true);
-      document.addEventListener('pointercancel', function(){ down = false; }, true);
-
-      // touch 事件兜底（防止游戏按钮 preventDefault 掉 pointer 事件）
-      document.addEventListener('touchstart', function(e){
-        var t = e.touches[0];
-        if (t) { press(t.clientX, t.clientY); }
-      }, { capture: true, passive: true });
-      document.addEventListener('touchend', function(e){
-        var t = e.changedTouches[0];
-        if (t) { release(t.clientX, t.clientY, e.target); }
-      }, { capture: true, passive: true });
-      document.addEventListener('touchcancel', function(){ down = false; }, { capture: true, passive: true });
-    })();
-    """
+    // v0.47：不再全局拦截按钮点击。震动只在网页 triggerVibrate() 里显式调用，
+    // 这里只保留 haptic 消息通道（config 里已注册），无需注入脚本。
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -249,11 +188,6 @@ struct WebView: UIViewRepresentable {
 
         // 震动桥接（在 load 之前挂好，网页里才能 postMessage）
         config.userContentController.add(context.coordinator.haptic, name: "haptic")
-        config.userContentController.addUserScript(
-            WKUserScript(source: WebView.hapticJS,
-                         injectionTime: .atDocumentEnd,
-                         forMainFrameOnly: true)
-        )
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
