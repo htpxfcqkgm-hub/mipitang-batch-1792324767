@@ -946,6 +946,7 @@
    语言系统（全局）
    ========================================================= */
 var LANG = 'zh';
+var cloudNotice = { zh: '', en: '' };   /* 云端公告内容（全局，避免 ReferenceError） */
 function L(zh, en){ return LANG === 'zh' ? zh : en; }
 
 function fmtTime(sec){
@@ -3759,95 +3760,65 @@ function renderUpdates(){
   }
 
   /* =========================================================
-     v0.38 云端公告弹窗（只读 notice，支持「今日不再显示」）
+     云端公告：纯 fetch 拉取 + 直接弹窗（不带任何前置判断）
      ========================================================= */
-  var CLOUD_CONFIG_URL = 'https://githubproxy.cc/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/refs/heads/main/version.json';
-  var NOTICE_HIDE_KEY = 'mpt_hide_notice_date';   /* 忽略日期 */
-  var NOTICE_LAST_KEY = 'mpt_notice_last';        /* 上次看到的公告内容，用于判断是否更新 */
-  var cloudNotice = { zh: '', en: '' };
-  var noticeShown = false;
+  var CLOUD_CONFIG_URL = 'https://fastly.jsdelivr.net/gh/htpxfcqkgm-hub/mipitang-assets@main/version.json';   /* 备用，实际请求见 checkCloudConfig */
+  var NOTICE_HIDE_KEY = 'mpt_hide_notice_date';
 
   function todayStr() { return new Date().toDateString(); }
-  function pickText(zh, en) { return String((LANG === 'en' ? (en || zh) : (zh || en)) || ''); }
-  function isNoticeHiddenToday() {
-    try { return localStorage.getItem(NOTICE_HIDE_KEY) === todayStr(); } catch (e) { return false; }
-  }
-  function noticeHasText() { return !!(cloudNotice.zh || cloudNotice.en); }
-  function noticeRaw() { return cloudNotice.zh + '\u0001' + cloudNotice.en; }
 
-  /* 把公告文字写进弹窗（切语言时也走这里） */
-  function renderNoticeBody() {
-    var body = $('noticeBody');
-    if (!body) return;
-    var zh = cloudNotice.zh, en = cloudNotice.en;
-    body.setAttribute('data-zh', zh || en);
-    body.setAttribute('data-en', en || zh);
-    body.innerHTML = pickText(zh, en);   /* 允许云端写换行与简单标记 */
-  }
-
-  /* 满足条件才弹：有公告 + 今天没被忽略 + 本次没弹过 */
-  function showNoticeIfNeeded() {
-    if (noticeShown || !noticeHasText() || isNoticeHiddenToday()) return false;
-    var mask = $('noticeMask');
-    if (!mask) return false;
-    renderNoticeBody();
+  /* 打开公告弹窗（唯一入口） */
+  function openNoticeModal() {
+    var mask = document.getElementById('noticeMask');
+    var body = document.getElementById('noticeBody');
+    if (!mask || !body) { console.warn('公告弹窗节点缺失'); return; }
+    body.innerHTML = LANG === 'en' ? (cloudNotice.en || cloudNotice.zh) : (cloudNotice.zh || cloudNotice.en);
     mask.classList.add('show');
-    noticeShown = true;
-    return true;
+    console.log('公告弹窗已弹出', mask.className);
   }
 
-  /* 若起名弹窗正开着，等它关掉再弹公告 */
-  function showNoticeDelayed(tries) {
-    var nameMask = $('nameMask');
-    if (nameMask && nameMask.classList.contains('show') && tries > 0) {
-      setTimeout(function () { showNoticeDelayed(tries - 1); }, 700);
-      return;
-    }
-    showNoticeIfNeeded();
-  }
-
-  /* 关闭弹窗；勾了「今日不再显示」才记录日期 */
-  function closeNotice(remember) {
-    if (remember) {
-      try { localStorage.setItem(NOTICE_HIDE_KEY, todayStr()); } catch (e) {}
-    }
-    var cb = $('noticeHideToday');
-    if (cb) cb.checked = false;
-    var mask = $('noticeMask');
-    if (mask) mask.classList.remove('show');
-  }
-
-  /* 拉取云端配置：只读 notice，失败静默不影响开局 */
   function checkCloudConfig() {
-    if (typeof fetch !== 'function') return;
-    try {
-      fetch(CLOUD_CONFIG_URL, { cache: 'no-store' }).then(function (r) {
-        if (!r || !r.ok) throw new Error('http');
+    /* ghproxy.net 代理（jsDelivr 节点会死缓存旧数据） */
+    var baseUrl = 'https://ghproxy.net/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/main/version.json';
+    var noCacheUrl = baseUrl + '?t=' + Date.now();
+
+    fetch(noCacheUrl, { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
-      }).then(function (data) {
-        if (!data || typeof data !== 'object') return;
-        if (data.data && typeof data.data === 'object') data = data.data;   /* 兼容多包一层 */
-        cloudNotice.zh = String(data.notice || data.noticeZh || data.notice_zh || '');
-        cloudNotice.en = String(data.noticeEn || data.notice_en || '');
-        if (!noticeHasText()) return;
-        /* 公告内容变了 → 清掉忽略状态，强制重新弹 */
-        var raw = noticeRaw();
-        var last = '';
-        try { last = localStorage.getItem(NOTICE_LAST_KEY) || ''; } catch (e) {}
-        if (last && last !== raw) {
-          try { localStorage.removeItem(NOTICE_HIDE_KEY); } catch (e) {}
-        }
-        try { localStorage.setItem(NOTICE_LAST_KEY, raw); } catch (e) {}
-        setTimeout(function () { showNoticeDelayed(4); }, 600);   /* 首次起名弹窗先让路 */
-      }).catch(function () {});
-    } catch (e) {}
+      })
+      .then(function (data) {
+        if (!data || !data.notice) return;
+        cloudNotice.zh = String(data.notice);
+        cloudNotice.en = String(data.noticeEn || data.notice);
+
+        try { localStorage.removeItem('mpt_hide_notice_date'); } catch (e) {}
+        openNoticeModal();
+      })
+      .catch(function (err) {
+        console.error('拉取公告失败:', err);
+      });
   }
+
+  /* 原生兜底：Swift 拉取后用 evaluateJavaScript 注入 __mptApplyCloud(json) */
+  window.__mptApplyCloud = function (data) {
+    if (!data || !data.notice) return;
+    cloudNotice.zh = String(data.notice);
+    cloudNotice.en = String(data.noticeEn || data.notice);
+    try { localStorage.removeItem(NOTICE_HIDE_KEY); } catch (e) {}
+    openNoticeModal();
+  };
 
   (function bindNoticeModal() {
     var ok = $('noticeOk');
     if (ok) ok.addEventListener('click', function () {
       var cb = $('noticeHideToday');
-      closeNotice(!!(cb && cb.checked));
+      if (cb && cb.checked) {
+        try { localStorage.setItem(NOTICE_HIDE_KEY, todayStr()); } catch (e) {}
+      }
+      var mask = document.getElementById('noticeMask');
+      if (mask) mask.classList.remove('show');
+      if (cb) cb.checked = false;
     });
   })();
 
@@ -3864,7 +3835,7 @@ function renderUpdates(){
     renderUpdates();
     showScreen('home');
     loadBlacklist();
-    checkCloudConfig();
+    setTimeout(checkCloudConfig, 1000);   /* 等 DOM 渲染完再拉公告 */
     if (!playerName) setTimeout(function () { openNameModal('first'); }, 400);
     requestAnimationFrame(tick);
   }
@@ -3874,7 +3845,7 @@ function renderUpdates(){
     if (state) { render(); renderDecoStore(); }
     renderUpdates();
     var nm = $('noticeMask');
-    if (nm && nm.classList.contains('show')) renderNoticeBody();   /* 切语言同步公告文字 */
+    if (nm && nm.classList.contains('show')) openNoticeModal();   /* 切语言同步公告文字 */
     renderSettings();
     renderFriends();
     renderTrade();
