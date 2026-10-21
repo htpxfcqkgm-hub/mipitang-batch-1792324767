@@ -58,8 +58,8 @@
   #home .menu #btnStart { font-size: clamp(16px, 4.6vw, 18px); padding: clamp(14px, 3.6vw, 16px) 14px; letter-spacing: 1px; }
   #home .menu #btnUpdates, #home .menu #btnCredits { background: linear-gradient(180deg, #fbe8d6, #f3d9c4); color: #9a5b36; box-shadow: 0 3px 0 #d9b799, inset 0 1px 0 #fff8; font-weight: 700; }
   #home .menu #btnUpdates:active, #home .menu #btnCredits:active { box-shadow: 0 1px 0 #d9b799, inset 0 1px 0 #fff8; }
-  #home .menu #btnTransfer, #home .menu #btnLink { background: linear-gradient(180deg, #e6dcff, #d8c8ff); color: #5a3a8a; box-shadow: 0 3px 0 #b8a0e0, inset 0 1px 0 #fff8; }
-  #home .menu #btnTransfer:active, #home .menu #btnLink:active { box-shadow: 0 1px 0 #b8a0e0, inset 0 1px 0 #fff8; }
+  #home .menu #btnLink { background: linear-gradient(180deg, #e6dcff, #d8c8ff); color: #5a3a8a; box-shadow: 0 3px 0 #b8a0e0, inset 0 1px 0 #fff8; }
+  #home .menu #btnLink:active { box-shadow: 0 1px 0 #b8a0e0, inset 0 1px 0 #fff8; }
   #home .saveInfo { text-align: center; font-size: clamp(10px, 2.9vw, 12px); color: #a9714c; font-weight: 600; margin-top: 2px; min-height: 1.1em; }
   /* 首页底部小工具：通讯录 / 赠与交易 / 设置 */
   #home .homeTools { display: flex; gap: 6px; justify-content: center; margin-top: 4px; }
@@ -403,6 +403,28 @@
   .toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0) + 64px); transform: translateX(-50%) translateY(-8px); background: #6b3a1fee; color: #fff; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 300; max-width: 90vw; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.good { background: #4a9a2aee; }
+  /* v0.47 全服喇叭飘屏：全局穿透，pointer-events:none 是灵魂（否则挡住熬糖锅） */
+  .hornBanner { position: fixed; top: 10%; left: 0; width: 100%; z-index: 999999; pointer-events: none; box-sizing: border-box; padding: 0 10px; animation: hornRun 10s linear forwards; will-change: transform, opacity; }
+  .hornBanner .hornInner { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #fff; font-weight: 900; font-size: clamp(13px, 3.8vw, 16px); line-height: 1.4; padding: 10px 14px; border-radius: 14px; text-align: center; box-shadow: 0 6px 20px rgba(255,140,0,.45), inset 0 1px 0 #fff8; text-shadow: 0 2px 0 rgba(160,80,0,.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  @keyframes hornRun {
+    0%   { transform: translate3d(100%, 0, 0); opacity: 0; }
+    6%   { transform: translate3d(0, 0, 0);     opacity: 1; }
+    88%  { transform: translate3d(0, 0, 0);     opacity: 1; }
+    100% { transform: translate3d(-100%, 0, 0); opacity: 0; }
+  }
+  #home { overflow-y: auto; -webkit-overflow-scrolling: touch; }   /* v0.47 多一个按钮，小屏可滚动不裁切 */
+  #home .menu #btnHorn { background: linear-gradient(180deg, #ffe9a8, #ffc23f); color: #7a4a00; box-shadow: 0 3px 0 #c9981a, inset 0 1px 0 #fffbe0; font-weight: 900; letter-spacing: 1px; }
+  #home .menu #btnHorn:active { box-shadow: 0 1px 0 #c9981a, inset 0 1px 0 #fffbe0; }
+  /* v0.49 喇叭套餐：1~5 条可选，买得多单价越低 */
+  .hornQtyRow { display: flex; gap: 6px; margin: 2px 0 0; }
+  .hornQty { flex: 1 1 0; min-width: 0; padding: 7px 2px; border-radius: 12px; border: 2px solid #f0d2b0; background: #fff; color: #8a4b2a; font-weight: 900; font-size: 12px; line-height: 1.25; display: flex; flex-direction: column; align-items: center; gap: 2px; letter-spacing: 0; }
+  .hornQty b { font-size: 13px; letter-spacing: 0; }
+  .hornQty span { font-size: 10px; color: #a9714c; font-weight: 800; letter-spacing: 0; }
+  .hornQty.on { background: linear-gradient(180deg, #ffe9a8, #ffc23f); border-color: #e0a92a; color: #7a4a00; box-shadow: 0 2px 0 #c9981a; }
+  .hornQty.on span { color: #7a4a00; }
+  .hornQty:disabled { opacity: .35; }
+  #hornSummary { font-size: 11px; color: #a9714c; font-weight: 800; text-align: center; line-height: 1.5; margin: 8px 0 0; }
+  #hornCost { font-size: 12px; color: #d68a1e; font-weight: 900; text-align: center; margin: 3px 0 0; }
   #closeShopMask { position: fixed; inset: 0; background: #6b3a1f88; display: flex; align-items: center; justify-content: center; z-index: 400; padding: 20px; opacity: 0; visibility: hidden; transition: opacity .18s ease, visibility .18s ease; }
   #closeShopMask.show { opacity: 1; visibility: visible; }
   .closeShopPanel { width: 100%; max-width: 380px; background: linear-gradient(180deg, #fff8ee, #ffe9d0); border-radius: 24px; padding: 26px 22px 20px; text-align: center; transform: scale(.95); transition: transform .18s cubic-bezier(.2, 1.2, .4, 1); }
@@ -440,14 +462,37 @@
     <button id="btnDeco" data-zh="小摊装饰" data-en="Decorations">小摊装饰</button>
     <button id="btnUpdates" data-zh="更新信息" data-en="Updates">更新信息</button>
     <button id="btnCredits" data-zh="制作人员名单" data-en="Credits">制作人员名单</button>
-    <button id="btnTransfer" data-zh="存档迁移" data-en="Save Transfer">存档迁移</button>
     <button id="btnLink" data-zh="互联互通" data-en="Cross-Game Link">互联互通</button>
+    <button id="btnHorn" data-zh="📢 全服喇叭" data-en="📢 Global Horn">📢 全服喇叭</button>
     <div class="saveInfo" id="saveInfo" data-zh="正在读取存档…" data-en="Loading save…">检测到存档：金币 24 · 库存 0 · 第 1 天</div>
     <div class="saveInfo" id="hubInfo" style="margin-top:2px;opacity:.85" data-zh="其他游戏：暂无数据" data-en="Other games: no data yet">其他游戏：暂无数据</div>
     <div class="homeTools">
       <button id="btnFriends" data-zh="通讯录" data-en="Contacts">通讯录</button>
       <button id="btnTrades" data-zh="赠与交易" data-en="Gift Trade">赠与交易</button>
       <button id="btnSettings" data-zh="设置" data-en="Settings">设置</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalMask" id="hornMask">
+  <div class="modal">
+    <h2 data-zh="📢 全服喇叭" data-en="📢 Global Horn">📢 全服喇叭</h2>
+    <p data-zh="买得越多越划算：1 条 100,000 · 5 条只要 380,000" data-en="Bundles save coins: 1 for 100,000 · 5 for just 380,000">买得越多越划算：1 条 100,000 · 5 条只要 380,000</p>
+    <input id="hornInput" type="text" maxlength="20" placeholder="喊点什么…" style="letter-spacing:0;font-size:16px;text-align:left;font-weight:700">
+    <!-- v0.49 套餐选择：数量 + 总价 -->
+    <div class="hornQtyRow" id="hornQtyRow">
+      <button type="button" class="hornQty on" data-n="1"><b data-zh="1 条" data-en="x1">1 条</b><span>100,000</span></button>
+      <button type="button" class="hornQty" data-n="2"><b data-zh="2 条" data-en="x2">2 条</b><span>180,000</span></button>
+      <button type="button" class="hornQty" data-n="3"><b data-zh="3 条" data-en="x3">3 条</b><span>250,000</span></button>
+      <button type="button" class="hornQty" data-n="4"><b data-zh="4 条" data-en="x4">4 条</b><span>320,000</span></button>
+      <button type="button" class="hornQty" data-n="5"><b data-zh="5 条" data-en="x5">5 条</b><span>380,000</span></button>
+    </div>
+    <div id="hornSummary"></div>
+    <div id="hornCost"></div>
+    <div class="hint" id="hornHint" style="text-align:center;min-height:16px"></div>
+    <div class="modalBtns">
+      <button class="ghost" id="hornCancel" data-zh="取消" data-en="Cancel">取消</button>
+      <button class="primary" id="hornSend">发送 100,000</button>
     </div>
   </div>
 </div>
@@ -707,7 +752,7 @@
           <div class="ruleTitleSub" data-zh="换手机、换浏览器也能接着玩" data-en="Keep playing on a new phone or browser">换手机、换浏览器也能接着玩</div>
         </div></div>
         <div class="steps">
-          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="首页点 &lt;b&gt;「存档迁移」&lt;/b&gt;，先 &lt;b&gt;导出存档&lt;/b&gt;。" data-en="On the home screen tap &lt;b&gt;Save Transfer&lt;/b&gt;, then &lt;b&gt;Export Save&lt;/b&gt;.">首页点 <b>「存档迁移」</b>，先 <b>导出存档</b>。</div></div>
+          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="设置页点 &lt;b&gt;「存档迁移」&lt;/b&gt;，先 &lt;b&gt;导出存档&lt;/b&gt;。" data-en="In Settings tap &lt;b&gt;Save Transfer&lt;/b&gt;, then &lt;b&gt;Export Save&lt;/b&gt;.">设置页点 <b>「存档迁移」</b>，先 <b>导出存档</b>。</div></div>
           <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="可以 &lt;b&gt;复制密文&lt;/b&gt;，也可以 &lt;b&gt;保存为文件&lt;/b&gt; 或直接 &lt;b&gt;截屏&lt;/b&gt;。" data-en="Either &lt;b&gt;copy the cipher&lt;/b&gt;, &lt;b&gt;save it as a file&lt;/b&gt;, or just take a &lt;b&gt;screenshot&lt;/b&gt;.">可以 <b>复制密文</b>，也可以 <b>保存为文件</b> 或直接 <b>截屏</b>。</div></div>
           <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="在新设备上打开游戏，点 &lt;b&gt;导入存档&lt;/b&gt;，把密文粘进去确认即可。" data-en="Open the game on the new device, tap &lt;b&gt;Import Save&lt;/b&gt;, paste the cipher and confirm.">在新设备上打开游戏，点 <b>导入存档</b>，把密文粘进去确认即可。</div></div>
           <div class="step"><div class="stepNum">4</div><div class="stepBody" data-zh="导入会覆盖当前存档，记得先把旧存档备份一份。" data-en="Importing overwrites your current save — keep a backup of the old one first.">导入会覆盖当前存档，记得先把旧存档备份一份。</div></div>
@@ -729,7 +774,7 @@
       <div class="creditCard"><div class="creditEmoji e1" data-zh="主" data-en="P">主</div><div class="creditLabel" data-zh="主制作" data-en="Lead Creator">主制作</div><div class="creditName egg" id="creditEgg" data-zh="臭鸡条" data-en="Chou Ji Tiao">臭鸡条</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
       <div class="creditCard"><div class="creditEmoji e2" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName" data-zh="臭鸡块" data-en="Chou Ji Kuai">臭鸡块</div></div>
       <div class="creditCard"><div class="creditEmoji e3" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName ds" id="creditDeepSeek">DeepSeek · 千问</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
-      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.35 · 感谢游玩" data-en="v0.35 · Thanks for playing">v0.35 · 感谢游玩</div></div>
+      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.50 · 感谢游玩" data-en="v0.50 · Thanks for playing">v0.50 · 感谢游玩</div></div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -817,7 +862,7 @@
       </div>
       <div class="setGroup">
         <div class="setGroupTitle" data-zh="关于" data-en="About">关于</div>
-        <div class="setRow"><span class="k" data-zh="版本" data-en="Version">版本</span><span class="v">v0.40</span></div>
+        <div class="setRow"><span class="k" data-zh="版本" data-en="Version">版本</span><span class="v">v0.50</span></div>
         <div class="setRow"><span class="k" data-zh="出品" data-en="Studio">出品</span><span class="v" data-zh="全家桶工作室" data-en="Family Bucket Studio">全家桶工作室</span></div>
       </div>
     </div>
@@ -1040,7 +1085,55 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.40', latest:true,
+  { ver:'v0.50', latest:true,
+    titleZh:'喇叭服务地址迁移', titleEn:'Horn Service Endpoint Moved',
+    itemsZh:[
+      '全服喇叭的云服务地址换成 broadcast.us.ci',
+      '发送与拉取走同一域名，套餐、每小时限购、串行发送逻辑全部不变'
+    ],
+    itemsEn:[
+      'Global Horn now talks to broadcast.us.ci',
+      'Send and poll share the same host; bundles, hourly limit and serial sending are unchanged'
+    ]
+  },
+  { ver:'v0.49', latest:false,
+    titleZh:'喇叭套餐：多条更便宜 · 每小时限 5 条', titleEn:'Horn Bundles: cheaper in bulk · 5 per hour',
+    itemsZh:[
+      '数量可选 1~5 条：100,000 / 180,000 / 250,000 / 320,000 / 380,000 金币，买满 5 条平均每条只要 76,000',
+      '每位玩家 1 小时内最多发 5 条，弹窗实时显示「当前剩余可发：X 条」，超限直接拦截并提示',
+      '多条改为串行发送：每条成功后停 3 秒再发下一条，不再并发请求，避免服务端版本冲突报错',
+      '全部发完才震动一次并提示「喇叭发送成功」；某条失败按均摊价退回，全失败全额退回'
+    ],
+    itemsEn:[
+      'Pick 1–5 shouts: 100,000 / 180,000 / 250,000 / 320,000 / 380,000 coins — 5 costs only 76,000 each',
+      'Max 5 shouts per player per hour; the modal shows “Remaining: X” and blocks over-limit sends',
+      'Multi-shout orders now send one by one, waiting 3 seconds after each success — no concurrent requests',
+      'Vibration + “Horn sent” only after all are done; a failed shout is refunded at its share, all-failed refunds in full'
+    ]
+  },
+  { ver:'v0.48', latest:false,
+    titleZh:'首页精简：存档迁移只留在设置页', titleEn:'Cleaner Home: Save Transfer now lives in Settings',
+    itemsZh:[
+      '首页去掉「存档迁移」按钮，入口唯一到设置页，避免两个地方各点一次混淆',
+      '迁移逻辑、导出导入密文、覆盖提醒全部不变，只是换了个入口',
+      '规则页「存档迁移」第一步已改为「设置页点存档迁移」'    ],
+    itemsEn:[
+      'Removed the Save Transfer button from the home screen — Settings is now the single entry point',
+      'Export / import cipher and overwrite warnings are unchanged, only the entry moved',
+      'Rules page step 1 now says “In Settings tap Save Transfer”'    ]
+  },
+  { ver:'v0.47', latest:false,
+    titleZh:'全服喇叭：全球广播飘屏', titleEn:'Global Horn: server-wide broadcast',
+    itemsZh:[
+      '首页新增「📢 全服喇叭」，消耗 100,000 金币向全服广播 20 字以内的一句话',
+      '广播飘屏直挂 document.body，层级 999999，任何页面（首页/游戏内/设置页）都能看到',
+      '横幅 pointer-events:none，飘过时不会挡住熬糖锅和设备按钮',
+      '金色渐变底 + 白字加粗，10 秒从右滑入再向左滑出，带动画结束与 10.4 秒兜底双清理',
+      '每 15 秒拉取一次新广播，3 秒超时直接放弃，网络慢绝不卡游戏',
+      '本地记录已展示 id，不重复飘；同时最多排 3 条，避免堆积卡死手机',
+      '发送失败金币全额退回；发送成功震动反馈'    ]
+  },
+  { ver:'v0.40', latest:false,
     titleZh:'大后期生态：交易税 · 材质变异 · 配饰量产', titleEn:'Late-Game Ecosystem: Tax · Material Mutation · Emoji Decor',
     itemsZh:[
       '赠与交易新增 5% 交易税（四舍五入），余额需能同时支付本金与税金，以抑制金币通胀',
@@ -1363,6 +1456,8 @@ function applyLang(){
   if (ti2) ti2.placeholder = L('粘贴交易码', 'Paste a trade code');
   var fn = document.getElementById('frNickInput');
   if (fn) fn.placeholder = L('备注称呼', 'Label');
+  var hi = document.getElementById('hornInput');
+  if (hi) hi.placeholder = L('喊点什么…', 'Say something…');
 }
 
 function renderUpdates(){
@@ -4230,7 +4325,31 @@ function renderUpdates(){
       showScreen('decoScreen');
       renderDecoStore();
     };
-    $('btnTransfer').onclick = function () { openTransferModal(); };
+    /* v0.48 存档迁移只保留在设置页，首页入口已删 */
+    /* v0.47 全服喇叭 */
+    $('btnHorn').onclick = function () { openHornModal(); };
+    $('hornCancel').onclick = function () { closeHornModal(); };
+    $('hornSend').onclick = function () { sendHorn(); };
+    $('hornMask').addEventListener('click', function (e) { if (e.target === this) closeHornModal(); });
+    $('hornInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); sendHorn(); }
+    });
+    /* v0.49 套餐档位：点一下就换数量，总价跟着变 */
+    var hqRow = $('hornQtyRow');
+    if (hqRow) {
+      var hqBtns = hqRow.getElementsByTagName('button');
+      for (var hqi = 0; hqi < hqBtns.length; hqi++) {
+        (function (btn) {
+          btn.onclick = function () {
+            if (hornSending) return;
+            var n = parseInt(btn.getAttribute('data-n'), 10) || 1;
+            hornQtySel = n;
+            hornHintText('');
+            refreshHornUI();
+          };
+        })(hqBtns[hqi]);
+      }
+    }
     $('btnSettings').onclick = function () { showScreen('settingsScreen'); renderSettings(); };
     $('btnFriends').onclick = function () { showScreen('friendsScreen'); renderFriends(); };
     $('btnTrades').onclick = function () { showScreen('tradeScreen'); renderTrade(); };
@@ -4726,6 +4845,400 @@ function renderUpdates(){
     });
   })();
 
+  /* =========================================================
+     v0.47 全服喇叭（云广播）
+     ========================================================= */
+  var HORN_API = 'https://broadcast.us.ci';   /* v0.50 换服务地址 */
+  /* v0.49 套餐价：[0,1条,2条,3条,4条,5条] */
+  var HORN_PRICES = [0, 100000, 180000, 250000, 320000, 380000];
+  var HORN_PRICE = HORN_PRICES[1];  /* 单条价，兼容旧引用 */
+  var HORN_LIMIT = 5;               /* 每人每小时最多 5 条 */
+  var HORN_HOUR_MS = 3600000;       /* 1 小时 */
+  var HORN_GAP_MS = 3000;           /* 多条串行：每条之间停 3 秒，绝不并发 */
+  var HORN_HISTORY_KEY = 'mpt_horn_history';   /* localStorage: hornHistory 时间戳数组 */
+  var HORN_POLL_MS = 15000;        /* 每 15 秒拉一次 */
+  var HORN_TIMEOUT_MS = 3000;      /* 拉取超时：超时直接放弃，绝不卡游戏 */
+  var HORN_SEND_TIMEOUT_MS = 8000;
+  var HORN_ANIM_MS = 10000;        /* 与 CSS 动画时长一致，到点必删节点 */
+  var HORN_QUEUE_MAX = 3;          /* 队列上限，防止一次性刷满屏 */
+  var HORN_ID_KEY = 'mpt_last_shout_id';
+  var HORN_SEEN_KEY = 'mpt_seen_shouts';
+  var HORN_SEEN_MAX = 40;
+
+  var hornQueue = [];
+  var hornBusy = false;
+  var hornPollTimer = null;
+  var hornSending = false;
+  var hornQtySel = 1;                        /* v0.49 当前选中的套餐条数 */
+  var hornHistory = readHornHistory();       /* v0.49 最近 1 小时内的发送时间戳 */
+  var hornSeen = readHornSeen();
+  var lastShoutId = readHornId();
+
+  function readHornId() {
+    try { return String(localStorage.getItem(HORN_ID_KEY) || ''); } catch (e) { return ''; }
+  }
+  function writeHornId(id) { try { localStorage.setItem(HORN_ID_KEY, String(id)); } catch (e) {} }
+  function readHornSeen() {
+    try {
+      var raw = localStorage.getItem(HORN_SEEN_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Object.prototype.toString.call(arr) === '[object Array]' ? arr.slice(-HORN_SEEN_MAX) : [];
+    } catch (e) { return []; }
+  }
+  function hornSeenPush(id) {
+    var i;
+    for (i = hornSeen.length - 1; i >= 0; i--) { if (String(hornSeen[i]) === id) return; }
+    hornSeen.push(id);
+    if (hornSeen.length > HORN_SEEN_MAX) hornSeen = hornSeen.slice(-HORN_SEEN_MAX);
+    try { localStorage.setItem(HORN_SEEN_KEY, JSON.stringify(hornSeen)); } catch (e) {}
+  }
+  function hornSeenHas(id) {
+    for (var i = 0; i < hornSeen.length; i++) { if (String(hornSeen[i]) === id) return true; }
+    return false;
+  }
+
+  /* ---- v0.49 限购账本（localStorage，不进存档）---- */
+  function readHornHistory() {
+    try {
+      var raw = localStorage.getItem(HORN_HISTORY_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw), out = [], i, t;
+      if (Object.prototype.toString.call(arr) !== '[object Array]') return [];
+      for (i = 0; i < arr.length; i++) {
+        t = Number(arr[i]);
+        if (isFinite(t) && t > 0) out.push(t);
+      }
+      return out.slice(-50);
+    } catch (e) { return []; }
+  }
+  function saveHornHistory() {
+    try { localStorage.setItem(HORN_HISTORY_KEY, JSON.stringify(hornHistory)); } catch (e) {}
+  }
+  /* 先丢掉超过 1 小时的旧记录，再返回 1 小时内还能发几条（0~5） */
+  function hornQuotaLeft() {
+    var now = Date.now(), keep = [], i, t;
+    for (i = 0; i < hornHistory.length; i++) {
+      t = Number(hornHistory[i]);
+      if (isFinite(t) && now - t < HORN_HOUR_MS) keep.push(t);
+    }
+    hornHistory = keep;
+    saveHornHistory();
+    return Math.max(0, HORN_LIMIT - hornHistory.length);
+  }
+  function hornTotalPrice(n) {
+    n = parseInt(n, 10) || 1;
+    if (n < 1) n = 1;
+    if (n > HORN_LIMIT) n = HORN_LIMIT;
+    return HORN_PRICES[n];
+  }
+  /* 千分位，用于展示套餐价（100,000 这种） */
+  function hornMoney(n) {
+    var s = String(Math.round(Number(n) || 0)), out = '', i = s.length;
+    while (i > 3) { out = ',' + s.slice(i - 3) + out; i -= 3; }
+    return s.slice(0, i) + out;
+  }
+  /* 套餐均摊退款：全部失败时正好退全额 */
+  function hornRefundSplit(total, count) {
+    var base = Math.floor(total / count), rest = total - base * count, out = [], i;
+    for (i = 0; i < count; i++) out.push(base + (i < rest ? 1 : 0));
+    return out;
+  }
+
+  /* 震动：老浏览器 / 桌面无震动即静默 */
+  function triggerVibrate(kind) {
+    var ms = kind === 'heavy' ? 40 : (kind === 'medium' ? 20 : 12);
+    try { if (navigator && typeof navigator.vibrate === 'function') navigator.vibrate(ms); } catch (e) {}
+  }
+
+  /* 带超时的 fetch：AbortController + Promise.race 双保险，慢网络直接放弃 */
+  function fetchTimeout(url, opt, ms) {
+    opt = opt || {};
+    var ctrl = null, timer = null;
+    if (typeof AbortController === 'function') {
+      try { ctrl = new AbortController(); opt.signal = ctrl.signal; } catch (e) { ctrl = null; }
+    }
+    var timeout = new Promise(function (_, reject) {
+      timer = setTimeout(function () {
+        if (ctrl) { try { ctrl.abort(); } catch (e2) {} }
+        reject(new Error('timeout'));
+      }, ms);
+    });
+    return Promise.race([fetch(url, opt), timeout]).then(function (r) {
+      clearTimeout(timer);
+      return r;
+    }, function (err) {
+      clearTimeout(timer);
+      throw err;
+    });
+  }
+
+  /* 服务端结构兼容：数组 / {items} / {shouts} / {list} / {data} */
+  function normalizeShoutList(data) {
+    var arr = null;
+    if (Object.prototype.toString.call(data) === '[object Array]') arr = data;
+    else if (data && typeof data === 'object') arr = data.items || data.shouts || data.list || data.data || null;
+    if (Object.prototype.toString.call(arr) !== '[object Array]') return [];
+    if (arr.length > 50) arr = arr.slice(arr.length - 50);
+    var out = [], i, it, id, text, name;
+    for (i = 0; i < arr.length; i++) {
+      it = arr[i];
+      if (!it || typeof it !== 'object') continue;
+      id = it.id != null ? it.id : it._id;
+      text = it.text != null ? it.text : (it.content != null ? it.content : it.msg);
+      if (id == null || text == null) continue;
+      name = it.name != null ? it.name : (it.player != null ? it.player : '');
+      text = String(text).replace(/\s+/g, ' ').trim().slice(0, 20);
+      if (!text) continue;
+      out.push({ id: String(id), name: String(name || '').slice(0, 20), text: text });
+    }
+    return out;
+  }
+
+  function hornLine(item) {
+    var name = item.name || L('神秘玩家', 'Mystery Player');
+    return L('📢 全服广播：【' + name + '】大喊：' + item.text,
+             '📢 GLOBAL: [' + name + '] shouts: ' + item.text);
+  }
+
+  /* 核心：全局穿透飘屏。（节点直挂 body） */
+  function showHornBanner(item) {
+    if (!document.body) { hornBusy = false; pumpHornQueue(); return; }
+    var node = document.createElement('div');
+    node.className = 'hornBanner';
+    node.setAttribute('aria-live', 'polite');
+    var inner = document.createElement('div');
+    inner.className = 'hornInner';
+    inner.textContent = hornLine(item);
+    node.appendChild(inner);
+    document.body.appendChild(node);      /* 挂 body，任何页面都能看到 */
+    triggerVibrate('heavy');
+
+    var killed = false, guard = null;
+    function kill() {
+      if (killed) return;
+      killed = true;
+      if (guard) { clearTimeout(guard); guard = null; }
+      try { node.removeEventListener('animationend', kill, false); } catch (e) {}
+      /* 必须物理删除，否则挂机一天堆几百个横幅会卡死手机 */
+      if (node.remove) node.remove();
+      else if (node.parentNode) node.parentNode.removeChild(node);
+      hornBusy = false;
+      pumpHornQueue();
+    }
+    node.addEventListener('animationend', kill, false);
+    guard = setTimeout(kill, HORN_ANIM_MS + 400);   /* 动画被系统禁用时的兜底 */
+  }
+
+  function pumpHornQueue() {
+    if (hornBusy) return;
+    if (!hornQueue.length) return;
+    hornBusy = true;
+    showHornBanner(hornQueue.shift());
+  }
+  function enqueueHorn(item) {
+    if (!item) return;
+    if (hornQueue.length >= HORN_QUEUE_MAX) return;   /* 满了就丢，宁可少飘不卡机 */
+    hornQueue.push(item);
+    pumpHornQueue();
+  }
+
+  /* 拿到列表后的入库逻辑：首轮只飘最新一条，不退历史 */
+  function handleShoutList(data) {
+    var arr = normalizeShoutList(data);
+    if (!arr.length) return;
+    var i, id, fresh = [], firstRun = hornSeen.length === 0;
+    for (i = 0; i < arr.length; i++) {
+      id = String(arr[i].id);
+      if (id === String(lastShoutId)) continue;
+      if (hornSeenHas(id)) continue;
+      fresh.push(arr[i]);
+    }
+    if (firstRun) {
+      if (fresh.length) enqueueHorn(fresh[fresh.length - 1]);
+    } else {
+      for (i = 0; i < fresh.length && i < HORN_QUEUE_MAX; i++) enqueueHorn(fresh[i]);
+    }
+    for (i = 0; i < arr.length; i++) hornSeenPush(String(arr[i].id));
+    lastShoutId = String(arr[arr.length - 1].id);
+    writeHornId(lastShoutId);
+  }
+
+  function pollShouts() {
+    if (typeof fetch !== 'function') return;
+    fetchTimeout(HORN_API + '?t=' + Date.now(), { cache: 'no-store' }, HORN_TIMEOUT_MS)
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(handleShoutList)
+      .catch(function () {});   /* 网络慢 / 挂掉：静默跳过，下一轮再来 */
+  }
+
+  function startHornPoll() {
+    if (hornPollTimer) return;
+    setTimeout(pollShouts, 2500);
+    hornPollTimer = setInterval(pollShouts, HORN_POLL_MS);
+  }
+
+  /* ---- 发送 UI（v0.49 套餐 / 限购 / 串行） ---- */
+  function hornHintText(msg, bad) {
+    var el = $('hornHint');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.style.color = bad ? '#e86a6a' : '#a9714c';
+  }
+  function hornSendLabel(n) {
+    var p = hornMoney(hornTotalPrice(n));
+    return L('发送 ' + p, 'Send ' + p);
+  }
+  /* 刷新档位高亮、限购提示、总价、发送按钮文案（所有文案走 JS，避免 applyLang 覆写） */
+  function refreshHornUI() {
+    var left = hornQuotaLeft();
+    if (hornQtySel > HORN_LIMIT) hornQtySel = HORN_LIMIT;
+    if (hornQtySel < 1) hornQtySel = 1;
+    if (left > 0 && hornQtySel > left) hornQtySel = left;   /* 自动降到我还能发的档位 */
+
+    var row = $('hornQtyRow');
+    if (row) {
+      var btns = row.getElementsByTagName('button'), i, n, on;
+      for (i = 0; i < btns.length; i++) {
+        n = parseInt(btns[i].getAttribute('data-n'), 10) || 1;
+        on = (n === hornQtySel);
+        btns[i].className = 'hornQty' + (on ? ' on' : '');
+        btns[i].disabled = hornSending || (n > left);
+        btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+    }
+    var sum = $('hornSummary');
+    if (sum) {
+      sum.textContent = left > 0
+        ? L('* 每位玩家 1 小时内最多发送 5 条，当前剩余可发：' + left + ' 条',
+            '* Max 5 shouts per player per hour. Remaining: ' + left)
+        : L('* 每位玩家 1 小时内最多发送 5 条，当前剩余可发：0 条',
+            '* Max 5 shouts per player per hour. Remaining: 0');
+    }
+    var cost = $('hornCost');
+    if (cost) {
+      cost.textContent = L('本次共 ' + hornQtySel + ' 条，需 ' + hornMoney(hornTotalPrice(hornQtySel)) + ' 金币',
+                           hornQtySel + ' shout(s) · ' + hornMoney(hornTotalPrice(hornQtySel)) + ' coins');
+    }
+    var btn = $('hornSend');
+    if (btn) {
+      btn.disabled = hornSending;
+      btn.textContent = hornSending ? L('发送中…', 'Sending…') : hornSendLabel(hornQtySel);
+    }
+  }
+  function openHornModal() {
+    var st = ensureState();
+    var inp = $('hornInput');
+    if (inp) inp.value = '';
+    hornQtySel = 1;
+    var left = hornQuotaLeft();
+    if (hornSending) hornHintText(L('上一条还在发送中…', 'Still sending…'));
+    else if (left <= 0) hornHintText(L('一小时内最多只能发 5 条，您当前还可发 0 条。', 'Max 5 per hour. You can still send 0.'), true);
+    else hornHintText(L('当前金币：' + fmtCoin(st.coins), 'Coins: ' + fmtCoin(st.coins)));
+    refreshHornUI();
+    var m = $('hornMask'); if (m) m.classList.add('show');
+    setTimeout(function () { try { if (inp) inp.focus(); } catch (e) {} }, 150);
+  }
+  function closeHornModal() {
+    var m = $('hornMask'); if (m) m.classList.remove('show');
+  }
+
+  function sendHorn() {
+    if (hornSending) return;
+    var st = ensureState();
+    var inp = $('hornInput');
+    var text = inp ? String(inp.value || '').replace(/\s+/g, ' ').trim() : '';
+    if (!text) { hornHintText(L('请输入喇叭内容', 'Enter some text'), true); return; }
+    if (text.length > 20) text = text.slice(0, 20);
+
+    /* ① 限购拦截：1 小时内已发 + 本次条数 > 5 直接打回 */
+    var left = hornQuotaLeft();
+    var count = hornQtySel;
+    if (count < 1) count = 1;
+    if (count > HORN_LIMIT) count = HORN_LIMIT;
+    if (count > left) {
+      hornHintText(L('一小时内最多只能发 5 条，您当前还可发 ' + left + ' 条。',
+                     'Max 5 shouts per hour. You can still send ' + left + '.'), true);
+      refreshHornUI();
+      return;
+    }
+
+    /* ② 金币拦截 */
+    var total = hornTotalPrice(count);
+    if (st.coins < total) {
+      hornHintText(L('金币不足：需要 ' + hornMoney(total) + '，当前 ' + fmtCoin(st.coins),
+                     'Not enough coins: need ' + hornMoney(total) + ', have ' + fmtCoin(st.coins)), true);
+      return;
+    }
+    if (typeof fetch !== 'function') {
+      hornHintText(L('当前环境不支持发送', 'Not supported here'), true);
+      return;
+    }
+
+    var name = playerName || readName() || L('神秘玩家', 'Mystery Player');
+    var refunds = hornRefundSplit(total, count);   /* 失败一条退一份，全失败正好退全额 */
+
+    hornSending = true;
+    st.coins -= total;              /* 先扣款落盘，防刷新白嫖 */
+    writeSave();
+    var now = Date.now(), q;
+    for (q = 0; q < count; q++) hornHistory.push(now);   /* 记账：本次 count 条 */
+    saveHornHistory();
+    if (inp) inp.value = '';
+    hornHintText(L('发送中 1/' + count + '…', 'Sending 1/' + count + '…'));
+    refreshHornUI();
+
+    var sent = 0, refunded = 0;
+
+    function finishAll() {
+      hornSending = false;
+      closeHornModal();
+      refreshHomeInfo();
+      refreshHornUI();
+      if (sent === count) {
+        triggerVibrate('heavy');                       /* 全部发完才震动一次 */
+        toast(L('喇叭发送成功', 'Horn sent'), 'good', 2200);
+      } else if (sent === 0) {
+        toast(L('发送失败，金币已退回', 'Send failed — coins refunded'), '', 2600);
+      } else {
+        toast(L('部分发送失败，已退回 ' + hornMoney(refunded) + ' 金币',
+                'Some failed — ' + hornMoney(refunded) + ' refunded'), '', 2600);
+      }
+    }
+
+    function afterOne(i) {
+      var next = i + 1;
+      if (next < count) {
+        hornHintText(L('发送中 ' + next + '/' + count + '…', 'Sending ' + next + '/' + count + '…'));
+        setTimeout(function () { sendOne(next); }, HORN_GAP_MS);   /* 每条间隔 3 秒，串行不并发 */
+      } else {
+        finishAll();
+      }
+    }
+
+    function sendOne(i) {
+      fetchTimeout(HORN_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, text: text })
+      }, HORN_SEND_TIMEOUT_MS).then(function (r) {
+        if (!r.ok) throw new Error('http ' + r.status);
+        if (r.json) return r.json().catch(function () { return true; });
+        return true;
+      }).then(function () {
+        sent++;
+        afterOne(i);
+      }, function () {
+        refunded += refunds[i];   /* 失败的那条按均摊价退回，绝不白扣 */
+        st.coins += refunds[i];
+        writeSave();
+        afterOne(i);
+      });
+    }
+
+    sendOne(0);
+  }
+
   function init() {
     buildBgCandy();
     bind();
@@ -4741,6 +5254,7 @@ function renderUpdates(){
     loadBlacklist();
     loadWallets();                        /* v0.43 后台发钱 */
     setTimeout(checkCloudConfig, 1000);   /* 等 DOM 渲染完再拉公告 */
+    startHornPoll();                      /* v0.47 全服喇叭：先 2.5s 后拉一次，再每 15s 一次 */
     if (!playerName) setTimeout(function () { openNameModal('first'); }, 400);
     requestAnimationFrame(tick);
   }
@@ -4764,6 +5278,7 @@ function renderUpdates(){
       var wb = $('walletBody');
       if (wb) wb.textContent = walletText(wallets.current);
     }
+    refreshHornUI();   /* v0.49 切语言同步喇叭套餐文案（JS 控制的文字不会被 data-zh 覆盖） */
   };
 
   init();
