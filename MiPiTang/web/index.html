@@ -743,7 +743,7 @@
         </div></div>
         <div class="steps">
           <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="离线按卖货速度结算。" data-en="Offline earnings are based on your selling rate.">离线按卖货速度结算。</div></div>
-          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="上限随设备等级和每秒收入动态提升。" data-en="The cap scales dynamically with your equipment level and income rate.">上限随设备等级和每秒收入动态提升。</div></div>
+          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="上限与效率靠【店铺托管】和摊位等级提升；一个员工都没雇时，收益只剩 20%，最多只算 0.5 小时。" data-en="Cap and efficiency come from the Staffing Service and stall level. With no staff hired at all you only get 20% and at most 0.5 hours.">上限与效率靠【店铺托管】和摊位等级提升；一个员工都没雇时，收益只剩 20%，最多只算 0.5 小时。</div></div>
         </div>
       </div>
       <div class="ruleCard cSave">
@@ -1025,6 +1025,14 @@
           <button class="buy" id="sellUpgrade"><span data-zh="升级品牌影响力" data-en="Upgrade Brand">升级品牌影响力</span> · <span id="sellCost">40</span></button>
           <button class="rush" id="rushSell" data-zh="加急卖" data-en="Rush Sale">加急卖</button>
         </div>
+      </div>
+      <div class="card">
+        <div class="row"><div class="name" data-zh="☕ 店铺托管" data-en="☕ Staffing Service">☕ 店铺托管</div><div class="lv" id="offlineLv">Lv.1</div></div>
+        <div class="sub" data-zh="提升离线时的营业效率和时间上限" data-en="Boost offline efficiency and time cap">提升离线时的营业效率和时间上限</div>
+        <div class="btns">
+          <button class="buy" id="offlineUpgrade"><span data-zh="升级托管" data-en="Upgrade Service">升级托管</span> · <span id="offlineCost">500</span></button>
+        </div>
+        <div class="sub" id="offlineDesc"></div>
       </div>
       <div class="card">
         <div class="row"><div class="name" data-zh="🎓 学手艺" data-en="🎓 Learn Craft">🎓 学手艺</div><div class="lv craft" id="craftLv">Lv.1</div></div>
@@ -1647,6 +1655,7 @@ function renderUpdates(){
       board: { lv: 1, pending: 0 },
       sell: { lv: 1, timer: 0, guestTimer: 0, rushTimer: 0, rushCooldown: 0 },
       craft: { lv: 1 },
+      offlineUp: 1,
       auto: { collect: { bought: false, lv: 1 }, roll: { bought: false, lv: 1 }, sell: { bought: false, lv: 1 } },
       flavors: [true, false, false, false],
       decos: {}, devMode: false,
@@ -1697,6 +1706,8 @@ function renderUpdates(){
     d.sell.rushTimer = Number(sell.rushTimer) || 0;
     d.sell.rushCooldown = Number(sell.rushCooldown) || 0;
     s.sell = d.sell;
+    /* v18：店铺托管等级，老存档默认 1 级 */
+    s.offlineUp = Math.max(1, Math.floor(Number(s.offlineUp) || 1));
     var craft = s.craft || {};
     d.craft.lv = Number(craft.lv) || 1;
     s.craft = d.craft;
@@ -2992,31 +3003,59 @@ function renderUpdates(){
     toast(L('加急卖！10 秒内卖速 ×3，顾客会跑着来', 'Rush Sale! 3× speed for 10s — customers will run in'));
     saveSoon(); render();
   }
-  /* ===== v0.39 离线收益：严格绑定摊位等级（删掉旧的固定保底） ===== */
-  var OFFLINE_MIN_SECONDS = 30, OFFLINE_HOUR_CAP = 8;
-  /* 效率 = 0.05 + (摊位等级-1)*0.02，基础封顶 0.5；雇了售货员额外 ×1.5 */
-  function offlineEfficiency() {
-    var e = 0.05 + (state.sell.lv - 1) * 0.02;
-    if (e > 0.5) e = 0.5;
+  /* ===== v0.47 离线收益：砍基础，靠「店铺托管」升级成长 ===== */
+  var OFFLINE_MIN_SECONDS = 30, OFFLINE_HOUR_CAP = 8, OFFLINE_EFF_CAP = 0.5;
+  /* 无员工惩罚：收益 ×0.2，且最多只算 0.5 小时 */
+  var OFFLINE_NO_STAFF_MULT = 0.2, OFFLINE_NO_STAFF_HOURS = 0.5;
+  /* 基础效率：Lv.1 摊位 1%，每级 +1%，封顶 30% */
+  function offlineBaseEff() {
+    var e = 0.01 + (state.sell.lv - 1) * 0.01;
+    return e > 0.3 ? 0.3 : e;
+  }
+  /* 含托管加成的效率（不含售货员 ×1.5），最高 50% */
+  function offlineEffRaw(up) {
+    var e = offlineBaseEff() + ((Number(up) || state.offlineUp) - 1) * 0.02;
+    return e > OFFLINE_EFF_CAP ? OFFLINE_EFF_CAP : e;
+  }
+  /* 实际效率：托管加成之后，雇了售货员再 ×1.5 */
+  function offlineEffAt(up) {
+    var e = offlineEffRaw(up);
     if (state.auto.sell.bought) e *= 1.5;
     return e;
   }
-  /* 时限（小时）= 2 + floor(摊位等级/5)，最高 8 小时 */
-  function offlineCapHours() {
-    return Math.min(OFFLINE_HOUR_CAP, 2 + Math.floor(state.sell.lv / 5));
+  function offlineEfficiency() { return offlineEffAt(state.offlineUp); }
+  /* 基础时限（小时）：1 小时起，每 10 级摊位 +1，最高 6 */
+  function offlineBaseHours() {
+    var h = 1 + Math.floor(state.sell.lv / 10);
+    return h > 6 ? 6 : h;
+  }
+  /* 实际时限（小时）：基础 + 托管每级 0.5，最高 8 */
+  function offlineCapHoursAt(up) {
+    return Math.min(OFFLINE_HOUR_CAP, offlineBaseHours() + ((Number(up) || state.offlineUp) - 1) * 0.5);
+  }
+  function offlineCapHours() { return offlineCapHoursAt(state.offlineUp); }
+  /* 升级托管花费：500 × 1.8^(lv-1) */
+  function offlineUpCost() { return Math.floor(500 * Math.pow(1.8, state.offlineUp - 1)); }
+  /* 效率和时限都到顶后就没必要再升了 */
+  function offlineUpUseful() {
+    var up = state.offlineUp;
+    return offlineCapHoursAt(up + 1) > offlineCapHoursAt(up) || offlineEffRaw(up + 1) > offlineEffRaw(up);
   }
   /* 统一计算：不直接入账，只返回结果 */
   function calcOffline() {
-    var out = { gain: 0, away: 0, used: 0, hours: 0, eff: 0, capped: false };
+    var out = { gain: 0, away: 0, used: 0, hours: 0, eff: 0, capped: false, noStaff: false };
     if (!state) return out;
     var away = (Date.now() - (state.lastTime || Date.now())) / 1000;
     out.away = away;
     if (!(away >= OFFLINE_MIN_SECONDS)) return out;
+    var noStaff = autoBoughtCount() === 0;
+    out.noStaff = noStaff;
     out.hours = offlineCapHours();
+    if (noStaff && out.hours > OFFLINE_NO_STAFF_HOURS) out.hours = OFFLINE_NO_STAFF_HOURS;
     out.used = Math.min(away, out.hours * 3600);
     out.capped = away > out.used;
     out.eff = offlineEfficiency();
-    out.gain = Math.floor(cps() * out.used * out.eff);
+    out.gain = Math.floor(cps() * out.used * out.eff * (noStaff ? OFFLINE_NO_STAFF_MULT : 1));
     return out;
   }
   function decayRush(awaySec) {
@@ -3037,8 +3076,9 @@ function renderUpdates(){
       if (running) render();
     }
   }
-  /* 弹窗文案：按摊位等级分段 */
+  /* 弹窗文案：没雇员工时先说清惩罚，再按摊位等级分段 */
   function offlineReasonText() {
+    if (autoBoughtCount() === 0) return L('你的摊位没人看管，收益极少。快去雇佣【收糖工】或【售货员】，或者升级【店铺托管】吧！', 'Nobody was minding the stall, so earnings were tiny. Hire a Collector or a Seller, or upgrade the Staffing Service!');
     var lv = state.sell.lv;
     if (lv < 5) return L('因为你的摊位等级较低（Lv.' + lv + '），客流有限，离线收益较少。', 'Your stall is still small (Lv.' + lv + '), so foot traffic was limited and offline earnings stayed low.');
     if (lv < 15) return L('摊位人气不错（Lv.' + lv + '），在你离开的时候卖出了不少米皮糖！', 'Your stall has real buzz (Lv.' + lv + ') — quite a few candies sold while you were away!');
@@ -3516,6 +3556,18 @@ function renderUpdates(){
     );
     $('sellUpgrade').disabled = state.coins < sellUpgradeCost();
 
+    /* 店铺托管 */
+    var upLv = state.offlineUp, upMore = offlineUpUseful();
+    var hNow = offlineCapHoursAt(upLv), hNext = offlineCapHoursAt(upLv + 1);
+    var eNow = Math.round(offlineEffAt(upLv) * 1000) / 10, eNext = Math.round(offlineEffAt(upLv + 1) * 1000) / 10;
+    $('offlineLv').textContent = 'Lv.' + upLv;
+    $('offlineCost').textContent = upMore ? fmt(offlineUpCost()) : L('已满级', 'Max');
+    $('offlineUpgrade').disabled = !upMore || state.coins < offlineUpCost();
+    $('offlineDesc').textContent = L(
+      '离线效率 ' + eNow + '% → ' + eNext + '% · 离线上限 ' + hNow + 'h → ' + hNext + 'h',
+      'Offline eff ' + eNow + '% → ' + eNext + '% · cap ' + hNow + 'h → ' + hNext + 'h'
+    ) + (upMore ? '' : L('（已达上限）', ' (max)'));
+
     $('craftLv').textContent = 'Lv.' + state.craft.lv;
     $('craftCost').textContent = fmt(craftUpgradeCost());
     $('craftDesc').textContent = L(
@@ -3739,6 +3791,15 @@ function renderUpdates(){
     state.coins -= c; state.sell.lv++;
     toast(L('品牌影响力升到 Lv.' + state.sell.lv, 'Brand power upgraded to Lv.' + state.sell.lv));
     saveSoon(); render(); applyDeviceVisual();
+  }
+  function upgradeOffline() {
+    if (!offlineUpUseful()) { toast(L('店铺托管已达最高等级', 'Staffing service is maxed out')); return; }
+    var c = offlineUpCost();
+    if (state.coins < c) { toast(L('金币不够', 'Not enough coins')); return; }
+    state.coins -= c; state.offlineUp++;
+    toast(L('店铺托管升到 Lv.' + state.offlineUp + '，离线效率 ' + Math.round(offlineEfficiency() * 1000) / 10 + '%',
+            'Staffing service upgraded to Lv.' + state.offlineUp + ', offline eff ' + Math.round(offlineEfficiency() * 1000) / 10 + '%'));
+    saveSoon(); render();
   }
   function upgradeCraft() {
     if (state.craft.lv >= MAX_LEVEL) { toast(L('手艺已达最高等级', 'Craft is maxed out')); return; }
@@ -4273,12 +4334,24 @@ function renderUpdates(){
 
   function bind() {
     /* 真正进入游戏（离线弹窗确认后也走这里） */
-    function enterGame() {
+    function enterGame(awaySec) {
       /* 上次没结算完就先把那天结清（只算一次），然后从「现在」开始新的一天 */
       ensureTimeline(state);
-      if (state.dayClosedFrom || state.daySettledDay !== state.day) {
+      var away = Number(awaySec) || 0;
+      /* dayEnded()：离线期间营业时间已经走完的，也算「这天结束了」，
+         否则进店第一帧 autoCloseCheck 就会立刻弹打烊 */
+      if (state.dayClosedFrom || state.daySettledDay !== state.day || dayEnded(state)) {
         state.day++;
-        freshDay(state, Date.now());
+        freshDay(state, Date.now());   /* dayStart = 现在，倒计时从 5:00 重新开始 */
+        state.sell.timer = 0;
+        writeSave();                   /* 重置后立刻落盘，防止刷新后又回到旧时间轴 */
+      } else if (away >= OFFLINE_MIN_SECONDS) {
+        /* 离开超过 30 秒再回来 = 重新开张：离线期间的时间不算营业时间，
+           只把营业时钟挪到现在（保留今天的累计收入），倒计时仍是 5:00 */
+        state.dayStart = Date.now();
+        state.dayClosedFrom = 0;
+        state.sell.timer = 0;
+        writeSave();
       }
       shopClosed = false;
       $('closeShopMask').classList.remove('show');
@@ -4299,7 +4372,7 @@ function renderUpdates(){
       var off = calcOffline();
       if (off.gain > 0) { openOfflineModal(off); return; }
       decayRush(off.away);
-      enterGame();
+      enterGame(off.away);
     };
     /* 离线弹窗：收下金币 → 入账保存 → 正常开局 */
     $('offlineOk').onclick = function () {
@@ -4308,10 +4381,11 @@ function renderUpdates(){
         state.coins += pendingOffline;
         state.totalEarned += pendingOffline;
       }
-      decayRush(pendingOfflineAway);
+      var awaySec = pendingOfflineAway;
+      decayRush(awaySec);
       pendingOffline = 0; pendingOfflineAway = 0;
       if (state) { state.lastTime = Date.now(); writeSave(); }
-      enterGame();
+      enterGame(awaySec);   /* 领完离线收益 = 重新开张，营业时钟从现在开始 */
     };
     $('btnRules').onclick = function () { showScreen('rulesScreen'); };
     $('btnUpdates').onclick = function () { showScreen('updatesScreen'); };
@@ -4670,6 +4744,7 @@ function renderUpdates(){
     $('boardRoll').onclick = function () { rollBoard(false); };
     $('boardUpgrade').onclick = upgradeBoard;
     $('sellUpgrade').onclick = upgradeSell;
+    $('offlineUpgrade').onclick = upgradeOffline;
     $('craftUpgrade').onclick = upgradeCraft;
     $('rushSell').onclick = startRush;
     $('btnCloseShop').onclick = function () { closeShop(false); };
