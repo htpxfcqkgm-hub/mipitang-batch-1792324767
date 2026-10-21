@@ -153,6 +153,7 @@
   .ruleCard.cDay::before { background: linear-gradient(180deg, #ff9f43, #d68a1e); }
   .ruleCard.cOffline::before { background: linear-gradient(180deg, #c8a8ff, #8a5ac8); }
   .ruleCard.cSave::before { background: linear-gradient(180deg, #ffb3c8, #d96a8a); }
+  .ruleCard.cVIP::before { background: linear-gradient(180deg, #ffd76b, #d6a01e); }
   .ruleHead { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .ruleIcon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; font-size: 18px; color: #fff; font-weight: 900; }
   .ruleIcon.orange { background: linear-gradient(135deg, #ffc46b, #ff9f43); }
@@ -666,7 +667,7 @@
   <div class="screenSub" data-zh="一分钟看懂怎么玩" data-en="Learn to play in a minute">一分钟看懂怎么玩</div>
   <div class="screenBody">
     <div class="rulesWrap">
-      <div class="ruleCard">
+      <div class="ruleCard cPot">
         <div class="ruleHead"><div class="ruleIcon orange">♻</div><div>
           <div class="ruleTitle" data-zh="核心循环" data-en="Core Loop">核心循环</div>
           <div class="ruleTitleSub" data-zh="把糖浆做成糖，再卖出去" data-en="Turn syrup into candy, then sell it">把糖浆做成糖，再卖出去</div>
@@ -680,37 +681,20 @@
           <div class="flowLine"></div>
           <div class="flowNode"><div class="flowDot f4" data-zh="钱" data-en="$">钱</div><div class="flowLabel" data-zh="卖钱" data-en="Sell">卖钱</div></div>
         </div>
-      </div>
-      <div class="ruleCard cPot">
-        <div class="ruleHead"><div class="ruleIcon brown">⬆</div><div>
-          <div class="ruleTitle" data-zh="三个主要升级" data-en="Three Main Upgrades">三个主要升级</div>
-          <div class="ruleTitleSub" data-zh="工艺越强，赚得越快" data-en="Better craft, faster money">工艺越强，赚得越快</div>
-        </div></div>
         <div class="steps">
-          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="&lt;b&gt;熬糖工艺&lt;/b&gt;：升级熬糖锅，一锅熬得更快。点击锅子可以搅拌加速。" data-en="&lt;b&gt;Boiling Craft&lt;/b&gt;: upgrade the pot to boil faster. Tap the pot to stir and speed it up."><b>熬糖工艺</b>：升级熬糖锅，一锅熬得更快。点击锅子可以搅拌加速。</div></div>
-          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="&lt;b&gt;案板工艺&lt;/b&gt;：升级案板，一次能擀更多份。" data-en="&lt;b&gt;Board Craft&lt;/b&gt;: upgrade the board to roll more at once."><b>案板工艺</b>：升级案板，一次能擀更多份。</div></div>
-          <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="&lt;b&gt;品牌影响力&lt;/b&gt;：升级摊位，卖货间隔更短。" data-en="&lt;b&gt;Brand Power&lt;/b&gt;: upgrade the stall to sell faster."><b>品牌影响力</b>：升级摊位，卖货间隔更短。</div></div>
+          <div class="step"><div class="stepNum">★</div><div class="stepBody" data-zh="熬糖 → 擀皮 → 入库 → 卖钱。前期手动，后期躺平。" data-en="Boil → Roll → Store → Sell. Manual at first, hands-off later.">熬糖 → 擀皮 → 入库 → 卖钱。前期手动，后期躺平。</div></div>
         </div>
       </div>
       <div class="ruleCard cCraft">
-        <div class="ruleHead"><div class="ruleIcon purple">🎓</div><div>
-          <div class="ruleTitle" data-zh="学手艺" data-en="Learn Craft">学手艺</div>
-          <div class="ruleTitleSub" data-zh="提升口感，卖得更贵" data-en="Better taste, higher price">提升口感，卖得更贵</div>
+        <div class="ruleHead"><div class="ruleIcon brown">⬆</div><div>
+          <div class="ruleTitle" data-zh="基础升级" data-en="Basic Upgrades">基础升级</div>
+          <div class="ruleTitleSub" data-zh="工艺越强，赚得越快" data-en="Better craft, faster money">工艺越强，赚得越快</div>
         </div></div>
         <div class="steps">
-          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="「学手艺」是单独的升级线。" data-en="“Learn Craft” is its own upgrade path.">「学手艺」是单独的升级线。</div></div>
-          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="每升一级，&lt;span class=&#39;hl purple&#39;&gt;单价 +8%&lt;/span&gt;。" data-en="Each level grants &lt;span class=&#39;hl purple&#39;&gt;+8% unit price&lt;/span&gt;.">每升一级，<span class="hl purple">单价 +8%</span>。</div></div>
-        </div>
-      </div>
-      <div class="ruleCard cSell">
-        <div class="ruleHead"><div class="ruleIcon green">🏪</div><div>
-          <div class="ruleTitle" data-zh="摊位怎么卖货" data-en="How the Stall Sells">摊位怎么卖货</div>
-          <div class="ruleTitleSub" data-zh="客人来，卖了才有钱" data-en="Customers arrive — sold means paid">客人来，卖了才有钱</div>
-        </div></div>
-        <div class="steps">
-          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="&lt;b&gt;普通卖&lt;/b&gt;：顾客在摊位前自然浮现。" data-en="&lt;b&gt;Normal Sale&lt;/b&gt;: customers appear in front of the stall."><b>普通卖</b>：顾客在摊位前自然浮现。</div></div>
-          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="&lt;b&gt;加急卖&lt;/b&gt;：顾客从右边&lt;b&gt;跑过来&lt;/b&gt;。" data-en="&lt;b&gt;Rush Sale&lt;/b&gt;: customers &lt;b&gt;run in&lt;/b&gt; from the right."><b>加急卖</b>：顾客从右边<b>跑过来</b>。</div></div>
-          <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="一客最多买 &lt;span class=&#39;hl&#39;&gt;5 份&lt;/span&gt;。" data-en="Each customer buys up to &lt;span class=&#39;hl&#39;&gt;5 portions&lt;/span&gt;.">一客最多买 <span class="hl">5 份</span>。</div></div>
+          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="&lt;b&gt;熬糖锅&lt;/b&gt;：一锅熬得更快，点锅子可以搅拌加速。" data-en="&lt;b&gt;Pot&lt;/b&gt;: boil faster; tap the pot to stir and speed it up."><b>熬糖锅</b>：一锅熬得更快，点锅子可以搅拌加速。</div></div>
+          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="&lt;b&gt;案板&lt;/b&gt;：一次能擀更多份。" data-en="&lt;b&gt;Board&lt;/b&gt;: roll more portions at once."><b>案板</b>：一次能擀更多份。</div></div>
+          <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="&lt;b&gt;摊位&lt;/b&gt;：卖货间隔更短，客人来得更勤。" data-en="&lt;b&gt;Stall&lt;/b&gt;: shorter selling interval, more customers."><b>摊位</b>：卖货间隔更短，客人来得更勤。</div></div>
+          <div class="step"><div class="stepNum">4</div><div class="stepBody" data-zh="&lt;b&gt;学手艺&lt;/b&gt;：独立升级线，每级 &lt;span class=&#39;hl purple&#39;&gt;单价 +8%&lt;/span&gt;。" data-en="&lt;b&gt;Learn Craft&lt;/b&gt;: its own path, &lt;span class=&#39;hl purple&#39;&gt;+8% unit price&lt;/span&gt; per level."><b>学手艺</b>：独立升级线，每级 <span class="hl purple">单价 +8%</span>。</div></div>
         </div>
       </div>
       <div class="ruleCard cAuto">
@@ -722,38 +706,51 @@
           <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="&lt;b&gt;收糖工&lt;/b&gt;：站在锅边，自动收糖。" data-en="&lt;b&gt;Collector&lt;/b&gt;: stands by the pot and auto-collects syrup."><b>收糖工</b>：站在锅边，自动收糖。</div></div>
           <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="&lt;b&gt;擀皮工&lt;/b&gt;：站在案板边，自动擀皮。" data-en="&lt;b&gt;Roller&lt;/b&gt;: stands by the board and auto-rolls."><b>擀皮工</b>：站在案板边，自动擀皮。</div></div>
           <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="&lt;b&gt;售货员&lt;/b&gt;：站在货架边，升级后单价更高。" data-en="&lt;b&gt;Seller&lt;/b&gt;: stands by the shelf; upgrades raise unit price."><b>售货员</b>：站在货架边，升级后单价更高。</div></div>
-        </div>
-      </div>
-      <div class="ruleCard cDay">
-        <div class="ruleHead"><div class="ruleIcon orange">🌇</div><div>
-          <div class="ruleTitle" data-zh="每天收摊" data-en="Closing Each Day">每天收摊</div>
-          <div class="ruleTitleSub" data-zh="5 分钟一天，到点结算" data-en="5 minutes per day — settled on close">5 分钟一天，到点结算</div>
-        </div></div>
-        <div class="steps">
-          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="游戏内 &lt;b&gt;5 分钟&lt;/b&gt;是一天。" data-en="In-game &lt;b&gt;5 minutes&lt;/b&gt; equals one day.">游戏内 <b>5 分钟</b>是一天。</div></div>
-          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="右上角可以手动点 &lt;b&gt;「打烊」&lt;/b&gt;。" data-en="Tap &lt;b&gt;“Close Shop”&lt;/b&gt; at the top-right to close early.">右上角可以手动点 <b>「打烊」</b>。</div></div>
+          <div class="step"><div class="stepNum">4</div><div class="stepBody" data-zh="一个员工都没雇时，离线收益会大幅缩水，先雇人准没错。" data-en="With zero staff your offline earnings shrink a lot — hire someone first.">一个员工都没雇时，离线收益会大幅缩水，先雇人准没错。</div></div>
         </div>
       </div>
       <div class="ruleCard cOffline">
-        <div class="ruleHead"><div class="ruleIcon purple">☾</div><div>
-          <div class="ruleTitle" data-zh="离线收益" data-en="Offline Earnings">离线收益</div>
-          <div class="ruleTitleSub" data-zh="关掉也能赚，上限随等级提升" data-en="Earn while closed — cap scales with level">关掉也能赚，上限随等级提升</div>
+        <div class="ruleHead"><div class="ruleIcon purple">☕</div><div>
+          <div class="ruleTitle" data-zh="店铺托管与离线收益" data-en="Shop Autopilot &amp; Offline Earnings">店铺托管与离线收益</div>
+          <div class="ruleTitleSub" data-zh="关掉游戏，钱照样进账" data-en="Close the game, the coins keep coming">关掉游戏，钱照样进账</div>
         </div></div>
         <div class="steps">
-          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="离线按卖货速度结算。" data-en="Offline earnings are based on your selling rate.">离线按卖货速度结算。</div></div>
-          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="上限与效率靠【店铺托管】和摊位等级提升；一个员工都没雇时，收益只剩 20%，最多只算 0.5 小时。" data-en="Cap and efficiency come from the Staffing Service and stall level. With no staff hired at all you only get 20% and at most 0.5 hours.">上限与效率靠【店铺托管】和摊位等级提升；一个员工都没雇时，收益只剩 20%，最多只算 0.5 小时。</div></div>
+          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="离线收益受 &lt;span class=&#39;hl&#39;&gt;摊位等级&lt;/span&gt;、&lt;span class=&#39;hl&#39;&gt;员工&lt;/span&gt; 和 &lt;span class=&#39;hl purple&#39;&gt;店铺托管等级&lt;/span&gt; 影响。" data-en="Offline earnings depend on &lt;span class=&#39;hl&#39;&gt;Stall Level&lt;/span&gt;, &lt;span class=&#39;hl&#39;&gt;Staff&lt;/span&gt; and &lt;span class=&#39;hl purple&#39;&gt;Autopilot Level&lt;/span&gt;.">离线收益受 <span class="hl">摊位等级</span>、<span class="hl">员工</span> 和 <span class="hl purple">店铺托管等级</span> 影响。</div></div>
+          <div class="step"><div class="stepNum">!</div><div class="stepBody" data-zh="&lt;b&gt;警告&lt;/b&gt;：如果你没有雇佣任何员工，离线收益将大打折扣（只有极小一部分）。" data-en="&lt;b&gt;Warning&lt;/b&gt;: with no staff hired at all, offline earnings are heavily penalized (only a tiny fraction)."><b>警告</b>：如果你没有雇佣任何员工，离线收益将大打折扣（只有极小一部分）。</div></div>
+          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="&lt;b&gt;建议&lt;/b&gt;：雇佣 &lt;span class=&#39;hl&#39;&gt;售货员&lt;/span&gt; 并升级 &lt;span class=&#39;hl purple&#39;&gt;店铺托管&lt;/span&gt;，离线时也能赚得盆满钵满。" data-en="&lt;b&gt;Tip&lt;/b&gt;: hire a &lt;span class=&#39;hl&#39;&gt;Seller&lt;/span&gt; and upgrade &lt;span class=&#39;hl purple&#39;&gt;Autopilot&lt;/span&gt; to earn big even while away."><b>建议</b>：雇佣 <span class="hl">售货员</span> 并升级 <span class="hl purple">店铺托管</span>，离线时也能赚得盆满钵满。</div></div>
+        </div>
+      </div>
+      <div class="ruleCard cSell">
+        <div class="ruleHead"><div class="ruleIcon green">💸</div><div>
+          <div class="ruleTitle" data-zh="财富与交易" data-en="Wealth &amp; Trading">财富与交易</div>
+          <div class="ruleTitleSub" data-zh="钱要流动，账要清楚" data-en="Money flows — books stay clear">钱要流动，账要清楚</div>
+        </div></div>
+        <div class="steps">
+          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="生成赠与码前，必须设置 6 位 &lt;span class=&#39;hl&#39;&gt;支付密码&lt;/span&gt; 保护资产。" data-en="Before creating a gift code you must set a 6-digit &lt;span class=&#39;hl&#39;&gt;payment password&lt;/span&gt;.">生成赠与码前，必须设置 6 位 <span class="hl">支付密码</span> 保护资产。</div></div>
+          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="系统将收取 &lt;span class=&#39;hl&#39;&gt;5%&lt;/span&gt; 的 &lt;b&gt;交易税&lt;/b&gt; 以平衡经济。" data-en="A &lt;b&gt;5% trade tax&lt;/b&gt; is charged to balance the economy.">系统将收取 <span class="hl">5%</span> 的 <b>交易税</b> 以平衡经济。</div></div>
+          <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="为了您的资金安全，无法向 &lt;b&gt;黑名单&lt;/b&gt; 中的玩家发送金币，请勿尝试。" data-en="For your safety you cannot send coins to players on your &lt;b&gt;blacklist&lt;/b&gt;.">为了您的资金安全，无法向 <b>黑名单</b> 中的玩家发送金币，请勿尝试。</div></div>
+        </div>
+      </div>
+      <div class="ruleCard cVIP">
+        <div class="ruleHead"><div class="ruleIcon pink">👑</div><div>
+          <div class="ruleTitle" data-zh="VIP 与全服喇叭" data-en="VIP &amp; Global Horn">VIP 与全服喇叭</div>
+          <div class="ruleTitleSub" data-zh="大后期玩家的排面" data-en="Late-game flex">大后期玩家的排面</div>
+        </div></div>
+        <div class="steps">
+          <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="消耗 &lt;span class=&#39;hl&#39;&gt;100 万金币&lt;/span&gt; 升级 VIP，解锁全局&lt;b&gt;金色 ID&lt;/b&gt;标识。" data-en="Spend &lt;span class=&#39;hl&#39;&gt;1,000,000 coins&lt;/span&gt; to become VIP and unlock a global &lt;b&gt;golden ID&lt;/b&gt;.">消耗 <span class="hl">100 万金币</span> 升级 VIP，解锁全局<b>金色 ID</b>标识。</div></div>
+          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="花金币购买 &lt;span class=&#39;hl&#39;&gt;全服喇叭&lt;/span&gt;，所有人屏幕都会飘过你的豪言壮语！每人 1 小时限发 5 条哦。" data-en="Buy a &lt;span class=&#39;hl&#39;&gt;Global Horn&lt;/span&gt; to scroll your words across everyone&#39;s screen! Max 5 per hour.">花金币购买 <span class="hl">全服喇叭</span>，所有人屏幕都会飘过你的豪言壮语！每人 1 小时限发 5 条哦。</div></div>
         </div>
       </div>
       <div class="ruleCard cSave">
-        <div class="ruleHead"><div class="ruleIcon pink">⇄</div><div>
-          <div class="ruleTitle" data-zh="存档迁移" data-en="Save Transfer">存档迁移</div>
-          <div class="ruleTitleSub" data-zh="换手机、换浏览器也能接着玩" data-en="Keep playing on a new phone or browser">换手机、换浏览器也能接着玩</div>
+        <div class="ruleHead"><div class="ruleIcon blue">⇄</div><div>
+          <div class="ruleTitle" data-zh="存档迁移与官方公告" data-en="Save Transfer &amp; Notices">存档迁移与官方公告</div>
+          <div class="ruleTitleSub" data-zh="换设备能带走，上线先看公告" data-en="Move devices safely, read notices first">换设备能带走，上线先看公告</div>
         </div></div>
         <div class="steps">
           <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="设置页点 &lt;b&gt;「存档迁移」&lt;/b&gt;，先 &lt;b&gt;导出存档&lt;/b&gt;。" data-en="In Settings tap &lt;b&gt;Save Transfer&lt;/b&gt;, then &lt;b&gt;Export Save&lt;/b&gt;.">设置页点 <b>「存档迁移」</b>，先 <b>导出存档</b>。</div></div>
           <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="可以 &lt;b&gt;复制密文&lt;/b&gt;，也可以 &lt;b&gt;保存为文件&lt;/b&gt; 或直接 &lt;b&gt;截屏&lt;/b&gt;。" data-en="Either &lt;b&gt;copy the cipher&lt;/b&gt;, &lt;b&gt;save it as a file&lt;/b&gt;, or just take a &lt;b&gt;screenshot&lt;/b&gt;.">可以 <b>复制密文</b>，也可以 <b>保存为文件</b> 或直接 <b>截屏</b>。</div></div>
-          <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="在新设备上打开游戏，点 &lt;b&gt;导入存档&lt;/b&gt;，把密文粘进去确认即可。" data-en="Open the game on the new device, tap &lt;b&gt;Import Save&lt;/b&gt;, paste the cipher and confirm.">在新设备上打开游戏，点 <b>导入存档</b>，把密文粘进去确认即可。</div></div>
-          <div class="step"><div class="stepNum">4</div><div class="stepBody" data-zh="导入会覆盖当前存档，记得先把旧存档备份一份。" data-en="Importing overwrites your current save — keep a backup of the old one first.">导入会覆盖当前存档，记得先把旧存档备份一份。</div></div>
+          <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="新设备上打开游戏，点 &lt;b&gt;导入存档&lt;/b&gt;，把密文粘进去确认即可（会覆盖当前存档）。" data-en="On the new device tap &lt;b&gt;Import Save&lt;/b&gt;, paste the cipher and confirm (it overwrites the current save).">新设备上打开游戏，点 <b>导入存档</b>，把密文粘进去确认即可（会覆盖当前存档）。</div></div>
+          <div class="step"><div class="stepNum">4</div><div class="stepBody" data-zh="登录时请注意查看 &lt;b&gt;官方公告&lt;/b&gt;。若账号违规，可能会被限制交易或封禁。" data-en="Check the &lt;b&gt;official notices&lt;/b&gt; on login. Rule-breaking accounts may be restricted or banned.">登录时请注意查看 <b>官方公告</b>。若账号违规，可能会被限制交易或封禁。</div></div>
         </div>
       </div>
       <div class="rulesFooter">
@@ -772,7 +769,7 @@
       <div class="creditCard"><div class="creditEmoji e1" data-zh="主" data-en="P">主</div><div class="creditLabel" data-zh="主制作" data-en="Lead Creator">主制作</div><div class="creditName egg" id="creditEgg" data-zh="臭鸡条" data-en="Chou Ji Tiao">臭鸡条</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
       <div class="creditCard"><div class="creditEmoji e2" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName" data-zh="臭鸡块" data-en="Chou Ji Kuai">臭鸡块</div></div>
       <div class="creditCard"><div class="creditEmoji e3" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName ds" id="creditDeepSeek">DeepSeek · 千问</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
-      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.50 · 感谢游玩" data-en="v0.50 · Thanks for playing">v0.50 · 感谢游玩</div></div>
+      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.51 · 感谢游玩" data-en="v0.51 · Thanks for playing">v0.51 · 感谢游玩</div></div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -1091,7 +1088,25 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.50', latest:true,
+  { ver:'v0.51', latest:true,
+    titleZh:'商业帝国：托管上线与全服喇叭', titleEn:'Business Empire: Autopilot & Server Horns',
+    itemsZh:[
+      '全新【店铺托管】升级线：专门提升离线收益的效率和时间上限，挂机也能赚大钱。',
+      '大幅优化离线收益数值：没雇员工时收益大幅降低，强烈建议雇人或升级托管。',
+      '新增【全服喇叭】：大后期玩家可消耗金币发送全服飘屏广播，排面拉满！',
+      '新增【金融安全网】：交易必须设置 6 位强制密码；赠与将扣除 5% 交易税；黑名单玩家禁止收发金币。',
+      'VIP 尊贵身份全面实装，金色 ID 全局展示。',
+      '规则页说明全面重写，并优化了后台云端推送与定向公告系统。'
+    ],
+    itemsEn:[
+      'Added "Shop Autopilot": A new upgrade path that boosts offline earnings efficiency and time limits.',
+      'Balanced offline earnings: Rates are heavily penalized without staff. Hire workers or upgrade autopilot.',
+      'Added Server Horn: Late-game players can spend coins to broadcast a global scrolling message!',
+      'Added financial security: Mandatory 6-digit password for transfers; 5% trade tax applied; blacklisted players cannot trade.',
+      'VIP identity fully implemented with golden ID displays.',
+      'Completely rewrote the rules page and optimized the cloud announcement push system.'
+    ] },
+  { ver:'v0.50', latest:false,
     titleZh:'喇叭服务地址迁移', titleEn:'Horn Service Endpoint Moved',
     itemsZh:[
       '全服喇叭的云服务地址换成 broadcast.us.ci',
