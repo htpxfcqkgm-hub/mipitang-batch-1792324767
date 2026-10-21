@@ -8,22 +8,28 @@ import WebKit
 enum Haptics {
     private static let lightGen = UIImpactFeedbackGenerator(style: .light)
     private static let mediumGen = UIImpactFeedbackGenerator(style: .medium)
+    private static let heavyGen = UIImpactFeedbackGenerator(style: .heavy)
     private static let selectGen = UISelectionFeedbackGenerator()
     private static var lastAt: TimeInterval = 0
 
     static func prepare() {
         lightGen.prepare()
         mediumGen.prepare()
+        heavyGen.prepare()
         selectGen.prepare()
     }
 
     static func play(_ type: String) {
         // 限流：70ms 内重复触发只算一次，避免连点狂震
         let now = Date().timeIntervalSince1970
-        if now - lastAt < 0.07 { return }
+        // heavy 是重要事件，即使紧跟按钮轻震也要放行
+        if type != "heavy" && now - lastAt < 0.07 { return }
         lastAt = now
 
         switch type {
+        case "heavy":
+            heavyGen.impactOccurred()
+            heavyGen.prepare()
         case "medium":
             mediumGen.impactOccurred()
             mediumGen.prepare()
