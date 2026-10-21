@@ -1,17 +1,259 @@
 import SwiftUI
+import UIKit
 import WebKit
 
+// MARK: - 触觉反馈（震动）
+
+/// 三种力度：light 普通 / medium 重要 / selection 切换类（如中英文切换）
+enum Haptics {
+    private static let lightGen = UIImpactFeedbackGenerator(style: .light)
+    private static let mediumGen = UIImpactFeedbackGenerator(style: .medium)
+    private static let selectGen = UISelectionFeedbackGenerator()
+    private static var lastAt: TimeInterval = 0
+
+    static func prepare() {
+        lightGen.prepare()
+        mediumGen.prepare()
+        selectGen.prepare()
+    }
+
+    static func play(_ type: String) {
+        // 限流：70ms 内重复触发只算一次，避免连点狂震
+        let now = Date().timeIntervalSince1970
+        if now - lastAt < 0.07 { return }
+        lastAt = now
+
+        switch type {
+        case "medium":
+            mediumGen.impactOccurred()
+            mediumGen.prepare()
+        case "selection":
+            selectGen.selectionChanged()
+            selectGen.prepare()
+        default:
+            lightGen.impactOccurred()
+            lightGen.prepare()
+        }
+    }
+}
+
+/// 网页 JS → 原生 的震动通道
+final class HapticBridge: NSObject, WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+        guard message.name == "haptic", let type = message.body as? String else { return }
+        Haptics.play(type)
+    }
+}
+
+// MARK: - 网页 ↔ 原生 状态桥
+
+/// 让 SwiftUI 层能操作网页里的中英文切换按钮
+final class WebBridge: ObservableObject {
+    @Published var showNativeLang = false
+    @Published var langText = "🌐"
+
+    weak var webView: WKWebView?
+
+    /// 是否支持原生液态玻璃（iOS 26+）
+    static var nativeGlassSupported: Bool {
+        if #available(iOS 26.0, *) { return true }
+        return false
+    }
+
+    /// 页面加载后检查网页里有没有可见的 #langBtn（没有就不显示原生按钮）
+    func probeLangButton() {
+        guard let wv = webView else { return }
+        let js = """
+        (function(){
+          var b = document.getElementById('langBtn');
+          if (!b) { return 'none'; }
+          if (window.getComputedStyle(b).display === 'none') { return 'none'; }
+          return 'ok|' + (b.textContent || '').trim();
+        })();
+        """
+        wv.evaluateJavaScript(js) { [weak self] result, _ in
+            guard let self = self, let s = result as? String else { return }
+            guard s.hasPrefix("ok|") else { return }
+            let text = String(s.dropFirst(3)).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty { self.langText = text }
+            guard WebBridge.nativeGlassSupported else { return }   // 老系统不动网页那颗
+            self.showNativeLang = true
+            // 网页那颗隐藏掉，避免双按钮
+            wv.evaluateJavaScript("var b=document.getElementById('langBtn'); if(b){ b.style.display='none'; }",
+                                  completionHandler: nil)
+        }
+    }
+
+    /// 点原生按钮 → 触发网页里的切换逻辑 → 同步按钮上的旗子
+    func toggleLang() {
+        guard let wv = webView else { return }
+        let js = """
+        (function(){
+          var b = document.getElementById('langBtn');
+          if (!b) { return ''; }
+          b.click();
+          return (b.textContent || '').trim();
+        })();
+        """
+        wv.evaluateJavaScript(js) { [weak self] result, _ in
+            guard let self = self else { return }
+            if let s = result as? String, !s.isEmpty { self.langText = s }
+            // 有的页面点完才改文字，稍后再取一次
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                let js2 = "(function(){var b=document.getElementById('langBtn'); return b ? (b.textContent||'').trim() : '';})();"
+                wv.evaluateJavaScript(js2) { r2, _ in
+                    if let s2 = r2 as? String, !s2.isEmpty { self.langText = s2 }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - 原生液态玻璃按钮（iOS 26 / Xcode 26）
+
+/// 真·Liquid Glass：调用系统 glassEffect。老系统/老编译器自动走下面的兜底样式。
+@available(iOS 26.0, *)
+struct LangGlassButton: View {
+    let text: String
+    let action: () -> Void
+
+    var body: some View {
+        #if compiler(>=6.2)
+        Button(action: action) {
+            Text(text)
+                .font(.system(size: 20))
+                .frame(width: 24, height: 24)
+                .padding(10)
+        }
+        .buttonStyle(.plain)
+        .glassEffect(.regular.interactive(), in: Circle())
+        #else
+        Button(action: action) {
+            Text(text)
+                .font(.system(size: 20))
+                .frame(width: 24, height: 24)
+                .padding(10)
+                .background(.ultraThinMaterial, in: Circle())
+                .overlay(Circle().strokeBorder(.white.opacity(0.7), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        #endif
+    }
+}
+
+// MARK: - 根视图
+
+struct ContentView: View {
+    @StateObject private var bridge = WebBridge()
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            WebView(bridge: bridge)
+                .ignoresSafeArea()
+
+            if bridge.showNativeLang {
+                if #available(iOS 26.0, *) {
+                    LangGlassButton(text: bridge.langText) {
+                        Haptics.play("selection")
+                        bridge.toggleLang()
+                    }
+                    .padding(.top, 12)
+                    .padding(.trailing, 12)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - WKWebView
+
 /// 用 WKWebView 加载打包在 App 内的 index.html
-struct ContentView: UIViewRepresentable {
+struct WebView: UIViewRepresentable {
+
+    @ObservedObject var bridge: WebBridge
+
+    /// 注入网页的震动脚本：按到按钮→抬手且没滑动→震动
+    static let hapticJS = """
+    (function(){
+      if (window.__mptHaptic) { return; }
+      window.__mptHaptic = true;
+
+      // 连点型按钮不震动（想全都要就把这行改成 ''）
+      var SKIP = '.buy,.craft,.rush';
+      var MAX_MOVE = 12;
+      var down = false, sx = 0, sy = 0;
+
+      function findBtn(node){
+        while (node && node.nodeType === 1) {
+          if (node.matches('button, [role="button"], .btn')) { return node; }
+          node = node.parentElement;
+        }
+        return null;
+      }
+
+      function pick(el){
+        if (el.disabled) { return null; }
+        if (el.id === 'langBtn') { return 'selection'; }
+        if (el.classList.contains('primary') || el.classList.contains('vipBtn')) { return 'medium'; }
+        return 'light';
+      }
+
+      function press(x, y){ down = true; sx = x; sy = y; }
+
+      function release(x, y, target){
+        if (!down) { return; }
+        down = false;
+        if (Math.abs(x - sx) > MAX_MOVE || Math.abs(y - sy) > MAX_MOVE) { return; }
+        var el = findBtn(target);
+        if (!el) { return; }
+        if (SKIP && el.matches(SKIP)) { return; }
+        var type = pick(el);
+        if (!type) { return; }
+        try { webkit.messageHandlers.haptic.postMessage(type); } catch (err) {}
+      }
+
+      // pointer 事件（现代设备）
+      document.addEventListener('pointerdown', function(e){
+        if (e.pointerType === 'mouse' && e.button !== 0) { return; }
+        press(e.clientX, e.clientY);
+      }, true);
+      document.addEventListener('pointerup', function(e){
+        release(e.clientX, e.clientY, e.target);
+      }, true);
+      document.addEventListener('pointercancel', function(){ down = false; }, true);
+
+      // touch 事件兜底（防止游戏按钮 preventDefault 掉 pointer 事件）
+      document.addEventListener('touchstart', function(e){
+        var t = e.touches[0];
+        if (t) { press(t.clientX, t.clientY); }
+      }, { capture: true, passive: true });
+      document.addEventListener('touchend', function(e){
+        var t = e.changedTouches[0];
+        if (t) { release(t.clientX, t.clientY, e.target); }
+      }, { capture: true, passive: true });
+      document.addEventListener('touchcancel', function(){ down = false; }, { capture: true, passive: true });
+    })();
+    """
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
 
+        // 震动桥接（在 load 之前挂好，网页里才能 postMessage）
+        config.userContentController.add(context.coordinator.haptic, name: "haptic")
+        config.userContentController.addUserScript(
+            WKUserScript(source: WebView.hapticJS,
+                         injectionTime: .atDocumentEnd,
+                         forMainFrameOnly: true)
+        )
+
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         context.coordinator.webView = webView
+        context.coordinator.bridge = bridge
+        bridge.webView = webView
         webView.scrollView.bounces = false
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -32,6 +274,8 @@ struct ContentView: UIViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate {
 
         weak var webView: WKWebView?
+        weak var bridge: WebBridge?
+        let haptic = HapticBridge()
 
         /// 公告地址（优先 ghproxy 镜像，失败自动换直连）
         private let noticeURLs = [
@@ -56,7 +300,14 @@ struct ContentView: UIViewRepresentable {
         /// 页面加载完成后拉公告（此时 DOM 已就绪，__mptApplyCloud 已定义）
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             self.webView = webView
+            self.bridge?.webView = webView
+            Haptics.prepare()   // 预热震动器，第一次点击不延迟
             fetchCloudNotice()
+            // 找网页里的中英文按钮，找到就换成原生液态玻璃
+            self.bridge?.probeLangButton()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                if self?.bridge?.showNativeLang == false { self?.bridge?.probeLangButton() }
+            }
         }
 
         // MARK: - 原生拉取 + JS 注入（绕开 WKWebView 跨域限制）
