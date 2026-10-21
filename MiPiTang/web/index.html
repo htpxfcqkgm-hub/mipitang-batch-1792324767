@@ -46,6 +46,12 @@
   #langBtn.show { display: flex; }
   #devBar { position: fixed; top: calc(env(safe-area-inset-top, 0) + 6px); left: 50%; transform: translateX(-50%) translateY(-200%); background: linear-gradient(135deg, #6bbf4a, #4a9a2a); color: #fff; font-size: 12px; font-weight: 900; padding: 6px 14px; border-radius: 999px; z-index: 150; cursor: pointer; transition: transform .3s cubic-bezier(.2,1.4,.4,1); white-space: nowrap; letter-spacing: 1px; display: none; }
   #devBar.show { display: block; transform: translateX(-50%) translateY(0); }
+  /* v0.41 测试模式标识 + 红框隔离 */
+  .devTag { display: none; align-items: center; flex: none; font-size: 10px; font-weight: 900; color: #fff; background: linear-gradient(135deg, #ff5f5f, #d92a2a); border-radius: 999px; padding: 2px 8px; letter-spacing: .04em; box-shadow: 0 2px 6px rgba(217,42,42,.45); white-space: nowrap; }
+  .devTag.show { display: inline-flex; }
+  #gameWrap.devMode { box-shadow: inset 0 0 0 3px #e5484d; border-radius: 16px; }
+  #gameWrap.devMode #shop { box-shadow: inset 0 0 0 2px #e5484d99; }
+  #devBar { box-shadow: 0 4px 14px rgba(74,154,42,.5); }
   #home .menu { display: flex; flex-direction: column; gap: 8px; max-width: 360px; width: 100%; position: relative; z-index: 1; padding: 0 4px; }
   #home .menu button { width: 100%; padding: clamp(10px, 3vw, 14px) 14px; font-size: clamp(14px, 4vw, 16px); border-radius: 14px; flex: none; }
   /* 首页按钮分三档，拉开层级 */
@@ -71,12 +77,41 @@
   .setRow .rowRight { display: flex; align-items: center; gap: 8px; min-width: 0; justify-content: flex-end; }
   .setRow .miniBtn { width: auto; flex: none; padding: 4px 9px; font-size: 11px; border-radius: 8px; }
   .uidText { font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: .06em; }
+  /* v0.36 VIP：金色 + 👑 */
+  .vipUid { color: #FFD700 !important; font-weight: 900; text-shadow: 0 1px 0 #a97800, 0 0 8px rgba(255, 215, 0, .55); }
+  button.vipBtn { background: linear-gradient(180deg, #ffe9a8, #ffd23f); color: #7a5200; box-shadow: 0 3px 0 #c9a11a, inset 0 1px 0 #fff9d8; }
+  button.vipBtn:active { box-shadow: 0 1px 0 #c9a11a, inset 0 1px 0 #fff9d8; }
+  button.vipBtn:disabled { filter: grayscale(.85) opacity(.55); background: linear-gradient(180deg, #ecdfc9, #dcc9ad); color: #8b7a66; }
+  /* v0.37 收支明细 */
+  #tradeLedger { display: flex; flex-direction: column; }
+  .ledgerRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed #f0dfcb; }
+  .ledgerRow:last-child { border-bottom: 0; }
+  .ledgerMain { min-width: 0; flex: 1 1 auto; }
+  .ledgerName { font-size: 12px; font-weight: 700; color: #6b3a1f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ledgerTime { font-size: 10px; color: #b1937a; margin-top: 2px; }
+  .ledgerAmt { flex: none; font-size: 13px; font-weight: 900; font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: .02em; }
+  .ledgerAmt.in { color: #1f9d55; }
+  .ledgerAmt.out { color: #e5484d; }
+  .payField { width: 100%; margin-top: 8px; }
+  /* 支付密码弹窗位于确认弹窗下方，保证「忘记密码」的确认框能盖住它 */
+  #payMask { z-index: 195; }
+  /* v0.39 离线收益大弹窗 */
+  .offlineLabel { font-size: 12px; font-weight: 900; color: #a9714c; letter-spacing: .1em; margin-top: 2px; }
+  .offlineBig { font-size: clamp(30px, 10vw, 42px); font-weight: 900; color: #d68a1e; letter-spacing: 1px; line-height: 1.15; margin: 2px 0 4px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 #fff6; }
+  .offlineBig .plus { color: #5bc23f; }
+  .offlineBig .unit { font-size: 13px; font-weight: 800; color: #a9714c; margin-left: 4px; letter-spacing: 0; }
+  .offlineReason, .offlineTip { font-size: 12px; line-height: 1.7; color: #6b3a1f; background: #fff3e2; border-radius: 12px; padding: 10px 12px; margin-top: 10px; text-align: left; }
+  .offlineTip { background: #eaf7e6; color: #3f6b32; }
+  button.green { background: linear-gradient(180deg, #8fe06a, #5bc23f); color: #fff; text-shadow: 0 1px 0 #3f8f28aa; box-shadow: 0 3px 0 #47971f, inset 0 1px 0 #fff8; }
+  button.green:active { box-shadow: 0 1px 0 #47971f, inset 0 1px 0 #fff8; }
+  #offlineMask .modalBtns { margin-top: 14px; }
   .setBtns { display: flex; gap: 8px; margin-top: 8px; }
   .setBtns button { flex: 1 1 0; width: auto; font-size: 13px; padding: 9px 8px; }
   .miniBtns { display: flex; gap: 6px; flex: none; }
   .miniBtns button { width: auto; flex: none; padding: 5px 10px; font-size: 11px; border-radius: 8px; }
   .miniBtns button.on { background: linear-gradient(180deg, #ffc76b, #ffb347); color: #fff; box-shadow: 0 3px 0 #d68a1e, inset 0 1px 0 #fff6; }
   .setHint { font-size: 11px; color: #b1937a; line-height: 1.6; margin-top: 6px; }
+  .setHint.taxHint { color: #c98a3a; font-style: italic; font-weight: 700; }
   .field { display: flex; gap: 6px; margin-top: 6px; }
   .field input, .field select { flex: 1 1 auto; min-width: 0; font-family: inherit; font-size: 13px; padding: 9px 10px; border: 1.5px solid #e8dcc8; border-radius: 10px; background: #fff; color: #6b3a1f; }
   .field button { width: auto; flex: none; padding: 9px 12px; font-size: 13px; border-radius: 10px; }
@@ -226,73 +261,60 @@
   .sign { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); background: #d98f5a; color: #fff8ee; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 6px; white-space: nowrap; max-width: 70%; overflow: hidden; text-overflow: ellipsis; z-index: 5; }
   .deco { position: absolute; z-index: 4; pointer-events: none; display: none; }
   .deco.on { display: block; }
-  #decoPinwheel { left: 10%; top: 14%; width: 26px; height: 32px; }
-  #decoPinwheel .stick { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 2px; height: 18px; background: #a96a3c; }
-  #decoPinwheel .wheel { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 22px; height: 22px; animation: spinSlow 3s linear infinite; }
-  #decoPinwheel .blade { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; border-radius: 2px; }
-  #decoPinwheel .blade.b1 { background: #ff9f43; transform: translate(-50%,-50%) rotate(0deg) translate(0, -10px); }
-  #decoPinwheel .blade.b2 { background: #ffb3c8; transform: translate(-50%,-50%) rotate(90deg) translate(0, -10px); }
-  #decoPinwheel .blade.b3 { background: #a8e08a; transform: translate(-50%,-50%) rotate(180deg) translate(0, -10px); }
-  #decoPinwheel .blade.b4 { background: #8ab8e8; transform: translate(-50%,-50%) rotate(270deg) translate(0, -10px); }
-  @keyframes spinSlow { from { transform: translateX(-50%) rotate(0); } to { transform: translateX(-50%) rotate(360deg); } }
-  #decoLantern { left: 6%; top: 18%; width: 22px; height: 30px; }
-  #decoLantern .rope { position: absolute; top: 0; left: 50%; width: 2px; height: 6px; background: #a96a3c; transform: translateX(-50%); }
-  #decoLantern .body { position: absolute; top: 4px; left: 0; width: 22px; height: 22px; background: radial-gradient(circle at 30% 30%, #ff8a8a, #d92a2a 70%); border-radius: 50%; animation: lanternSwing 2.4s ease-in-out infinite; transform-origin: top center; }
-  #decoLantern .tassel { position: absolute; bottom: 0; left: 50%; width: 4px; height: 6px; background: #ffd76b; border-radius: 0 0 2px 2px; transform: translateX(-50%); }
-  @keyframes lanternSwing { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
-  #decoFlag { left: 50%; top: 2%; width: 30px; height: 28px; transform: translateX(-50%); }
-  #decoFlag .pole { position: absolute; left: 0; bottom: 0; width: 2px; height: 26px; background: #a96a3c; }
-  #decoFlag .flag { position: absolute; left: 2px; top: 0; width: 26px; height: 16px; background: linear-gradient(135deg, #ff9f43, #ff6b6b); clip-path: polygon(0 0, 100% 20%, 100% 80%, 0 100%); animation: flagWave 1.6s ease-in-out infinite; }
-  @keyframes flagWave { 0%,100% { transform: skewY(-2deg) rotate(-2deg); } 50% { transform: skewY(2deg) rotate(2deg); } }
-  #decoCat { right: 4%; bottom: 26%; width: 32px; height: 38px; }
-  #decoCat .body { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 26px; height: 26px; background: linear-gradient(180deg, #fff, #f0e6d6); border-radius: 50% 50% 40% 40%; }
-  #decoCat .head { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 20px; background: linear-gradient(180deg, #fff, #f0e6d6); border-radius: 50% 50% 40% 40%; }
-  #decoCat .ear { position: absolute; top: -2px; width: 8px; height: 8px; background: #f0e6d6; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-  #decoCat .ear.l { left: 2px; }
-  #decoCat .ear.r { right: 2px; }
-  #decoCat .eye { position: absolute; top: 8px; width: 3px; height: 3px; background: #2a1a0a; border-radius: 50%; }
-  #decoCat .eye.l { left: 6px; }
-  #decoCat .eye.r { right: 6px; }
-  #decoCat .paw { position: absolute; top: 12px; right: -2px; width: 8px; height: 12px; background: #fff; border-radius: 4px; animation: catPaw 1.2s ease-in-out infinite; transform-origin: top center; }
-  #decoCat .collar { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); width: 22px; height: 4px; background: #d92a2a; border-radius: 2px; }
-  @keyframes catPaw { 0%,100% { transform: rotate(-10deg); } 50% { transform: rotate(15deg); } }
-  #decoWindchime { right: 12%; top: 4%; width: 24px; height: 34px; }
-  #decoWindchime .top { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 18px; height: 6px; background: #8a8a9a; border-radius: 50%; }
-  #decoWindchime .bell { position: absolute; top: 6px; left: 50%; width: 10px; height: 14px; background: linear-gradient(180deg, #ffd76b, #d6a01e); border-radius: 50% 50% 20% 20%; animation: chimeSwing 2s ease-in-out infinite; }
-  #decoWindchime .bell.b2 { animation-delay: .3s; margin-left: -12px; }
-  #decoWindchime .bell.b3 { animation-delay: .6s; margin-left: 8px; }
-  @keyframes chimeSwing { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
-  #decoLights { left: 0; top: 1%; width: 100%; height: 20px; }
-  #decoLights .wire { position: absolute; top: 6px; left: 5%; right: 5%; height: 2px; background: #6a6a7a; border-radius: 2px; }
-  #decoLights .bulb { position: absolute; top: 4px; width: 8px; height: 10px; border-radius: 50%; animation: bulbBlink 1.6s ease-in-out infinite; }
-  @keyframes bulbBlink { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
-  #decoTanghulu { left: 3%; bottom: 30%; width: 34px; height: 44px; }
-  #decoTanghulu .stand { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 30px; height: 4px; background: #a96a3c; border-radius: 2px; }
-  #decoTanghulu .pole { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 3px; height: 36px; background: #a96a3c; }
-  #decoTanghulu .skewer { position: absolute; width: 3px; background: #8a5a20; border-radius: 2px; }
-  #decoTanghulu .ball { position: absolute; left: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translateX(-50%); background: radial-gradient(circle at 30% 30%, #ff6a6a, #c92a2a 80%); }
-  #decoBoard { left: 50%; top: 22%; transform: translateX(-50%); }
-  #decoBoard .board { background: linear-gradient(180deg, #ff9f43, #d68a1e); color: #fff; font-size: 9px; font-weight: 900; padding: 3px 8px; border-radius: 4px; letter-spacing: 1px; }
-  #decoIngot { left: 50%; bottom: 26%; transform: translateX(-50%); width: 30px; height: 20px; }
-  #decoIngot .ingot { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 28px; height: 16px; background: radial-gradient(circle at 30% 20%, #fff3b0, #d6a01e 60%, #a67820); border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%; }
-  #decoKoi { left: 8%; bottom: 30%; width: 40px; height: 20px; }
-  #decoKoi .pond { position: absolute; inset: 0; background: linear-gradient(180deg, #8ab8e8, #4a7ab8); border-radius: 50%; overflow: hidden; }
-  #decoKoi .fish { position: absolute; width: 12px; height: 6px; background: radial-gradient(circle at 30% 40%, #fff, #ff6a6a 70%); border-radius: 50% 20% 20% 50%; animation: koiSwim 3s ease-in-out infinite; }
-  #decoKoi .fish.f1 { top: 4px; left: 0; }
-  #decoKoi .fish.f2 { top: 10px; left: 6px; animation-delay: 1.5s; }
-  @keyframes koiSwim { 0% { transform: translateX(-10px); } 50% { transform: translateX(26px); } 100% { transform: translateX(-10px); } }
-  #decoFirework { right: 2%; bottom: 26%; width: 24px; height: 30px; }
-  #decoFirework .tube { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 12px; height: 24px; background: linear-gradient(180deg, #ff9f43, #d92a2a); border-radius: 3px; }
-  #decoFirework .spark { position: absolute; top: -6px; left: 50%; width: 6px; height: 6px; background: #ffd76b; border-radius: 50%; transform: translateX(-50%); opacity: 0; animation: fireworkSpark 2.4s ease-out infinite; }
-  @keyframes fireworkSpark { 0%,100% { opacity: 0; } 20% { opacity: 1; } 60% { opacity: 1; transform: translateX(-50%) translateY(-8px); } }
-  #decoLion, #decoLion2 { bottom: 26%; width: 28px; height: 34px; }
-  #decoLion { left: 2%; }
-  #decoLion2 { right: 2%; }
-  #decoLion .body, #decoLion2 .body { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 22px; height: 20px; background: radial-gradient(circle at 30% 20%, #ffe680, #d6a01e 70%); border-radius: 40% 40% 30% 30%; }
-  #decoLion .head, #decoLion2 .head { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 22px; height: 18px; background: radial-gradient(circle at 30% 30%, #ffe680, #d6a01e 70%); border-radius: 50%; }
-  #decoLion .eye, #decoLion2 .eye { position: absolute; top: 8px; width: 3px; height: 3px; background: #2a1a0a; border-radius: 50%; }
-  #decoLion .eye.l, #decoLion2 .eye.l { left: 5px; }
-  #decoLion .eye.r, #decoLion2 .eye.r { right: 5px; }
+  /* ===== v0.40 配饰 Emoji 化 ===== */
+  .deco .emoji { display: inline-block; font-size: 28px; line-height: 1; filter: drop-shadow(0 4px 4px rgba(0,0,0,.2)); }
+  /* ===== v0.42 配饰重新布局：顶栏 3 个 / 中上 2 个 / 左右腰线 2 个 / 地面一排 6 个 ===== */
+  /* 安全区：设备等高 22%~47%，故装饰只在 top 10~50% 与 bottom 3~5% 两带活动 */
+  /* 1 风车：左上角 */
+  #decoPinwheel { left: 3%; top: 10%; }
+  #decoPinwheel .emoji { font-size: 32px; animation: spinSlow 3s linear infinite; }
+  /* 2 灯笼：左侧腰线（挂在墙上，位于招揽员上方） */
+  #decoLantern { left: 1%; top: 32%; }
+  #decoLantern .emoji { font-size: 28px; animation: decoSwing 2.4s ease-in-out infinite; transform-origin: top center; }
+  /* 5 彩旗：正上方居中（在招牌下方一行） */
+  #decoFlag { left: 50%; top: 21%; transform: translateX(-50%); }
+  #decoFlag .emoji { font-size: 32px; animation: decoFlagWave 1.8s ease-in-out infinite; transform-origin: bottom left; }
+  /* 3 招财猫：右下地面（原 right/bottom 25% 会压到货架，已下移到地面排） */
+  #decoCat { right: 22%; bottom: 4%; }
+  #decoCat .emoji { font-size: 32px; animation: decoBounce 1.8s ease-in-out infinite; }
+  /* 4 风铃：右上角 */
+  #decoWindchime { right: 3%; top: 10%; }
+  #decoWindchime .emoji { font-size: 28px; animation: decoSwing 2s ease-in-out infinite; transform-origin: top center; }
+  #decoLights { left: 0; top: 0; width: 100%; }
+  #decoLights.on { display: flex; justify-content: space-around; align-items: flex-start; }
+  #decoLights .emoji { font-size: 20px; animation: decoBlink 1.6s ease-in-out infinite; }
+  #decoLights .emoji:nth-child(2) { animation-delay: .3s; }
+  #decoLights .emoji:nth-child(3) { animation-delay: .6s; }
+  #decoLights .emoji:nth-child(4) { animation-delay: .9s; }
+  #decoLights .emoji:nth-child(5) { animation-delay: 1.2s; }
+  /* 6 糖葫芦：左下地面（原 bottom 25% 会压到熬糖锅，已下移） */
+  #decoTanghulu { left: 12%; bottom: 4%; }
+  #decoTanghulu .emoji { font-size: 30px; animation: decoBob 2.6s ease-in-out infinite; }
+  /* 7 招牌：正上方居中，彩旗下一行 */
+  #decoBoard { left: 50%; top: 41%; transform: translateX(-50%); }
+  #decoBoard .emoji { font-size: 24px; animation: decoBob 3s ease-in-out infinite; }
+  /* 8 金元宝：正下方地面居中 */
+  #decoIngot { left: 50%; bottom: 4%; transform: translateX(-50%); }
+  #decoIngot .emoji { font-size: 32px; animation: decoBob 2.2s ease-in-out infinite; filter: drop-shadow(0 4px 4px rgba(0,0,0,.2)) drop-shadow(0 0 6px rgba(255,215,0,.55)); }
+  /* 9 锦鲤：地面偏左（原 bottom 20% 会压到熬糖锅左下角，已下移） */
+  #decoKoi { left: 24%; bottom: 5%; }
+  #decoKoi .emoji { font-size: 28px; animation: decoSway 3.2s ease-in-out infinite; }
+  /* 10 烟花：右下地面 */
+  #decoFirework { right: 11%; bottom: 5%; }
+  #decoFirework .emoji { font-size: 28px; animation: decoSpark 2.4s ease-in-out infinite; }
+  /* 11/12 金狮：左右下角边缘 */
+  #decoLion { left: 1%; bottom: 3%; }
+  #decoLion2 { right: 1%; bottom: 3%; }
+  #decoLion .emoji { font-size: 26px; animation: decoBounce 2.2s ease-in-out infinite; }
+  #decoLion2 .emoji { font-size: 26px; animation: decoBounce 2s ease-in-out infinite; animation-delay: .4s; }
+  @keyframes spinSlow { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  @keyframes decoSwing { 0%,100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+  @keyframes decoFlagWave { 0%,100% { transform: rotate(-6deg) skewY(-2deg); } 50% { transform: rotate(6deg) skewY(2deg); } }
+  @keyframes decoBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes decoBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  @keyframes decoSway { 0%,100% { transform: translateX(-4px) rotate(-4deg); } 50% { transform: translateX(4px) rotate(4deg); } }
+  @keyframes decoBlink { 0%,100% { opacity: .45; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.08); } }
+  @keyframes decoSpark { 0%,100% { opacity: .55; transform: scale(.95); } 50% { opacity: 1; transform: scale(1.15); } }
   #devPot { left: 5%; bottom: 22%; position: absolute; cursor: pointer; transition: transform .1s ease; }
   #devPot .potBody { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 46px; height: 30px; background: linear-gradient(180deg, #6a6a7a, #3d3d4a); border-radius: 6px 6px 22px 22px; }
   #devPot .potRim { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); width: 52px; height: 8px; background: #8a8a9a; border-radius: 999px; }
@@ -547,6 +569,16 @@
   </div>
 </div>
 
+<div class="modalMask" id="walletMask">
+  <div class="modal">
+    <h2 style="text-align:center;font-size:22px" data-zh="🎁 账户变动" data-en="🎁 Account Update">🎁 账户变动</h2>
+    <div id="walletBody" style="font-size:14px;line-height:1.75;color:#6b3a1f;font-weight:600;white-space:pre-line;word-break:break-word;max-height:46vh;overflow-y:auto;background:#fff3e0;border:1px dashed #ffb347;border-radius:8px;padding:10px 12px;"></div>
+    <div class="modalBtns">
+      <button class="primary" id="walletOk" data-zh="收下" data-en="OK">收下</button>
+    </div>
+  </div>
+</div>
+
 <div class="modalMask" id="askMask">
   <div class="modal">
     <h2 id="askTitle">提示</h2>
@@ -554,6 +586,34 @@
     <div class="modalBtns">
       <button class="ghost" id="askCancel">取消</button>
       <button class="primary" id="askOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalMask" id="payMask">
+  <div class="modal">
+    <h2 id="payTitle">设置支付密码</h2>
+    <p id="payDesc" style="white-space:pre-line;font-size:13px;color:#6b3a1f;margin:0 0 6px;line-height:1.7"></p>
+    <input id="payInput" class="payField" type="password" inputmode="numeric" maxlength="6" placeholder="······" autocomplete="off">
+    <input id="payInput2" class="payField" type="password" inputmode="numeric" maxlength="6" placeholder="······" autocomplete="off" style="display:none">
+    <div class="hint" id="payHint" style="text-align:center;min-height:18px;margin-top:8px"></div>
+    <div class="modalBtns">
+      <button class="ghost" id="payCancel" data-zh="取消" data-en="Cancel">取消</button>
+      <button class="primary" id="payOk" data-zh="确定" data-en="OK">确定</button>
+    </div>
+    <div style="margin-top:10px"><a id="payForgot" style="font-size:11px;color:#a9714c;text-decoration:underline;cursor:pointer">忘记密码？[重置]</a></div>
+  </div>
+</div>
+
+<div class="modalMask" id="offlineMask">
+  <div class="modal">
+    <h2 data-zh="欢迎回来，店主！" data-en="Welcome back, shopkeeper!">欢迎回来，店主！</h2>
+    <div class="offlineLabel" data-zh="离线收益" data-en="Offline Earnings">离线收益</div>
+    <div class="offlineBig"><span class="plus">+</span><span id="offlineGainAmount">0</span><span class="unit" data-zh="金币" data-en="coins">金币</span></div>
+    <div class="offlineReason" id="offlineReason"></div>
+    <div class="offlineTip" id="offlineTip"></div>
+    <div class="modalBtns">
+      <button class="green" id="offlineOk" data-zh="收下金币，开始营业" data-en="Collect &amp; Open Shop">收下金币，开始营业</button>
     </div>
   </div>
 </div>
@@ -723,6 +783,10 @@
           </div>
         </div>
         <div class="setHint" data-zh="ID 首次生成后固定不变，改名不会换 ID。赠与交易只认这个 ID。" data-en="Your ID is fixed once created — renaming never changes it. Gift trades only use this ID.">ID 首次生成后固定不变，改名不会换 ID。赠与交易只认这个 ID。</div>
+        <div class="setBtns">
+          <button class="vipBtn" id="btnVipUp" data-zh="升级 VIP（100 万金币）" data-en="Upgrade VIP (1,000,000 coins)">升级 VIP（100 万金币）</button>
+        </div>
+        <div class="setHint" data-zh="VIP 属于大后期内容：花 100 万金币把 ID 前缀换成 VIP-，全局显示为金色 👑。" data-en="VIP is late-game content: spend 1,000,000 coins to turn your prefix into VIP- and display a golden 👑 everywhere.">VIP 属于大后期内容：花 100 万金币把 ID 前缀换成 VIP-，全局显示为金色 👑。</div>
       </div>
       <div class="setGroup">
         <div class="setGroupTitle" data-zh="设置" data-en="Settings">设置</div>
@@ -734,6 +798,14 @@
           </div>
         </div>
         <div class="setRow"><span class="k" data-zh="黑名单" data-en="Blacklist">黑名单</span><span class="v" id="blStatus">使用本地缓存</span></div>
+        <div class="setRow">
+          <span class="k" data-zh="支付密码" data-en="Payment Password">支付密码</span>
+          <div class="rowRight">
+            <span class="v" id="payState">未设置</span>
+            <button class="ghost miniBtn" id="btnSetPay" data-zh="修改" data-en="Change">修改</button>
+          </div>
+        </div>
+        <div class="setHint" data-zh="发送金币前必须验证 6 位支付密码。密码仅保存在本机，中途忘记只能重置（清空金币）。" data-en="A 6-digit payment password is required before sending coins. It is stored on this device only; if you forget it, the only way out is a reset that wipes your coins.">发送金币前必须验证 6 位支付密码。密码仅保存在本机，中途忘记只能重置（清空金币）。</div>
       </div>
       <div class="setGroup">
         <div class="setGroupTitle" data-zh="数据" data-en="Data">数据</div>
@@ -745,7 +817,7 @@
       </div>
       <div class="setGroup">
         <div class="setGroupTitle" data-zh="关于" data-en="About">关于</div>
-        <div class="setRow"><span class="k" data-zh="版本" data-en="Version">版本</span><span class="v">v0.35</span></div>
+        <div class="setRow"><span class="k" data-zh="版本" data-en="Version">版本</span><span class="v">v0.40</span></div>
         <div class="setRow"><span class="k" data-zh="出品" data-en="Studio">出品</span><span class="v" data-zh="全家桶工作室" data-en="Family Bucket Studio">全家桶工作室</span></div>
       </div>
     </div>
@@ -778,6 +850,7 @@
 <div class="screen" id="tradeScreen">
   <div class="screenTitle" data-zh="赠与交易" data-en="Gift Trade">赠与交易</div>
   <div class="screenSub" data-zh="发一张定向金币码，只有指定 ID 能领" data-en="Send a targeted coin code — only that ID can claim it">发一张定向金币码，只有指定 ID 能领</div>
+  <div id="tradeBanTip" style="display:none;margin:0 0 10px;padding:9px 12px;border-radius:9px;background:#fdecec;border:1px solid #e5484d;color:#c92a2a;font-size:13px;font-weight:800;text-align:center;" data-zh="账号已被限制交易" data-en="Trading restricted on this account">账号已被限制交易</div>
   <div class="screenBody">
     <div class="setWrap">
       <div class="setGroup">
@@ -795,6 +868,7 @@
           <button class="ghost" id="btnTradeCopy" data-zh="复制交易码" data-en="Copy Code">复制交易码</button>
         </div>
         <div class="setHint" data-zh="金币在生成时扣除，7 天内有效，过期作废。交易码只能被指定 ID 领取一次。" data-en="Coins are deducted when the code is created. Valid for 7 days, then void. It can be claimed once, by the target ID only.">金币在生成时扣除，7 天内有效，过期作废。交易码只能被指定 ID 领取一次。</div>
+        <div class="setHint taxHint" data-zh="* 系统将收取 5% 的交易税以平衡经济" data-en="* A 5% trade tax is charged to balance the economy">* 系统将收取 5% 的交易税以平衡经济</div>
       </div>
       <div class="setGroup">
         <div class="setGroupTitle" data-zh="领取" data-en="Claim">领取</div>
@@ -806,6 +880,12 @@
         </div>
         <div class="tradeMsg" id="tradeClaimMsg"></div>
       </div>
+      <div class="setGroup">
+        <div class="setGroupTitle" data-zh="收支明细" data-en="Ledger">收支明细</div>
+        <div id="tradeLedger"></div>
+        <div class="emptyTip" id="ledgerEmpty" data-zh="还没有流水，送出一张交易码就开账了。" data-en="No transactions yet — send your first code.">还没有流水，送出一张交易码就开账了。</div>
+        <div class="setHint" data-zh="倒序显示最近 50 条：绿色 + 为收入（领取），红色 - 为支出（送钱）。" data-en="Latest 50 entries, newest first: green + is income (claimed), red - is spending (sent).">倒序显示最近 50 条：绿色 + 为收入（领取），红色 - 为支出（送钱）。</div>
+      </div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -816,6 +896,7 @@
     <div id="topbar">
       <button class="ghost" id="btnHome">←</button>
       <div class="stat"><div class="label" data-zh="金币" data-en="Coins">金币</div><div class="value gold" id="coins">0</div></div>
+      <span class="devTag" id="devTag" data-zh="🧪 测试模式" data-en="🧪 Test Mode">🧪 测试模式</span>
       <div class="stat"><div class="label" data-zh="米皮糖" data-en="MipiTang">米皮糖</div><div class="value" id="stock">0</div></div>
       <div class="stat"><div class="label" data-zh="每秒收入" data-en="Income/s">每秒收入</div><div class="value" id="cps">0</div></div>
       <button id="btnCloseShop" data-zh="提前收摊" data-en="Close Early">提前收摊</button>
@@ -831,19 +912,19 @@
       <div class="ground"></div>
       <div class="sign" id="stallName">1的米皮糖小摊</div>
 
-      <div class="deco" id="decoPinwheel"><div class="stick"></div><div class="wheel"><div class="blade b1"></div><div class="blade b2"></div><div class="blade b3"></div><div class="blade b4"></div></div></div>
-      <div class="deco" id="decoLantern"><div class="rope"></div><div class="body"></div><div class="tassel"></div></div>
-      <div class="deco" id="decoFlag"><div class="pole"></div><div class="flag"></div></div>
-      <div class="deco" id="decoCat"><div class="ear l"></div><div class="ear r"></div><div class="body"></div><div class="head"><div class="eye l"></div><div class="eye r"></div></div><div class="collar"></div><div class="paw"></div></div>
-      <div class="deco" id="decoWindchime"><div class="top"></div><div class="bell b1"></div><div class="bell b2"></div><div class="bell b3"></div></div>
-      <div class="deco" id="decoLights"><div class="wire"></div></div>
-      <div class="deco" id="decoTanghulu"><div class="stand"></div><div class="pole"></div><div class="skewer" style="left:30%;bottom:10px;height:24px"></div><div class="ball" style="bottom:30px"></div><div class="ball" style="bottom:22px"></div><div class="ball" style="bottom:14px"></div><div class="skewer" style="left:60%;bottom:8px;height:26px"></div><div class="ball" style="bottom:28px"></div><div class="ball" style="bottom:20px"></div></div>
-      <div class="deco" id="decoBoard"><div class="board" data-zh="米皮糖" data-en="MipiTang">米皮糖</div></div>
-      <div class="deco" id="decoIngot"><div class="ingot"></div></div>
-      <div class="deco" id="decoKoi"><div class="pond"><div class="fish f1"></div><div class="fish f2"></div></div></div>
-      <div class="deco" id="decoFirework"><div class="tube"></div><div class="spark"></div></div>
-      <div class="deco" id="decoLion"><div class="body"></div><div class="head"><div class="eye l"></div><div class="eye r"></div></div></div>
-      <div class="deco" id="decoLion2"><div class="body"></div><div class="head"><div class="eye l"></div><div class="eye r"></div></div></div>
+      <div class="deco" id="decoPinwheel"><span class="emoji">🎡</span></div>
+      <div class="deco" id="decoLantern"><span class="emoji">🏮</span></div>
+      <div class="deco" id="decoFlag"><span class="emoji">🚩</span></div>
+      <div class="deco" id="decoCat"><span class="emoji">🐱</span></div>
+      <div class="deco" id="decoWindchime"><span class="emoji">🎐</span></div>
+      <div class="deco" id="decoLights"><span class="emoji">💡</span><span class="emoji">💡</span><span class="emoji">💡</span><span class="emoji">💡</span><span class="emoji">💡</span></div>
+      <div class="deco" id="decoTanghulu"><span class="emoji">🍡</span></div>
+      <div class="deco" id="decoBoard"><span class="emoji">📋</span></div>
+      <div class="deco" id="decoIngot"><span class="emoji">💰</span></div>
+      <div class="deco" id="decoKoi"><span class="emoji">🐟</span></div>
+      <div class="deco" id="decoFirework"><span class="emoji">🎆</span></div>
+      <div class="deco" id="decoLion"><span class="emoji">🦁</span></div>
+      <div class="deco" id="decoLion2"><span class="emoji">🦁</span></div>
 
       <div id="devPot" title="点击搅拌">
         <div class="potBody" id="potBody"></div>
@@ -859,7 +940,7 @@
         <div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#7a4a20;background:#fff8eecc;border-radius:6px;padding:1px 6px;margin-top:2px;white-space:nowrap" id="boardTag">案板 Lv.1</div>
       </div>
       <div id="devShelf">
-        <div class="shelfTop"></div>
+        <div class="shelfTop" id="shelfTop"></div>
         <div class="candy c1"></div>
         <div class="candy c2"></div>
         <div class="candy c3"></div>
@@ -959,7 +1040,63 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.35', latest:true,
+  { ver:'v0.40', latest:true,
+    titleZh:'大后期生态：交易税 · 材质变异 · 配饰量产', titleEn:'Late-Game Ecosystem: Tax · Material Mutation · Emoji Decor',
+    itemsZh:[
+      '赠与交易新增 5% 交易税（四舍五入），余额需能同时支付本金与税金，以抑制金币通胀',
+      '设备等级上限 50 → 999；50 级后升级费用增长加快，数值封顶避免显示 Infinity',
+      '设备材质变异：熬糖锅 50 级土豪金、100 级紫焰魔锅；案板 50 级红木金边、100 级发光玉石；货架 50 级水晶材质',
+      '设备尺寸在 50 级封顶，后期主要靠渐变色与发光（box-shadow）体现高级感',
+      '全部 12 款小摊配饰改为 28px 超大号 Emoji + CSS 动画（旋转 / 摇摆 / 弹跳 / 闪烁）'
+    ],
+    itemsEn:[
+      'Gift trades now charge a 5% tax (rounded), and your balance must cover both the amount and the tax to curb inflation',
+      'Device level cap raised from 50 to 999; cost growth accelerates past level 50 and is clamped to avoid showing Infinity',
+      'Material mutation: the pot turns gold at 50 and purple-flame at 100; the board turns rosewood-gold at 50 and glowing jade at 100; the shelf becomes crystal at 50',
+      'Device size caps at level 50 — late-game flair comes from gradients and glow (box-shadow)',
+      'All 12 stall decorations are now 28px emoji with CSS animations (spin / sway / bounce / blink)'
+    ]
+  },
+  { ver:'v0.39', latest:false,
+    titleZh:'离线收益重做 + 欢迎弹窗', titleEn:'Offline Earnings Rework + Welcome Modal',
+    itemsZh:[
+      '彻底重构离线收益公式：移除固定的高额保底，收益严格与【摊位等级】和【售货员】挂钩。',
+      '摊位等级越高，离线上限时间越长（最高8小时），收益效率越高，告别前期金币崩盘。',
+      '登录游戏时，新增【离线收益大弹窗】，会详细展示你离开期间卖出的金额，并为你提供后续的经营建议。'
+    ],
+    itemsEn:[
+      'Rebuilt offline earnings: removed the fixed base amount. Earnings now strictly scale with Stall Level and the Seller staff.',
+      'Higher stall levels grant longer offline caps (up to 8 hours) and better efficiency, fixing early-game inflation.',
+      'Added a Welcome Back modal on login showing your offline earnings and giving you a tailored business tip.'
+    ]
+  },
+  { ver:'v0.37', latest:false,
+    titleZh:'资产安全与明细账单', titleEn:'Asset Security & Ledger',
+    itemsZh:[
+      '新增强制支付密码功能，发送金币前必须验证 6 位密码，保护您的资产安全',
+      '新增收支明细账单，可随时查看您送给谁、收了谁的每一笔金币流水',
+      '密码防死锁机制：若忘记密码，可通过重置功能清空金币重新设置'
+    ],
+    itemsEn:[
+      'Added mandatory 6-digit payment password to secure your coin transfers',
+      'Added transaction history ledger to track every coin sent and received',
+      'Anti-lockout mechanism: You can reset the password by wiping coins if forgotten'
+    ]
+  },
+  { ver:'v0.36', latest:false,
+    titleZh:'VIP尊贵身份上线', titleEn:'VIP Identity Launch',
+    itemsZh:[
+      '大后期专属：消耗 100 万金币即可升级为 VIP 玩家',
+      '升级后玩家 ID 前缀变为 VIP-，并在全局显示为高贵的金色 👑',
+      '优化了云端公告拉取逻辑，采用了更稳定的代理节点和防缓存机制'
+    ],
+    itemsEn:[
+      'Late-game exclusive: Spend 1,000,000 coins to upgrade to VIP',
+      'VIP players get a golden VIP- prefix with a 👑 icon globally',
+      'Optimized cloud notice fetching with a more stable proxy and anti-cache mechanism'
+    ]
+  },
+  { ver:'v0.35', latest:false,
     titleZh:'黑名单 + 设置页打磨',
     titleEn:'Blacklist + Settings Polish',
     itemsZh:[
@@ -1418,8 +1555,9 @@ function renderUpdates(){
       flavors: [true, false, false, false],
       decos: {}, devMode: false,
       dayStart: 0, dayEarned: 0, daySold: 0, dayClosedFrom: 0, daySettledDay: 1, day: 1,
-      uid: '', friends: [], tradeClaims: [],
-      lastTime: Date.now(), version: 14
+      uid: '', friends: [], tradeClaims: [], claimedWallets: [],
+      payPassword: '', tradeHistory: [],
+      lastTime: Date.now(), version: 16
     };
     return ensureUid(s);
   }
@@ -1485,7 +1623,14 @@ function renderUpdates(){
     s.tradeClaims = Array.isArray(s.tradeClaims)
       ? s.tradeClaims.filter(function (x) { return typeof x === 'string' && x; }).slice(-200)
       : [];
-    s.version = 14;
+    /* v15：老存档自动补支付密码 / 收支明细 */
+    s.payPassword = typeof s.payPassword === 'string' ? s.payPassword : '';
+    s.tradeHistory = normalizeTradeHistory(s.tradeHistory);
+    /* v16：后台发钱领取记录（存 item.id，防重复领取） */
+    s.claimedWallets = Array.isArray(s.claimedWallets)
+      ? s.claimedWallets.filter(function (x) { return x != null && x !== ''; }).map(function (x) { return String(x); })
+      : [];
+    s.version = 16;
     ensureTimeline(s);
     return s;
   }
@@ -1512,7 +1657,7 @@ function renderUpdates(){
     if (!state) return;
     ensureUid(state);
     state.lastTime = Date.now();
-    state.version = 14;
+    state.version = 16;
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
     cachedSave = state;
     cachedSaveLoaded = true;
@@ -1553,7 +1698,16 @@ function renderUpdates(){
 
   /* ID：crypto 取 5 字节 → base32（去掉 0/O/1/I）→ 8 字符 → MPT-XXXX-XXXX */
   var UID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var UID_RE = /^MPT-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+  /* v0.36：同时认 MPT- 与 VIP- 两种前缀 */
+  var UID_RE = /^(MPT|VIP)-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+  var VIP_PREFIX = 'VIP-';
+  function isVipUid(u) { return /^VIP-/.test(String(u == null ? '' : u).trim().toUpperCase()); }
+  /* 全局展示：VIP 加 👑 并走金色样式 */
+  function uidLabel(u) {
+    var v = String(u == null ? '' : u);
+    return isVipUid(v) ? '👑 ' + v : v;
+  }
+  function uidClass(u) { return isVipUid(u) ? ' vipUid' : ''; }
 
   function uidRandomBytes(n) {
     var bytes = new Uint8Array(n);
@@ -1580,8 +1734,10 @@ function renderUpdates(){
     var v = String(u == null ? '' : u).trim().toUpperCase();
     if (UID_RE.test(v)) return v;
     v = v.replace(/[\s_\-]/g, '');
-    if (v.indexOf('MPT') === 0) v = v.slice(3);
-    if (/^[A-Z0-9]{8}$/.test(v)) return 'MPT-' + v.slice(0, 4) + '-' + v.slice(4);
+    var pre = 'MPT-';
+    if (v.indexOf('VIP') === 0) { pre = VIP_PREFIX; v = v.slice(3); }
+    else if (v.indexOf('MPT') === 0) { v = v.slice(3); }
+    if (/^[A-Z0-9]{8}$/.test(v)) return pre + v.slice(0, 4) + '-' + v.slice(4);
     return String(u == null ? '' : u).trim().toUpperCase();
   }
   function isValidUid(u) { return UID_RE.test(u); }
@@ -1771,6 +1927,10 @@ function renderUpdates(){
 
   var TRADE_TTL = 7 * 24 * 3600 * 1000;
   var TRADE_MIN_COINS = 1, TRADE_MAX_COINS = 100000;
+  var TRADE_TAX_RATE = 0.05;   /* v0.40 交易税 5%，抑制通胀 */
+  /* 金币结算：小额保留一位小数；1e12 以上直接取整，避免 ×10 超出安全整数丢精度 */
+  function roundCoins(v) { return Math.abs(v) >= 1e12 ? Math.round(v) : Math.round(v * 10) / 10; }
+  function tradeTax(coins) { return Math.round(Number(coins) * TRADE_TAX_RATE); }
   var lastTradeCode = '';
 
   function randToken(n) {
@@ -1870,13 +2030,17 @@ function renderUpdates(){
   }
   function makeTrade(toUid, coins) {
     ensureState();
+    if (state.devMode) return { ok: false, code: 'devmode' };   /* v0.41 测试模式隔离 */
+    if (selfBlacklisted()) return { ok: false, code: 'ban' };   /* v0.43 本人被限制*/
     var to = normalizeUid(toUid);
     if (!isValidUid(to)) return { ok: false, code: 'badto' };
     if (to === state.uid) return { ok: false, code: 'self' };
     coins = Math.floor(Number(coins));
     if (!isFinite(coins) || coins < TRADE_MIN_COINS) return { ok: false, code: 'low' };
     if (coins > TRADE_MAX_COINS) return { ok: false, code: 'high' };
-    if (coins > Math.floor(state.coins)) return { ok: false, code: 'poor' };
+    /* v0.40：生成即收 5% 税，余额必须能盖住 本金 + 税 */
+    var tax = tradeTax(coins), total = coins + tax;
+    if (total > Math.floor(state.coins)) return { ok: false, code: 'poortax', need: total - Math.floor(state.coins) };
     var now = Date.now();
     var t = {
       id: 'T' + now.toString(36) + randToken(6),
@@ -1889,12 +2053,16 @@ function renderUpdates(){
       sig: ''
     };
     t.sig = TradeCrypto.sign(t);
-    state.coins = Math.round((state.coins - coins) * 10) / 10;
+    state.coins = roundCoins(state.coins - total);
+    /* v0.37 记账：发钱 = out（含税，按实际出账金额记） */
+    pushTrade('out', total, to, peerName(to));
     saveSoon();
-    return { ok: true, trade: t, code: encodeTrade(t), coins: coins };
+    return { ok: true, trade: t, code: encodeTrade(t), coins: coins, tax: tax, total: total };
   }
   function claimTrade(raw) {
     ensureState();
+    if (state.devMode) return { ok: false, code: 'devmode' };   /* v0.41 测试模式隔离 */
+    if (selfBlacklisted()) return { ok: false, code: 'ban' };   /* v0.43 本人被限制*/
     var t = parseTradeCode(raw);
     if (!t || typeof t !== 'object' || !t.id || !t.from || !t.to) return { ok: false, code: 'badcode' };
     /* 1. 先验签 */
@@ -1911,17 +2079,210 @@ function renderUpdates(){
     if (isBlacklisted(t.from)) return { ok: false, code: 'blocked' };
     var coins = Math.floor(Number(t.give && t.give.coins) || 0);
     if (coins <= 0) return { ok: false, code: 'badcode' };
-    state.coins = Math.round((state.coins + coins) * 10) / 10;
+    state.coins = roundCoins(state.coins + coins);
     state.tradeClaims.push(t.id);
     if (state.tradeClaims.length > 200) state.tradeClaims = state.tradeClaims.slice(-200);
+    /* v0.37 记账：收钱 = in */
+    pushTrade('in', coins, normalizeUid(t.from), String(t.fromName || '') || peerName(t.from));
     saveSoon();
     return { ok: true, coins: coins, from: normalizeUid(t.from), fromName: String(t.fromName || '') };
   }
 
   /* =========================================================
+     v0.36 VIP 身份
+     ========================================================= */
+  var VIP_COST = 1000000;
+  function vipActive() { return isVipUid(ensureState().uid); }
+  /* MPT-XXXX-XXXX → VIP-XXXX-XXXX */
+  function uidToVip(u) {
+    var v = String(u == null ? '' : u).trim().toUpperCase();
+    return v.replace(/^MPT-/, VIP_PREFIX);
+  }
+  function upgradeVip() {
+    ensureState();
+    if (state.devMode) return { ok: false, code: 'devmode' };   /* v0.41 测试模式隔离 */
+    if (vipActive()) return { ok: false, code: 'isvip' };
+    if (state.coins < VIP_COST) return { ok: false, code: 'poor' };
+    state.coins = roundCoins(state.coins - VIP_COST);
+    state.uid = uidToVip(state.uid);
+    writeSave();
+    return { ok: true, uid: state.uid };
+  }
+
+  /* =========================================================
+     v0.37 强制支付密码（btoa 混淆存储）
+     ========================================================= */
+  var PAY_LEN = 6;
+  function payEnc(p) {
+    var raw = 'mpt.pay|' + String(p == null ? '' : p);
+    try { return btoa(unescape(encodeURIComponent(raw))); }
+    catch (e) { return 'plain:' + raw; }
+  }
+  function payHasPwd() { return !!ensureState().payPassword; }
+  function payCheckPwd(p) { var s = ensureState(); return !!s.payPassword && s.payPassword === payEnc(p); }
+  function paySetPwd(p) { var s = ensureState(); s.payPassword = payEnc(p); saveSoon(); }
+
+  var payResolve = null, payMode = 'verify';
+  /* 弹窗：mode = 'set'（首次设置 / 修改）或 'verify'（验证），返回 Promise<boolean> */
+  function askPayPwd(mode) {
+    return new Promise(function (resolve) {
+      if (payResolve) payResolve(false);
+      payResolve = resolve;
+      payMode = mode === 'set' ? 'set' : 'verify';
+      var isSet = payMode === 'set';
+      var has = payHasPwd();
+      $('payTitle').textContent = isSet
+        ? L(has ? '修改支付密码' : '设置支付密码', has ? 'Change Payment Password' : 'Set Payment Password')
+        : L('输入支付密码', 'Enter Payment Password');
+      $('payDesc').textContent = isSet
+        ? L('请设置 6 位数字密码。忘记密码只能重置（会清空金币）。', 'Set a 6-digit password. If you forget it, the only way out is a reset that wipes your coins.')
+        : L('发送金币需要验证支付密码', 'Enter your payment password to send coins');
+      $('payInput').value = '';
+      $('payInput2').value = '';
+      $('payInput2').style.display = isSet ? '' : 'none';
+      $('payHint').innerHTML = '';
+      $('payMask').classList.add('show');
+      setTimeout(function () { try { $('payInput').focus(); } catch (e) {} }, 120);
+    });
+  }
+  function payClose(ok) {
+    $('payMask').classList.remove('show');
+    var r = payResolve; payResolve = null;
+    if (r) r(!!ok);
+  }
+  function paySubmit() {
+    var v = ($('payInput').value || '').trim();
+    var hint = $('payHint');
+    if (v.length !== PAY_LEN || !/^\d+$/.test(v)) {
+      hint.innerHTML = '<span class="bad">' + L('请输入 6 位数字密码', 'Enter a 6-digit password') + '</span>';
+      return;
+    }
+    if (payMode === 'set') {
+      var v2 = ($('payInput2').value || '').trim();
+      if (v !== v2) {
+        hint.innerHTML = '<span class="bad">' + L('两次输入不一致', 'Passwords do not match') + '</span>';
+        return;
+      }
+      paySetPwd(v);
+      toast(L('支付密码已保存', 'Payment password saved'), 'good');
+      payClose(true);
+      return;
+    }
+    if (payCheckPwd(v)) { payClose(true); return; }
+    hint.innerHTML = '<span class="bad">' + L('密码错误，请重试', 'Wrong password — try again') + '</span>';
+    $('payInput').value = '';
+    try { $('payInput').focus(); } catch (e) {}
+  }
+  /* 防死锁：重置会清空密码和全部金币 */
+  function payForgotPwd() {
+    ask(
+      L('重置将清空所有金币！\n密码会被清除，之后可重新设置。确定要重置吗？', 'Resetting will wipe ALL your coins!\nThe password is cleared and can be set again. Reset anyway?'),
+      L('重置支付密码', 'Reset Payment Password')
+    ).then(function (ok) {
+      if (!ok) return;
+      var s = ensureState();
+      s.payPassword = '';
+      s.coins = 0;
+      saveSoon();
+      payClose(false);
+      toast(L('已重置：密码与金币均已清空', 'Reset done — password and coins cleared'), 'good');
+      if (running) render();
+      refreshHomeInfo();
+      if ($('settingsScreen').classList.contains('active')) renderSettings();
+      if ($('tradeScreen').classList.contains('active')) { renderTrade(); renderLedger(); }
+    });
+  }
+  /* 付费动作统一入口：没密码先设，有密码先验，通过才执行 */
+  function withPayPwd(cb) {
+    ensureState();
+    if (!payHasPwd()) {
+      askPayPwd('set').then(function (ok) { if (ok) cb(); });
+      return;
+    }
+    askPayPwd('verify').then(function (ok) { if (ok) cb(); });
+  }
+
+  /* =========================================================
+     v0.37 收支明细账单
+     ========================================================= */
+  var LEDGER_KEEP = 200, LEDGER_SHOW = 50;
+  function normalizeTradeHistory(raw) {
+    var out = [];
+    if (!Array.isArray(raw)) return out;
+    for (var i = 0; i < raw.length; i++) {
+      var r = raw[i];
+      if (!r || typeof r !== 'object') continue;
+      var dir = r.dir === 'in' ? 'in' : (r.dir === 'out' ? 'out' : '');
+      if (!dir) continue;
+      out.push({
+        dir: dir,
+        coins: Math.floor(Number(r.coins) || 0),
+        uid: normalizeUid(r.uid || ''),
+        name: String(r.name == null ? '' : r.name).slice(0, 20),
+        at: Number(r.at) || Date.now()
+      });
+    }
+    return out.slice(-LEDGER_KEEP);
+  }
+  function pushTrade(dir, coins, uid, name) {
+    var s = ensureState();
+    if (!Array.isArray(s.tradeHistory)) s.tradeHistory = [];
+    s.tradeHistory.push({
+      dir: dir === 'in' ? 'in' : 'out',
+      coins: Math.floor(Number(coins) || 0),
+      uid: normalizeUid(uid || ''),
+      name: String(name == null ? '' : name).slice(0, 20),
+      at: Date.now()
+    });
+    if (s.tradeHistory.length > LEDGER_KEEP) s.tradeHistory = s.tradeHistory.slice(-LEDGER_KEEP);
+  }
+  function peerName(uid) {
+    var f = friendGet(uid);
+    return f && f.nick ? f.nick : '';
+  }
+  function ledgerTime(ts) {
+    var d = new Date(Number(ts) || 0);
+    function p(n) { return n < 10 ? '0' + n : '' + n; }
+    return p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function renderLedger() {
+    var box = $('tradeLedger');
+    if (!box) return;
+    /* 只读：没存档时不创建存档 */
+    var s = state;
+    if (!s) {
+      if (!cachedSaveLoaded) { cachedSave = readSave(); cachedSaveLoaded = true; }
+      s = cachedSave;
+    }
+    var arr = (s && Array.isArray(s.tradeHistory)) ? s.tradeHistory.slice(-LEDGER_SHOW).reverse() : [];
+    var empty = $('ledgerEmpty'); if (empty) empty.style.display = arr.length ? 'none' : '';
+    box.innerHTML = '';
+    arr.forEach(function (r) {
+      var row = document.createElement('div');
+      row.className = 'ledgerRow';
+      var main = document.createElement('div');
+      main.className = 'ledgerMain';
+      var nm = document.createElement('div');
+      nm.className = 'ledgerName' + uidClass(r.uid);
+      var who = uidLabel(r.uid);
+      var nick = r.name || peerName(r.uid);
+      nm.textContent = (r.dir === 'in' ? '← ' : '→ ') + (nick ? nick + ' · ' : '') + who;
+      var tm = document.createElement('div');
+      tm.className = 'ledgerTime';
+      tm.textContent = ledgerTime(r.at) + ' · ' + (r.dir === 'in' ? L('收款', 'Received') : L('支出', 'Sent'));
+      main.appendChild(nm); main.appendChild(tm);
+      var amt = document.createElement('div');
+      amt.className = 'ledgerAmt ' + (r.dir === 'in' ? 'in' : 'out');
+      amt.textContent = (r.dir === 'in' ? '+' : '-') + fmtCoin(Math.abs(r.coins));
+      row.appendChild(main); row.appendChild(amt);
+      box.appendChild(row);
+    });
+  }
+
+  /* =========================================================
      v0.35 黑名单（只读拉取，24h 缓存，失败静默用旧缓存）
      ========================================================= */
-  var BLACKLIST_URL = 'https://cdn.jsdelivr.net/gh/htpxfcqkgm-hub/mipitang-assets@main/blacklist.json';
+  var BLACKLIST_URL = 'https://ghproxy.net/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/main/blacklist.json';
   var BLACKLIST_KEY = 'mpt_blacklist_cache';
   var BLACKLIST_TTL = 24 * 3600 * 1000;
   var blacklist = { map: {}, count: 0, updatedAt: '', fromCache: false, failed: false, ready: false };
@@ -1966,8 +2327,9 @@ function renderUpdates(){
     blacklist.updatedAt = parsed.updatedAt;
     blacklist.fromCache = !!fromCache;
     blacklist.failed = !!failed;
-    blacklist.ready = true;
+    /* 拉完立刻刷交易页的红字/按钮状态 */
     renderBlacklistStatus();
+    if (state && $('tradeScreen') && $('tradeScreen').classList.contains('active')) renderTrade();
   }
   function loadBlacklist() {
     var cache = readBlacklistCache();
@@ -1975,14 +2337,14 @@ function renderUpdates(){
       var p = parseBlacklistData(cache.data);
       if (!p.updatedAt && cache.ts) p.updatedAt = new Date(Number(cache.ts)).toISOString().slice(0, 10);
       applyBlacklist(p, true, false);
-      if (Date.now() - (Number(cache.ts) || 0) < BLACKLIST_TTL) return;   /* 24 小时内直接用缓存 */
+      /* v0.43：缓存只做离线兜底，每次都拉最新（封号立即生效） */
     }
     if (typeof fetch !== 'function') {
       if (!blacklist.ready) applyBlacklist(parseBlacklistData(null), true, true);
       return;
     }
     try {
-      fetch(BLACKLIST_URL, { cache: 'no-store' }).then(function (r) {
+      fetch(BLACKLIST_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
         if (!r || !r.ok) throw new Error('http');
         return r.json();
       }).then(function (data) {
@@ -2003,6 +2365,11 @@ function renderUpdates(){
     var u = normalizeUid(uid);
     return !!(blacklist.map && blacklist.map[u]);
   }
+  /* v0.43 本人是否被限制交易 */
+  function selfBlacklisted() {
+    if (!state || !state.uid) return false;
+    return isBlacklisted(state.uid);
+  }
   function blacklistStatusText() {
     if (!blacklist.ready) return L('加载中…', 'Loading…');
     if (!blacklist.fromCache && !blacklist.failed) {
@@ -2019,6 +2386,123 @@ function renderUpdates(){
   }
 
   /* =========================================================
+     v0.43 后台发钱 wallets.json（单发 / 范围 / 全服 / 撤销）
+     ========================================================= */
+  var WALLET_URLS = [
+    'https://ghproxy.net/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/main/wallets.json',
+    'https://fastly.jsdelivr.net/gh/htpxfcqkgm-hub/mipitang-assets@main/wallets.json'
+  ];
+  var wallets = { list: [], ready: false, busy: false, queue: [], showing: false, current: null };
+
+  function parseWalletsData(data) {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object') {
+      var arr = data.wallets || data.list || data.items || data.data;
+      if (Array.isArray(arr)) return arr;
+    }
+    return [];
+  }
+  function loadWallets() {
+    if (typeof fetch !== 'function') return;
+    fetchWalletsAt(0);
+  }
+  function fetchWalletsAt(i) {
+    if (i >= WALLET_URLS.length) return;
+    fetch(WALLET_URLS[i] + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+      if (!r || !r.ok) throw new Error('http');
+      return r.json();
+    }).then(function (data) {
+      wallets.list = parseWalletsData(data);
+      wallets.ready = true;
+      claimWallets();
+    }).catch(function () { fetchWalletsAt(i + 1); });
+  }
+  /* 命中判定：all 全服 / target 单发 / range 前缀 */
+  function walletMatch(item, uid) {
+    var type = String(item.type || '').toLowerCase();
+    if (type === 'all') return true;
+    var target = normalizeUid(item.uid || '');
+    if (!target) return false;
+    if (type === 'target') return target === uid;
+    if (type === 'range') return uid.indexOf(target) === 0;
+    return false;
+  }
+  function applyWallet(item) {
+    var want = Math.round(Number(item.amount) || 0);
+    var before = Number(state.coins) || 0;
+    var after = before + want;
+    if (after < 0) after = 0;                     /* 扣钱保底 0 */
+    var delta = after - before;
+    state.coins = after;
+    if (delta > 0) state.totalEarned = (Number(state.totalEarned) || 0) + delta;
+    state.claimedWallets.push(String(item.id));
+    wallets.queue.push({
+      reason: String(item.reason == null ? '' : item.reason).trim(),
+      amount: delta,
+      capped: delta !== want
+    });
+  }
+  /* 拉完 / 进游戏 / 退出测试模式时都试一次；条件不满足就什么都不做 */
+  function claimWallets() {
+    if (!wallets.ready || wallets.busy || !state) return;
+    if (state.devMode) return;                    /* 开发者模式：不领、不记、不弹 */
+    var uid = normalizeUid(state.uid || '');
+    if (!uid) return;
+    if (!Array.isArray(state.claimedWallets)) state.claimedWallets = [];
+    var hits = [], seen = {}, i, it;
+    for (i = 0; i < wallets.list.length; i++) {
+      it = wallets.list[i];
+      if (!it || typeof it !== 'object') continue;
+      if (String(it.status || 'active') !== 'active') continue;        /* 已撤销 */
+      var id = String(it.id == null ? '' : it.id);
+      if (!id || seen[id]) continue;                                  /* 同批重复 id */
+      if (state.claimedWallets.indexOf(id) !== -1) continue;          /* 已领过 */
+      if (!walletMatch(it, uid)) continue;
+      seen[id] = 1;
+      hits.push(it);
+    }
+    if (!hits.length) return;
+    wallets.busy = true;
+    for (i = 0; i < hits.length; i++) applyWallet(hits[i]);
+    wallets.busy = false;
+    state.lastTime = Date.now();
+    writeSave();
+    render();
+    refreshHomeInfo();
+    renderSettings();
+    showWalletNext();
+  }
+  function walletText(w) {
+    var sign = w.amount > 0 ? '+' : '';
+    var body = L(
+      '管理员对您的账户操作：' + (w.reason || '（无说明）') + '，金币变动：' + sign + fmtCoin(w.amount),
+      'Admin action on your account: ' + (w.reason || '(no note)') + ', coin change: ' + sign + fmtCoin(w.amount)
+    );
+    if (w.capped) body += '\n' + L('（余额不足，已按当前余额扣除）', '(Not enough coins — capped at your balance)');
+    return body;
+  }
+  function showWalletNext() {
+    if (wallets.showing || !wallets.queue.length) return;
+    wallets.showing = true;
+    wallets.current = wallets.queue.shift();
+    var body = $('walletBody');
+    if (body) body.textContent = walletText(wallets.current);
+    var mask = $('walletMask');
+    if (mask) mask.classList.add('show');
+  }
+  function closeWallet() {
+    var mask = $('walletMask');
+    if (mask) mask.classList.remove('show');
+    wallets.showing = false;
+    wallets.current = null;
+    setTimeout(showWalletNext, 120);              /* 多条发放逐个弹 */
+  }
+  (function bindWalletModal() {
+    var ok = $('walletOk');
+    if (ok) ok.addEventListener('click', closeWallet);
+  })();
+
+  /* =========================================================
      设置页 / 通讯录页 / 交易页
      ========================================================= */
   var TRADE_ERR = {
@@ -2032,12 +2516,19 @@ function renderUpdates(){
     low:      ['至少赠与 1 枚金币', 'Gift at least 1 coin'],
     high:     ['一次最多 100000 枚', 'Up to 100000 coins per gift'],
     poor:     ['金币不够', 'Not enough coins'],
+    poortax:  ['金币不足（含 5% 交易税）', 'Not enough coins (5% trade tax included)'],
     badcode:  ['交易码格式不对', 'Malformed trade code'],
     badsig:   ['签名校验失败，交易码无效', 'Signature check failed — code is invalid'],
     nottome:  ['这不是发给你的交易码', 'This code is not for you'],
     expired:  ['交易码已过期', 'This code has expired'],
     used:     ['这张交易码已经领过了', 'This code was already claimed'],
-    blocked:  ['对方在黑名单中，交易已拒绝', 'Sender is blacklisted — trade rejected']
+    blocked:  ['对方在黑名单中，交易已拒绝', 'Sender is blacklisted — trade rejected'],
+    isvip:    ['你已经是 VIP 了', 'You are already VIP'],
+    vipneed:  ['金币不足 100 万，还差一点', 'Need 1,000,000 coins to upgrade'],
+    paywrong: ['支付密码错误', 'Wrong payment password'],
+    paycancel:['已取消发送', 'Sending cancelled'],
+    devmode:  ['开发者模式下无法进行交易赠与', 'Cannot trade in Dev Mode'],
+    ban:      ['账号已被限制交易', 'Trading restricted on this account']
   };
   function tradeErr(code) {
     var e = TRADE_ERR[code];
@@ -2084,8 +2575,26 @@ function renderUpdates(){
 
   function renderSettings() {
     var uid = identityUid();
-    var u = $('setUid'); if (u) u.textContent = uid || '—';
+    var u = $('setUid');
+    if (u) {
+      u.textContent = uid ? uidLabel(uid) : '—';
+      if (isVipUid(uid)) u.classList.add('vipUid'); else u.classList.remove('vipUid');
+    }
     var n = $('setNick'); if (n) n.textContent = playerName || L('未命名', 'Unnamed');
+    /* v0.36 VIP 按钮：已是 VIP 则置灰不可点 */
+    var vb = $('btnVipUp');
+    if (vb) {
+      var vip = isVipUid(uid);
+      vb.textContent = vip ? L('已是 VIP', 'Already VIP') : L('升级 VIP（100 万金币）', 'Upgrade VIP (1,000,000 coins)');
+      vb.disabled = vip;
+    }
+    /* v0.37 支付密码状态 */
+    var ps = $('payState');
+    if (ps) {
+      var has = false;
+      try { has = !!(state || cachedSave || readSave() || {}).payPassword; } catch (e) { has = false; }
+      ps.textContent = has ? L('已设置', 'Set') : L('未设置', 'Not set');
+    }
     var bz = $('btnLangZh'), be = $('btnLangEn');
     if (bz) bz.classList.toggle('on', LANG === 'zh');
     if (be) be.classList.toggle('on', LANG !== 'zh');
@@ -2105,7 +2614,7 @@ function renderUpdates(){
       var main = document.createElement('div');
       main.className = 'friendMain';
       var uid = document.createElement('div');
-      uid.className = 'friendUid'; uid.textContent = f.uid;
+      uid.className = 'friendUid' + uidClass(f.uid); uid.textContent = uidLabel(f.uid);
       var btns = document.createElement('div');
       btns.className = 'friendBtns';
 
@@ -2161,6 +2670,11 @@ function renderUpdates(){
 
   function renderTrade(preUid) {
     var sel = $('tradeTo'); if (!sel) return;
+    var banned = selfBlacklisted();
+    var tip = $('tradeBanTip');
+    if (tip) tip.style.display = banned ? 'block' : 'none';
+    var bc = $('btnTradeClaim');
+    if (bc) bc.disabled = banned;
     var arr = friendsAll();
     sel.innerHTML = '';
     if (!arr.length) {
@@ -2173,13 +2687,14 @@ function renderUpdates(){
       arr.forEach(function (f) {
         var o = document.createElement('option');
         o.value = f.uid;
-        o.textContent = f.nick + ' · ' + f.uid;
+        o.textContent = (isVipUid(f.uid) ? '👑 ' : '') + f.nick + ' · ' + f.uid;
         sel.appendChild(o);
       });
       if (preUid) sel.value = normalizeUid(preUid);
     }
     var bm = $('btnTradeMake');
-    if (bm) bm.disabled = !arr.length;
+    if (bm) bm.disabled = banned || !arr.length;
+    renderLedger();
   }
 
   /* ===== 数值常量（v0.29 节奏调整） ===== */
@@ -2200,15 +2715,24 @@ function renderUpdates(){
   var FLAVOR_NAME_ZH = ['原味', '红糖', '桂花', '黑芝麻'];
   var FLAVOR_NAME_EN = ['Original', 'Brown Sugar', 'Osmanthus', 'Black Sesame'];
   function flavorName(i){ return L(FLAVOR_NAME_ZH[i], FLAVOR_NAME_EN[i]); }
-  var OFFLINE_MIN_CAP = 20, OFFLINE_RATE = 0.15;
-  var MAX_LEVEL = 50;
+  var OFFLINE_MIN_CAP = 20, OFFLINE_RATE = 0.15;   /* v0.39 已废弃，保留兼容旧引用 */
+  var MAX_LEVEL = 999;   /* v0.40：上限 50 → 999 */
+  /* v0.40 费用曲线：50 级后指数底数变大（grow → grow+0.08），并封顶防 Infinity */
+  var COST_HARD_CAP = 1e15;
+  function costCurve(base, grow, lv) {
+    var n = Math.max(0, lv - 1), v;
+    if (n < 50) v = base * Math.pow(grow, n);
+    else v = base * Math.pow(grow, 49) * Math.pow(grow + 0.08, n - 49);
+    if (!isFinite(v) || v > COST_HARD_CAP) v = COST_HARD_CAP;
+    return Math.floor(v);
+  }
 
   function potTime() { return Math.max(POT_MIN_TIME, POT_BASE_TIME * Math.pow(POT_TIME_DECAY, state.pot.lv - 1)); }
   function nextPotTime() { return Math.max(POT_MIN_TIME, POT_BASE_TIME * Math.pow(POT_TIME_DECAY, state.pot.lv)); }
-  function potUpgradeCost() { return Math.floor(POT_UP_COST * Math.pow(POT_COST_GROW, state.pot.lv - 1)); }
-  function boardUpgradeCost() { return Math.floor(BOARD_UP_COST * Math.pow(BOARD_COST_GROW, state.board.lv - 1)); }
-  function sellUpgradeCost() { return Math.floor(SELL_UP_COST * Math.pow(SELL_COST_GROW, state.sell.lv - 1)); }
-  function craftUpgradeCost() { return Math.floor(CRAFT_UP_COST * Math.pow(CRAFT_COST_GROW, state.craft.lv - 1)); }
+  function potUpgradeCost() { return costCurve(POT_UP_COST, POT_COST_GROW, state.pot.lv); }
+  function boardUpgradeCost() { return costCurve(BOARD_UP_COST, BOARD_COST_GROW, state.board.lv); }
+  function sellUpgradeCost() { return costCurve(SELL_UP_COST, SELL_COST_GROW, state.sell.lv); }
+  function craftUpgradeCost() { return costCurve(CRAFT_UP_COST, CRAFT_COST_GROW, state.craft.lv); }
   /* 案板：Lv.1 = 2 份，每升一级至少 +1，10 级后放缓 */
   function boardOut() {
     var lv = state.board.lv;
@@ -2259,29 +2783,70 @@ function renderUpdates(){
     toast(L('加急卖！10 秒内卖速 ×3，顾客会跑着来', 'Rush Sale! 3× speed for 10s — customers will run in'));
     saveSoon(); render();
   }
-  /* 动态离线收益上限 */
-  function offlineCap() {
-    var lvSum = state.pot.lv + state.board.lv + state.sell.lv + state.craft.lv +
-      (state.auto.collect.bought ? state.auto.collect.lv : 0) +
-      (state.auto.roll.bought ? state.auto.roll.lv : 0) +
-      (state.auto.sell.bought ? state.auto.sell.lv : 0);
-    var byLevel = OFFLINE_MIN_CAP + lvSum * 60;
-    var byRate = Math.floor(cps() * 3600 * 2);
-    return Math.max(500, Math.max(byLevel, byRate));
+  /* ===== v0.39 离线收益：严格绑定摊位等级（删掉旧的固定保底） ===== */
+  var OFFLINE_MIN_SECONDS = 30, OFFLINE_HOUR_CAP = 8;
+  /* 效率 = 0.05 + (摊位等级-1)*0.02，基础封顶 0.5；雇了售货员额外 ×1.5 */
+  function offlineEfficiency() {
+    var e = 0.05 + (state.sell.lv - 1) * 0.02;
+    if (e > 0.5) e = 0.5;
+    if (state.auto.sell.bought) e *= 1.5;
+    return e;
   }
+  /* 时限（小时）= 2 + floor(摊位等级/5)，最高 8 小时 */
+  function offlineCapHours() {
+    return Math.min(OFFLINE_HOUR_CAP, 2 + Math.floor(state.sell.lv / 5));
+  }
+  /* 统一计算：不直接入账，只返回结果 */
+  function calcOffline() {
+    var out = { gain: 0, away: 0, used: 0, hours: 0, eff: 0, capped: false };
+    if (!state) return out;
+    var away = (Date.now() - (state.lastTime || Date.now())) / 1000;
+    out.away = away;
+    if (!(away >= OFFLINE_MIN_SECONDS)) return out;
+    out.hours = offlineCapHours();
+    out.used = Math.min(away, out.hours * 3600);
+    out.capped = away > out.used;
+    out.eff = offlineEfficiency();
+    out.gain = Math.floor(cps() * out.used * out.eff);
+    return out;
+  }
+  function decayRush(awaySec) {
+    if (state && state.sell.rushCooldown > 0) state.sell.rushCooldown = Math.max(0, state.sell.rushCooldown - (Number(awaySec) || 0));
+  }
+  /* 后台切回时静默入账（不弹窗） */
   function applyOffline() {
     if (!state) return;
-    var now = Date.now();
-    var away = (now - (state.lastTime || now)) / 1000;
-    if (away < 30) return;
-    away = Math.min(away, 8 * 3600);
-    var bought = autoBoughtCount();
-    var eff = OFFLINE_RATE * (bought === 0 ? 0.1 : bought === 1 ? 0.5 : bought === 2 ? 0.8 : 1);
-    var rawGain = cps() * away * eff;
-    var cap = offlineCap();
-    var gain = Math.min(rawGain, cap);
-    if (gain >= 1) { state.coins += gain; state.totalEarned += gain; toast(L('离线收益 +' + fmt(gain) + ' 金币', 'Offline earnings +' + fmt(gain) + ' coins'), 'good'); }
-    if (state.sell.rushCooldown > 0) state.sell.rushCooldown = Math.max(0, state.sell.rushCooldown - away);
+    if (pendingOffline > 0) return;   /* 弹窗待领取时静默路径不重复入账 */
+    var off = calcOffline();
+    decayRush(off.away);
+    if (off.gain > 0) {
+      state.coins += off.gain;
+      state.totalEarned += off.gain;
+      state.lastTime = Date.now();
+      writeSave();
+      toast(L('离线收益 +' + fmt(off.gain) + ' 金币', 'Offline earnings +' + fmt(off.gain) + ' coins'), 'good');
+      if (running) render();
+    }
+  }
+  /* 弹窗文案：按摊位等级分段 */
+  function offlineReasonText() {
+    var lv = state.sell.lv;
+    if (lv < 5) return L('因为你的摊位等级较低（Lv.' + lv + '），客流有限，离线收益较少。', 'Your stall is still small (Lv.' + lv + '), so foot traffic was limited and offline earnings stayed low.');
+    if (lv < 15) return L('摊位人气不错（Lv.' + lv + '），在你离开的时候卖出了不少米皮糖！', 'Your stall has real buzz (Lv.' + lv + ') — quite a few candies sold while you were away!');
+    return L('你的品牌远近闻名（Lv.' + lv + '），顾客络绎不绝，收获满满！', 'Your brand is famous by now (Lv.' + lv + ') — customers kept coming and the till is full!');
+  }
+  function offlineTipText() {
+    if (!state.auto.sell.bought) return L('建议：雇佣【售货员】并升级【品牌影响力】，可以大幅提升离线收益效率！', 'Tip: hire the Seller and upgrade Brand Influence to boost offline efficiency!');
+    return L('建议：继续升级品牌影响力，摊位等级越高，离线上限时间越长。', 'Tip: keep upgrading Brand Influence — higher stall levels mean longer offline caps.');
+  }
+  var pendingOffline = 0, pendingOfflineAway = 0;
+  function openOfflineModal(off) {
+    pendingOffline = off.gain;
+    pendingOfflineAway = off.away;
+    var amt = $('offlineGainAmount'); if (amt) amt.textContent = fmtCoin(off.gain);
+    var rs = $('offlineReason'); if (rs) rs.textContent = offlineReasonText();
+    var tp = $('offlineTip'); if (tp) tp.textContent = offlineTipText();
+    var mk = $('offlineMask'); if (mk) mk.classList.add('show');
   }
 
   /* ===== 点击锅子搅拌，加速熬糖 ===== */
@@ -2419,18 +2984,54 @@ function renderUpdates(){
   }
   function applyDeviceVisual() {
     if (!state) return;
-    var potLv = Math.min(state.pot.lv, MAX_LEVEL);
+    /* v0.40 尺寸 50 级封顶，之后只换材质 */
+    var potLv = Math.min(state.pot.lv, 50);
     var potBody = $('potBody'), potRim = $('potRim'), potFlame = $('potFlame'), potTag = $('potTag');
-    if (potBody) { potBody.style.width = Math.min(58, 46 + (potLv - 1) * 0.25) + 'px'; potBody.style.height = Math.min(36, 30 + (potLv - 1) * 0.14) + 'px'; }
+    if (potBody) {
+      potBody.style.width = Math.min(58, 46 + (potLv - 1) * 0.25) + 'px';
+      potBody.style.height = Math.min(36, 30 + (potLv - 1) * 0.14) + 'px';
+    }
     if (potRim) { potRim.style.width = Math.min(64, 52 + (potLv - 1) * 0.25) + 'px'; }
     if (potFlame) { potFlame.style.width = Math.min(30, 22 + (potLv - 1) * 0.16) + 'px'; }
+    /* 熬糖锅材质：1~49 原款 / 50~99 土豪金 / 100+ 紫焰魔锅 */
+    var potTier = deviceTier(state.pot.lv);
+    if (potBody) {
+      if (potTier === 1) { potBody.style.background = 'linear-gradient(180deg, #ffd700, #b8860b)'; potBody.style.boxShadow = '0 0 12px 3px rgba(255,215,0,.75)'; }
+      else if (potTier === 2) { potBody.style.background = 'linear-gradient(180deg, #8a2be2, #4b0082)'; potBody.style.boxShadow = '0 0 16px 4px rgba(160,32,240,.8)'; }
+      else { potBody.style.background = ''; potBody.style.boxShadow = ''; }
+    }
+    if (potFlame) {
+      if (potTier === 2) potFlame.style.background = 'radial-gradient(circle at 50% 100%, #e4b3ff, #a020f0 60%, transparent)';
+      else if (potTier === 1) potFlame.style.background = 'radial-gradient(circle at 50% 100%, #ffe680, #ffb300 60%, transparent)';
+      else potFlame.style.background = '';
+    }
+    if (potRim) potRim.style.background = potTier === 2 ? '#b57bff' : (potTier === 1 ? '#f0cc55' : '');
     if (potTag) potTag.textContent = L('熬糖锅 Lv.', 'Boiling Pot Lv.') + state.pot.lv + L(' · 点击搅拌', ' · tap to stir');
-    var boardLv = Math.min(state.board.lv, MAX_LEVEL);
+
+    var boardLv = Math.min(state.board.lv, 50);
     var boardTop = $('boardTop'), boardRoller = $('boardRoller'), boardTag = $('boardTag');
     if (boardTop) boardTop.style.width = Math.min(70, 56 + (boardLv - 1) * 0.28) + 'px';
     if (boardRoller) boardRoller.style.width = Math.min(38, 30 + (boardLv - 1) * 0.16) + 'px';
+    /* 案板材质：50+ 红木金边 / 100+ 发光玉石 */
+    var boardTier = deviceTier(state.board.lv);
+    if (boardTop) {
+      if (boardTier === 1) { boardTop.style.background = 'linear-gradient(180deg, #8b3a2a, #5c2015)'; boardTop.style.boxShadow = 'inset 0 0 0 2px #ffd700, 0 0 10px 2px rgba(255,215,0,.6)'; }
+      else if (boardTier === 2) { boardTop.style.background = 'linear-gradient(180deg, #7ff0d0, #2fbf9a)'; boardTop.style.boxShadow = 'inset 0 0 0 2px #d9fff4, 0 0 14px 3px rgba(64,224,208,.8)'; }
+      else { boardTop.style.background = ''; boardTop.style.boxShadow = ''; }
+    }
     if (boardTag) boardTag.textContent = L('案板 Lv.', 'Board Lv.') + state.board.lv;
+
+    /* 货架材质：跟随摊位（品牌）等级 */
+    var shelfTop = $('shelfTop');
+    var shelfTier = deviceTier(state.sell.lv);
+    if (shelfTop) {
+      if (shelfTier === 1) { shelfTop.style.background = 'linear-gradient(180deg, #e6f7ff, #9fd8f5)'; shelfTop.style.boxShadow = 'inset 0 0 0 1px #ffffffaa, 0 0 10px 2px rgba(160,220,255,.85)'; }
+      else if (shelfTier === 2) { shelfTop.style.background = 'linear-gradient(180deg, #d8f4ff, #7ec8ff)'; shelfTop.style.boxShadow = 'inset 0 0 0 1px #ffffffcc, 0 0 16px 4px rgba(126,200,255,.95)'; }
+      else { shelfTop.style.background = ''; shelfTop.style.boxShadow = ''; }
+    }
   }
+  /* 材质档位：0 = 原款，1 = 50~99，2 = 100+ */
+  function deviceTier(lv) { return lv >= 100 ? 2 : (lv >= 50 ? 1 : 0); }
 
   function decoData(key) { if (!state.decos[key]) state.decos[key] = { bought: false, shown: true }; return state.decos[key]; }
   function buyDeco(key) {
@@ -2469,18 +3070,7 @@ function renderUpdates(){
     if (lion2) lion2.classList.toggle('on', ddLion.bought && ddLion.shown);
     var lightsEl = $('decoLights');
     if (lightsEl && lightsEl.classList.contains('on')) {
-      if (!lightsEl.querySelector('.bulb')) {
-        var colors = ['#ff6b6b', '#ffd76b', '#6bbf4a', '#8ab8e8', '#c8a8ff'];
-        for (var i = 0; i < 10; i++) {
-          var b = document.createElement('div');
-          b.className = 'bulb';
-          b.style.left = (5 + i * 9.5) + '%';
-          b.style.color = colors[i % colors.length];
-          b.style.background = colors[i % colors.length];
-          b.style.animationDelay = (i * 0.15) + 's';
-          lightsEl.appendChild(b);
-        }
-      }
+      /* v0.40：灯泡已改为 Emoji，不再动态注入 .bulb */
     }
   }
   function renderDecoStore() {
@@ -2686,6 +3276,7 @@ function renderUpdates(){
 
   function render() {
     if (!state) return;
+    applyDevVisual();
     $('coins').textContent = fmtCoin(state.coins);
     $('stock').textContent = fmt(state.stock);
     $('cps').textContent = (state.stock > 0 ? cps() : 0).toFixed(2);
@@ -2854,6 +3445,7 @@ function renderUpdates(){
     var devBar = $('devBar');
     if (s && s.devMode) devBar.classList.add('show');
     else devBar.classList.remove('show');
+    applyDevVisual();
 
     /* 首页直接展示其他游戏的数据（同一个存档区，读得到） */
     var hi = $('hubInfo');
@@ -2916,6 +3508,7 @@ function renderUpdates(){
     saveSoon(); render(); return true;
   }
   function upgradePot() {
+    if (state.pot.lv >= MAX_LEVEL) { toast(L('熬糖锅已达最高等级', 'Boiling pot is maxed out')); return; }
     var c = potUpgradeCost();
     if (state.coins < c) { toast(L('金币不够', 'Not enough coins')); return; }
     state.coins -= c; state.pot.lv++;
@@ -2923,6 +3516,7 @@ function renderUpdates(){
     saveSoon(); render(); applyDeviceVisual();
   }
   function upgradeBoard() {
+    if (state.board.lv >= MAX_LEVEL) { toast(L('案板已达最高等级', 'Board is maxed out')); return; }
     var c = boardUpgradeCost();
     if (state.coins < c) { toast(L('金币不够', 'Not enough coins')); return; }
     state.coins -= c; state.board.lv++;
@@ -2930,13 +3524,15 @@ function renderUpdates(){
     saveSoon(); render(); applyDeviceVisual();
   }
   function upgradeSell() {
+    if (state.sell.lv >= MAX_LEVEL) { toast(L('品牌影响力已达最高等级', 'Brand influence is maxed out')); return; }
     var c = sellUpgradeCost();
     if (state.coins < c) { toast(L('金币不够', 'Not enough coins')); return; }
     state.coins -= c; state.sell.lv++;
     toast(L('品牌影响力升到 Lv.' + state.sell.lv, 'Brand power upgraded to Lv.' + state.sell.lv));
-    saveSoon(); render();
+    saveSoon(); render(); applyDeviceVisual();
   }
   function upgradeCraft() {
+    if (state.craft.lv >= MAX_LEVEL) { toast(L('手艺已达最高等级', 'Craft is maxed out')); return; }
     var c = craftUpgradeCost();
     if (state.coins < c) { toast(L('金币不够', 'Not enough coins')); return; }
     state.coins -= c; state.craft.lv++;
@@ -3033,13 +3629,32 @@ function renderUpdates(){
       $('passHint').innerHTML = '<span class="bad">' + L('密码不对', 'Wrong password') + '</span>';
     }
   }
+  /* ===== v0.41 开发者模式：数据隔离 ===== */
+  var DEV_GOLD = 1000000000000000;   /* 1000 万亿：足够测满级 / 指数级费用 */
+  var devVisualOn = null;
+  /* 统一刷新测试模式标识：顶部胶囊 + 游戏区红框；带缓存，可在逐帧 render 里调 */
+  function applyDevVisual(force) {
+    var on = !!(state && state.devMode);
+    if (!force && devVisualOn === on) return;
+    devVisualOn = on;
+    var tag = $('devTag'); if (tag) tag.classList.toggle('show', on);
+    var gw = $('gameWrap'); if (gw) gw.classList.toggle('devMode', on);
+    var bar = $('devBar'); if (bar) bar.classList.toggle('show', on);
+  }
   function activateDevMode() {
     var s = state || cachedSave || readSave() || defaultState();
+    /* 1. 完整快照（含昵称），退出时靠它时光倒流 */
     try {
-      localStorage.setItem(BACKUP_KEY, JSON.stringify({ save: JSON.parse(JSON.stringify(s)), name: playerName || readName() || '', at: Date.now() }));
-    } catch (e) {}
-    s.coins = (s.coins || 0) + 1000000;
-    s.totalEarned = (s.totalEarned || 0) + 1000000;
+      localStorage.setItem(BACKUP_KEY, JSON.stringify({
+        save: JSON.parse(JSON.stringify(s)),
+        name: playerName || readName() || '',
+        at: Date.now(),
+        ver: 'v0.41'
+      }));
+    } catch (e) { toast(L('备份失败，已阻止开启', 'Backup failed — dev mode blocked')); return; }
+    /* 2. 直接拉满金币，方便测试 */
+    s.coins = DEV_GOLD;
+    s.totalEarned = Math.max(s.totalEarned || 0, DEV_GOLD);
     s.flavors = [true, true, true, true];
     s.auto.collect = { bought: true, lv: 5 };
     s.auto.roll = { bought: true, lv: 5 };
@@ -3051,7 +3666,8 @@ function renderUpdates(){
     state = s;
     cachedSave = s; cachedSaveLoaded = true;
     writeSave();
-    toast(L('⚡ 你发现了秘密', '⚡ You found the secret'), 'good');
+    applyDevVisual(true);
+    toast(L('🧪 已开启测试模式（金币已拉满，交易/VIP 已禁用）', '🧪 Test mode ON (coins maxed, trades/VIP disabled)'), 'good');
     refreshHomeInfo();
     if (running) { applyAutoVisual(); applyDeviceVisual(); render(); }
     showScreen('home');
@@ -3060,26 +3676,35 @@ function renderUpdates(){
     var raw = null;
     try { raw = localStorage.getItem(BACKUP_KEY); } catch (e) {}
     if (!raw) {
-      if (state) { state.devMode = false; cachedSave = state; writeSave(); }
-      toast(L('已关闭开发者模式', 'Dev mode disabled'));
+      /* 没有备份：至少把标记关掉，不动数据 */
+      if (state) { state.devMode = false; state.lastTime = Date.now(); cachedSave = state; writeSave(); }
+      applyDevVisual(true);
+      toast(L('已关闭开发者模式（无备份可还原）', 'Dev mode disabled (no backup to restore)'));
       refreshHomeInfo();
+      if (running) render();
+      claimWallets();
       return;
     }
-    try {
-      var bk = JSON.parse(raw);
-      if (bk && bk.save) {
-        state = migrate(bk.save);
-        state.devMode = false;
-        state.lastTime = Date.now();
-        cachedSave = state; cachedSaveLoaded = true;
-        if (bk.name) { playerName = bk.name; writeName(playerName); }
-        writeSave();
-        try { localStorage.removeItem(BACKUP_KEY); } catch (e) {}
-        toast(L('已回到开挂前', 'Restored to pre-dev state'), 'good');
-        refreshHomeInfo();
-        if (running) { applyAutoVisual(); applyDeviceVisual(); render(); renderDeco(); }
-      }
-    } catch (e) { toast(L('还原失败', 'Restore failed')); }
+    var bk = null;
+    try { bk = JSON.parse(raw); } catch (e) { bk = null; }
+    if (!bk || !bk.save) { toast(L('备份损坏，无法还原', 'Backup corrupted — cannot restore')); return; }
+    /* 时光倒流：整份存档换回开启前的那一刻 */
+    var restored = migrate(JSON.parse(JSON.stringify(bk.save)));
+    if (!restored) { toast(L('还原失败', 'Restore failed')); return; }
+    restored.devMode = false;
+    restored.lastTime = Date.now();
+    state = restored;
+    cachedSave = state; cachedSaveLoaded = true;
+    if (bk.name) { playerName = String(bk.name); writeName(playerName); }
+    writeSave();                                    /* 先把还原后的存档落盘 */
+    try { localStorage.removeItem(BACKUP_KEY); } catch (e) {}
+    devVisualOn = null;
+    applyDevVisual(true);
+    toast(L('⏪ 已回到开启前，所有数据已还原', '⏪ Restored to the pre-dev state'), 'good');
+    refreshHomeInfo();
+    renderSettings();
+    if (running) { applyAutoVisual(); applyDeviceVisual(); render(); renderDeco(); }
+    claimWallets();                       /* 退出测试模式后才能领 */
   }
 
   var CODE_PREFIX = 'MPT1';
@@ -3438,6 +4063,22 @@ function renderUpdates(){
   }
 
   function bind() {
+    /* 真正进入游戏（离线弹窗确认后也走这里） */
+    function enterGame() {
+      /* 上次没结算完就先把那天结清（只算一次），然后从「现在」开始新的一天 */
+      ensureTimeline(state);
+      if (state.dayClosedFrom || state.daySettledDay !== state.day) {
+        state.day++;
+        freshDay(state, Date.now());
+      }
+      shopClosed = false;
+      $('closeShopMask').classList.remove('show');
+      running = true; lastTick = 0;
+      showScreen('gameScreen');
+      applyAutoVisual(); applyDeviceVisual(); render(); renderDeco();
+      refreshHomeInfo();
+      claimWallets();                     /* v0.43 进游戏后领一次后台发放 */
+    }
     $('btnStart').onclick = function () {
       if (!cachedSaveLoaded) {
         cachedSave = readSave();
@@ -3445,22 +4086,23 @@ function renderUpdates(){
       }
       state = cachedSave ? cachedSave : defaultState();
       cachedSave = state;
-      /**
-       * 进入游戏：上次没结算完就先把那天结清（只算一次），然后从「现在」开始新的一天。
-       * 关键：新的一天一定从现在起算，不会因为离开了一阵就直接触发打烊。
-       */
-      ensureTimeline(state);
-      if (state.dayClosedFrom || state.daySettledDay !== state.day) {
-        state.day++;
-        freshDay(state, Date.now());
+      /* v0.39 离线收益：先算不入账 > 30 秒且有收益 → 弹窗确认后才给 */
+      var off = calcOffline();
+      if (off.gain > 0) { openOfflineModal(off); return; }
+      decayRush(off.away);
+      enterGame();
+    };
+    /* 离线弹窗：收下金币 → 入账保存 → 正常开局 */
+    $('offlineOk').onclick = function () {
+      $('offlineMask').classList.remove('show');
+      if (state && pendingOffline > 0) {
+        state.coins += pendingOffline;
+        state.totalEarned += pendingOffline;
       }
-      applyOffline();
-      shopClosed = false;
-      $('closeShopMask').classList.remove('show');
-      running = true; lastTick = 0;
-      showScreen('gameScreen');
-      applyAutoVisual(); applyDeviceVisual(); render(); renderDeco();
-      refreshHomeInfo();
+      decayRush(pendingOfflineAway);
+      pendingOffline = 0; pendingOfflineAway = 0;
+      if (state) { state.lastTime = Date.now(); writeSave(); }
+      enterGame();
     };
     $('btnRules').onclick = function () { showScreen('rulesScreen'); };
     $('btnUpdates').onclick = function () { showScreen('updatesScreen'); };
@@ -3502,17 +4144,25 @@ function renderUpdates(){
     $('btnTradeMake').onclick = function () {
       var to = $('tradeTo').value;
       var coins = $('tradeCoins').value;
-      var res = makeTrade(to, coins);
       var msg = $('tradeMakeMsg');
+      if (!to) { showTradeMsg(msg, L('先去通讯录添加联系人', 'Add a contact first'), true); return; }
+      /* v0.37 强制支付密码：发放前必验；未设置则先强制设置 */
+      withPayPwd(function () { doMakeTrade(to, coins); });
+    };
+    function doMakeTrade(to, coins) {
+      var msg = $('tradeMakeMsg');
+      var res = makeTrade(to, coins);
       if (!res.ok) { showTradeMsg(msg, tradeErr(res.code), true); return; }
       lastTradeCode = res.code;
       var out = $('tradeOut');
       out.value = res.code;
       out.style.display = '';
       $('tradeOutBtns').style.display = 'flex';
-      showTradeMsg(msg, L('已扣除 ' + res.coins + ' 枚金币，把交易码发给对方', 'Deducted ' + res.coins + ' coins — send the code to the recipient'), false);
+      showTradeMsg(msg, L('已扣除 ' + res.total + ' 枚（本金 ' + res.coins + ' + 税 ' + res.tax + '），把交易码发给对方',
+        'Deducted ' + res.total + ' coins (' + res.coins + ' + ' + res.tax + ' tax) — send the code to the recipient'), false);
+      renderLedger();
       refreshHomeInfo(); render();
-    };
+    }
     $('btnTradeCopy').onclick = function () {
       if (!lastTradeCode) return;
       copyText(lastTradeCode, L('交易码已复制', 'Trade code copied'));
@@ -3536,6 +4186,7 @@ function renderUpdates(){
         'Claimed ' + res.coins + ' coin' + (res.coins > 1 ? 's' : '') + (res.fromName ? ' from ' + res.fromName : '')
       ), false);
       $('tradeIn').value = '';
+      renderLedger();
       refreshHomeInfo(); render();
     };
     $('btnLink').onclick = function () {
@@ -3595,6 +4246,45 @@ function renderUpdates(){
       toast(L('存档已清空', 'Save cleared'));
     };
     $('btnRename').onclick = function () { openNameModal('rename'); };
+    /* v0.36 VIP 升级 */
+    $('btnVipUp').onclick = function () {
+      ensureState();
+      if (state.devMode) { toast(L('开发者模式下无法购买 VIP', 'Cannot buy VIP in Dev Mode')); return; }
+      if (vipActive()) { toast(tradeErr('isvip')); return; }
+      if (state.coins < VIP_COST) {
+        toast(L('金币不足，还差 ' + fmt(VIP_COST - Math.floor(state.coins)) + ' 枚', 'Not enough coins — ' + fmt(VIP_COST - Math.floor(state.coins)) + ' short'));
+        return;
+      }
+      ask(
+        L('消耗 ' + fmt(VIP_COST) + ' 金币升级 VIP？\n升级后玩家 ID 前缀变为 VIP-，全局显示为金色 👑。',
+          'Spend ' + fmt(VIP_COST) + ' coins to become VIP?\nYour ID prefix becomes VIP- and shows a golden 👑 everywhere.'),
+        L('升级 VIP', 'Upgrade VIP')
+      ).then(function (ok) {
+        if (!ok) return;
+        var r = upgradeVip();
+        if (!r.ok) { toast(tradeErr(r.code)); return; }
+        renderSettings(); refreshHomeInfo();
+        if (running) render();
+        if ($('tradeScreen').classList.contains('active')) { renderTrade(); renderLedger(); }
+        toast(L('🎉 升级成功，欢迎加入 VIP！', '🎉 Upgraded — welcome to VIP!'), 'good');
+      });
+    };
+    /* v0.37 修改支付密码（已有密码先验旧密码） */
+    $('btnSetPay').onclick = function () {
+      ensureState();
+      var goSet = function () {
+        askPayPwd('set').then(function (ok) { if (ok) renderSettings(); });
+      };
+      if (payHasPwd()) {
+        askPayPwd('verify').then(function (ok) { if (ok) goSet(); });
+      } else goSet();
+    };
+    $('payOk').onclick = paySubmit;
+    $('payCancel').onclick = function () { payClose(false); };
+    $('payMask').onclick = function (e) { if (e.target === this) payClose(false); };
+    $('payForgot').onclick = payForgotPwd;
+    $('payInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (payMode === 'set') { $('payInput2').focus(); } else paySubmit(); } });
+    $('payInput2').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); paySubmit(); } });
     $('askOk').onclick = function () { askClose(true); };
     $('askCancel').onclick = function () { askClose(false); };
     $('askMask').onclick = function (e) { if (e.target === this) askClose(false); };
@@ -3835,6 +4525,7 @@ function renderUpdates(){
     renderUpdates();
     showScreen('home');
     loadBlacklist();
+    loadWallets();                        /* v0.43 后台发钱 */
     setTimeout(checkCloudConfig, 1000);   /* 等 DOM 渲染完再拉公告 */
     if (!playerName) setTimeout(function () { openNameModal('first'); }, 400);
     requestAnimationFrame(tick);
@@ -3846,9 +4537,19 @@ function renderUpdates(){
     renderUpdates();
     var nm = $('noticeMask');
     if (nm && nm.classList.contains('show')) openNoticeModal();   /* 切语言同步公告文字 */
+    /* v0.39 切语言同步离线弹窗文案 */
+    var om = $('offlineMask');
+    if (om && om.classList.contains('show') && state) {
+      var ors = $('offlineReason'); if (ors) ors.textContent = offlineReasonText();
+      var otp = $('offlineTip'); if (otp) otp.textContent = offlineTipText();
+    }
     renderSettings();
     renderFriends();
     renderTrade();
+    if (wallets.showing && wallets.current) {   /* v0.43 切语言同步发钱弹窗 */
+      var wb = $('walletBody');
+      if (wb) wb.textContent = walletText(wallets.current);
+    }
   };
 
   init();
