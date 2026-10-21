@@ -1089,22 +1089,20 @@ function fmtTime(sec){
    ========================================================= */
 var UPDATES = [
   { ver:'v0.51', latest:true,
-    titleZh:'商业帝国：托管上线与全服喇叭', titleEn:'Business Empire: Autopilot & Server Horns',
+    titleZh:'规则页重写：新手引导 + 商业版图', titleEn:'Rules Rewritten: Starter Guide + Empire',
     itemsZh:[
-      '全新【店铺托管】升级线：专门提升离线收益的效率和时间上限，挂机也能赚大钱。',
-      '大幅优化离线收益数值：没雇员工时收益大幅降低，强烈建议雇人或升级托管。',
-      '新增【全服喇叭】：大后期玩家可消耗金币发送全服飘屏广播，排面拉满！',
-      '新增【金融安全网】：交易必须设置 6 位强制密码；赠与将扣除 5% 交易税；黑名单玩家禁止收发金币。',
-      'VIP 尊贵身份全面实装，金色 ID 全局展示。',
-      '规则页说明全面重写，并优化了后台云端推送与定向公告系统。'
+      '规则页整页重写为 7 张卡片：核心循环 → 基础升级 → 员工 → 店铺托管 → 财富交易 → VIP/喇叭 → 存档公告',
+      '基础教程回归：熬糖锅 / 案板 / 摊位 / 学手艺、收糖工 / 擀皮工 / 售货员、存档迁移四步重新写回规则页',
+      '每张卡片独立图标与左侧色条，中英双语同步重写，切换语言不再丢加粗与高亮格式',
+      '规则页补齐经济系统说明：5% 交易税、6 位支付密码、黑名单拦截、离线收益受员工数与托管等级影响（数值未改动）',
+      '修复规则页脚本错误导致整页打不开的问题'
     ],
     itemsEn:[
-      'Added "Shop Autopilot": A new upgrade path that boosts offline earnings efficiency and time limits.',
-      'Balanced offline earnings: Rates are heavily penalized without staff. Hire workers or upgrade autopilot.',
-      'Added Server Horn: Late-game players can spend coins to broadcast a global scrolling message!',
-      'Added financial security: Mandatory 6-digit password for transfers; 5% trade tax applied; blacklisted players cannot trade.',
-      'VIP identity fully implemented with golden ID displays.',
-      'Completely rewrote the rules page and optimized the cloud announcement push system.'
+      'Rules page fully rewritten into 7 cards: Core Loop → Basic Upgrades → Staff → Autopilot → Trading → VIP/Horn → Save & Notices',
+      'Starter tutorials are back: pot / board / stall / craft, collector / roller / seller, and the 4-step save transfer',
+      'Each card has its own icon and accent bar; both languages rewritten so bold and highlight markup survives switching',
+      'Rules now explain the economy: 5% trade tax, 6-digit password, blacklist blocking, offline earnings tied to staff and autopilot (no balance change)',
+      'Fixed a script error that made the rules page fail to open'
     ] },
   { ver:'v0.50', latest:false,
     titleZh:'喇叭服务地址迁移', titleEn:'Horn Service Endpoint Moved',
@@ -1154,6 +1152,84 @@ var UPDATES = [
       '本地记录已展示 id，不重复飘；同时最多排 3 条，避免堆积卡死手机',
       '发送失败金币全额退回；发送成功震动反馈'    ]
   },
+  { ver:'v0.46', latest:false,
+    titleZh:'定向公告：只弹给指定玩家', titleEn:'Targeted Notices: Only the Right Players',
+    itemsZh:[
+      '云端公告新增定向列表：targets 命中本机玩家 ID 才弹，一次最多读 30 条',
+      '已读公告 id 记进存档（上限 200 条，自动去重），同一条不会反复弹',
+      '公告在启动与进游戏时拉取，命中未读才入队，一次只弹一条不打断操作'
+    ],
+    itemsEn:[
+      'Cloud announcements gained a targeted list: only entries whose targets match your player ID pop up, up to 30 read per check',
+      'Read notice IDs are stored in the save (max 200, auto-deduped) so the same notice never pops twice',
+      'Notices are fetched on launch and on entering the game; only unread matches queue, and only one shows at a time'
+    ] },
+  { ver:'v0.45', latest:false,
+    titleZh:'封号联动：赠与金币自动退回', titleEn:'Ban Link-Up: Gift Coins Auto-Refunded',
+    itemsZh:[
+      '生成赠与码时登记为「待领取」，接收方一旦被封禁，金币自动原路退回发送方，不再石沉大海',
+      '账单新增退回备注，被退回的每一笔都能在收支明细里查到',
+      '重要提示弹窗支持自定义停留时长，长文案不会被一秒刷走'
+    ],
+    itemsEn:[
+      'Gift codes are logged as pending; if the receiver gets banned, the coins are refunded to the sender automatically',
+      'Refunded transfers now carry a refund note and stay visible in the ledger',
+      'Important toasts can hold longer so long messages are not swept away in a second'
+    ] },
+  { ver:'v0.44', latest:false,
+    titleZh:'黑名单封禁：发送与领取双向拦截', titleEn:'Blacklist Bans: Blocked on Both Ends',
+    itemsZh:[
+      '接收方被封禁时，生成赠与码直接拒绝，绝不扣发送方一分钱',
+      '领取前先校验一次接收方状态，避免玩家白输支付密码',
+      '通讯录里被封禁的好友，名字旁标红字，一眼看出无法交易'
+    ],
+    itemsEn:[
+      'If the receiver is banned, creating a gift code is refused outright — the sender is never charged',
+      'The receiver status is checked before entering the password, so nobody types it in for nothing',
+      'Banned friends in your contacts get a red tag next to their name'
+    ] },
+  { ver:'v0.43', latest:false,
+    titleZh:'封号即时生效 + 后台发钱', titleEn:'Instant Bans + Server-Side Grants',
+    itemsZh:[
+      '本人被封禁时禁止生成和领取赠与码，交易页直接红字提示',
+      '黑名单缓存只做离线兜底，每次启动都拉最新，封号立刻生效',
+      '新增后台发钱 wallets.json：支持单发 / 按 ID 前缀范围 / 全服发放，进游戏自动领取'
+    ],
+    itemsEn:[
+      'Banned players cannot create or claim gift codes; the trade page explains why in red',
+      'The blacklist cache is offline fallback only — the latest list is fetched on every launch so bans apply instantly',
+      'Added wallets.json grants: single / ID-prefix range / whole server, auto-claimed when entering the game'
+    ] },
+  { ver:'v0.42', latest:false,
+    titleZh:'配饰重新布局：避开设备本体', titleEn:'Decor Relaid Out: Away From the Machines',
+    itemsZh:[
+      '全部 Emoji 配饰按安全区重排：顶栏 3 个（彩灯 / 风车 / 风铃）、中上 2 个（旗子 / 案板牌）、左右腰线 2 个（灯笼 / 猫）、地面一排 6 个',
+      '设备本体占画面高度 22%~47%，配饰只在 top 10~50% 与 bottom 3~5% 两条带活动，不再压住锅和案板',
+      '每个配饰配独立动画：风车旋转、灯笼与风铃摆动、旗子飘动、地面物件上下浮动，速度各不同不生硬'
+    ],
+    itemsEn:[
+      'All emoji decorations relaid out by safe zone: 3 on the top bar (lights / pinwheel / wind chime), 2 upper-middle (flag / board sign), 2 on the side rails (lantern / cat), and 6 along the ground',
+      'Machines occupy 22–47% of the screen height, so decor only lives in the 10–50% top band and the 3–5% bottom band — nothing covers the pot or board',
+      'Every decoration has its own animation: spinning pinwheel, swinging lantern and chime, waving flag, bobbing ground props — all at different speeds'
+    ] },
+  { ver:'v0.41', latest:false,
+    titleZh:'隐藏测试模式：数据隔离与时光倒流', titleEn:'Hidden Test Mode: Isolated Data & Time Rewind',
+    itemsZh:[
+      '新增隐藏测试模式入口，需输入专属密码才能进入，普通玩家碰不到',
+      '进入时自动快照整份存档（含昵称）并保留，随时可以退回开启前的那一刻',
+      '进入后金币直接拉满 1000 万亿，员工 / 设备 / 手艺 / 口味全部满级，方便测试后期手感',
+      '顶部显示「🧪 测试模式」胶囊，游戏区套红框，一眼看出这是测试档不是正式档',
+      '测试模式下交易、VIP 升级、互通领取全部禁用，不会污染正式数据',
+      '退出时整份存档换回快照，昵称一起还原，快照随即销毁'
+    ],
+    itemsEn:[
+      'A hidden test mode behind a password — regular players will never hit it',
+      'On entry the whole save (nickname included) is snapshotted so you can always rewind',
+      'Coins jump to 1000 trillion and staff / devices / craft / flavors are all maxed for testing the late game',
+      'A “🧪 Test Mode” pill appears at the top and the play area gets a red outline, so it is obvious this is not a real save',
+      'Trading, VIP upgrades and hub claims are disabled in test mode so real data stays clean',
+      'Leaving restores the whole save from the snapshot (nickname too) and deletes the snapshot'
+    ] },
   { ver:'v0.40', latest:false,
     titleZh:'大后期生态：交易税 · 材质变异 · 配饰量产', titleEn:'Late-Game Ecosystem: Tax · Material Mutation · Emoji Decor',
     itemsZh:[
@@ -1184,7 +1260,7 @@ var UPDATES = [
       'Added a Welcome Back modal on login showing your offline earnings and giving you a tailored business tip.'
     ]
   },
-  { ver:'v0.37', latest:false,
+  { ver:'v0.38', latest:false,
     titleZh:'资产安全与明细账单', titleEn:'Asset Security & Ledger',
     itemsZh:[
       '新增强制支付密码功能，发送金币前必须验证 6 位密码，保护您的资产安全',
@@ -1197,7 +1273,7 @@ var UPDATES = [
       'Anti-lockout mechanism: You can reset the password by wiping coins if forgotten'
     ]
   },
-  { ver:'v0.36', latest:false,
+  { ver:'v0.37', latest:false,
     titleZh:'VIP尊贵身份上线', titleEn:'VIP Identity Launch',
     itemsZh:[
       '大后期专属：消耗 100 万金币即可升级为 VIP 玩家',
@@ -1210,7 +1286,7 @@ var UPDATES = [
       'Optimized cloud notice fetching with a more stable proxy and anti-cache mechanism'
     ]
   },
-  { ver:'v0.35', latest:false,
+  { ver:'v0.36', latest:false,
     titleZh:'黑名单 + 设置页打磨',
     titleEn:'Blacklist + Settings Polish',
     itemsZh:[
@@ -1233,7 +1309,7 @@ var UPDATES = [
       'Clear-save warning is explicit now: nickname stays, but the player ID resets and contacts / trade history become invalid',
       'Trade codes shrank to about 160~200 characters (was 300+), so forwarding no longer truncates them; old codes still parse, paste tolerates line breaks, spaces, full-width characters, smart dashes and wrappers, and the code is auto-selected when copying fails'
     ] },
-  { ver:'v0.34', latest:false,
+  { ver:'v0.35', latest:false,
     titleZh:'赠与交易码',
     titleEn:'Gift Trade Codes',
     itemsZh:[
@@ -1252,7 +1328,7 @@ var UPDATES = [
       'The sender nickname is display-only and not part of the signature',
       'Signing sits behind a thin TradeCrypto.sign / verify interface, so a server can swap the internals later'
     ] },
-  { ver:'v0.33', latest:false,
+  { ver:'v0.34', latest:false,
     titleZh:'玩家身份 + 通讯录',
     titleEn:'Player Identity + Contacts',
     itemsZh:[
@@ -1271,7 +1347,7 @@ var UPDATES = [
       'Contact labels are yours to write — the other player\'s real name is never synced',
       'Contacts support add / rename / delete and are stored in the save'
     ] },
-  { ver:'v0.32', latest:false,
+  { ver:'v0.33', latest:false,
     titleZh:'iPhone 互联互通修复 + 金币自动到账',
     titleEn:'iPhone Link Fix + Auto Coin Credit',
     itemsZh:[
@@ -1296,12 +1372,12 @@ var UPDATES = [
       'Big Saucy Chicken redemption now counts total minus redeemed, so points cannot be claimed twice',
       'Changelogs updated and the link popup now scrolls on small screens'
     ] },
-  { ver:'v0.31', latest:false,
+  { ver:'v0.32', latest:false,
     titleZh:'加急卖打折 + 收益显示修复',
     titleEn:'Rush Sale Discount + Price Display Fix',
     itemsZh:['加急卖单价打五折（卖速×3）','金币、收益、今日收入改为保留一位小数，不再被取整成 0'],
     itemsEn:['Rush Sale cuts unit price by 50% (3× speed)','Earnings no longer show +0 — small amounts keep one decimal'] },
-  { ver:'v0.30',
+  { ver:'v0.31',
     titleZh:'打烊机制重做 + 界面打磨',
     titleEn:'Closing Rework + UI Polish',
     itemsZh:[
@@ -1340,7 +1416,7 @@ var UPDATES = [
       'Modals and the closing panel fade and scale in',
       'Decoration cards got proper spacing; the "Latest" tag is now styled'
     ] },
-  { ver:'v0.29',
+  { ver:'v0.30',
     titleZh:'前期节奏优化 + 数值透明 + 等待期交互',
     titleEn:'Early-Game Pacing + Transparent Numbers + Waiting Interaction',
     itemsZh:[
@@ -1363,85 +1439,85 @@ var UPDATES = [
       'Customer speech now matches the actual quantity bought',
       'Upgrade buttons show current → next values so gains are clear'
     ] },
-  { ver:'v0.28', titleZh:'修复首页读存档', titleEn:'Home Save Read Fix',
+  { ver:'v0.29', titleZh:'修复首页读存档', titleEn:'Home Save Read Fix',
     itemsZh:['打开页面（欢迎页）时就会立即读取存档，并显示金币 / 库存 / 天数','点「继续经营」直接使用已读取的存档进入游戏，不再等到游戏内才同步','修复语言切换时首页存档信息未刷新的问题'],
     itemsEn:['The save is now read immediately when the home screen loads, showing coins / stock / day','“Continue” enters the game with the already-loaded save instead of syncing inside the game','Fixed the home save info not refreshing when switching language'] },
-  { ver:'v0.27', titleZh:'存档读取修复', titleEn:'Save Read Fix',
+  { ver:'v0.28', titleZh:'存档读取修复', titleEn:'Save Read Fix',
     itemsZh:['修复欢迎页读取存档的 bug——现在进入首页会立即读取并显示存档（金币、库存）','点「继续经营」直接使用已读取的存档，不再等到开始才同步'],
     itemsEn:['Fixed the save reading bug on the home screen — your save (coins, stock) now loads immediately','“Continue” now uses the already-loaded save instead of waiting for game start'] },
-  { ver:'v0.26', titleZh:'蛋仔鸭鸭气球互联互通', titleEn:'Eggy Duckie Balloon Link',
+  { ver:'v0.27', titleZh:'蛋仔鸭鸭气球互联互通', titleEn:'Eggy Duckie Balloon Link',
     itemsZh:['互联互通弹窗新增「蛋仔鸭鸭气球数据」区域（累计总分、可兑换金币、已兑换金币）','新增「蛋仔兑换」按钮，按100分=1金币比例兑换','互联互通弹窗标题更新为「蛋仔鸭鸭气球 × 米皮糖小摊」'],
     itemsEn:['Cross-game link popup now shows an “Eggy Duckie Balloon” section (all-time score, redeemable coins, redeemed coins)','Added a “Redeem Eggy” button — converts at 100 pts = 1 coin','Link popup title updated to “Eggy Duckie Balloon × MipiTang Stall”'] },
-  { ver:'v0.25', titleZh:'互联互通兑换修复 + 截屏功能 + 氧气兼容', titleEn:'Link Fix + Screenshot + Oxygen Support',
+  { ver:'v0.26', titleZh:'互联互通兑换修复 + 截屏功能 + 氧气兼容', titleEn:'Link Fix + Screenshot + Oxygen Support',
     itemsZh:['存档迁移弹窗新增「截屏」按钮','检测键盘截屏快捷键','「互联互通」弹窗新增兼容「氧气怕你太累了」','新增氧气兑换和酱味大鸡兑换','修复互联互通兑换 bug'],
     itemsEn:['Added a Screenshot button to the save transfer popup','Detects keyboard screenshot shortcuts','Cross-game link popup now supports “Oxygen · Afraid You\'re Too Tired”','Added Oxygen and Big Saucy Chicken redemption','Fixed cross-game link redemption bugs'] },
-  { ver:'v0.23', titleZh:'互联互通 + 酱味大鸡兑换金币', titleEn:'Cross-Game Link + Big Saucy Chicken Redemption',
+  { ver:'v0.25', titleZh:'互联互通 + 酱味大鸡兑换金币', titleEn:'Cross-Game Link + Big Saucy Chicken Redemption',
     itemsZh:['接入酱味大鸡累计总分兑换','每 1000 分 = 1 金币'],
     itemsEn:['Integrated Big Saucy Chicken all-time score redemption','1000 pts = 1 coin'] },
-  { ver:'v0.22', titleZh:'顾客对话数量修复 + 规则页动画', titleEn:'Customer Dialog Fix + Rules Animation',
+  { ver:'v0.24', titleZh:'顾客对话数量修复 + 规则页动画', titleEn:'Customer Dialog Fix + Rules Animation',
     itemsZh:['修复顾客对话触发数量的 bug','规则页加入过渡动画'],
     itemsEn:['Fixed a bug in customer dialog trigger counts','Added transition animations to the rules page'] },
-  { ver:'v0.21', titleZh:'收钱和说话错开位置', titleEn:'Separate Payment and Speech',
+  { ver:'v0.23', titleZh:'收钱和说话错开位置', titleEn:'Separate Payment and Speech',
     itemsZh:['收钱文字和对话气泡不再重叠'],
     itemsEn:['Payment text and speech bubbles no longer overlap'] },
-  { ver:'v0.20', titleZh:'加急卖跑进来 + 普通卖自然浮现', titleEn:'Rush / Normal Sale Behavior',
+  { ver:'v0.22', titleZh:'加急卖跑进来 + 普通卖自然浮现', titleEn:'Rush / Normal Sale Behavior',
     itemsZh:['加急卖：顾客从右边跑进来','普通卖：顾客自然浮现'],
     itemsEn:['Rush Sale: customers run in from the right','Normal Sale: customers fade in naturally'] },
-  { ver:'v0.19', titleZh:'顾客流程重做 + 学手艺', titleEn:'Customer Flow Rework + Craft',
+  { ver:'v0.21', titleZh:'顾客流程重做 + 学手艺', titleEn:'Customer Flow Rework + Craft',
     itemsZh:['顾客购买流程重做','新增「学手艺」升级线'],
     itemsEn:['Reworked the customer purchase flow','Added the “Learn Craft” upgrade path'] },
-  { ver:'v0.18', titleZh:'顾客对话 + 员工系统 + 每天收摊', titleEn:'Customer Dialog + Staff + Daily Close',
+  { ver:'v0.20', titleZh:'顾客对话 + 员工系统 + 每天收摊', titleEn:'Customer Dialog + Staff + Daily Close',
     itemsZh:['顾客说话气泡','员工系统：收糖工 / 擀皮工 / 售货员','每天 5 分钟收摊结算'],
     itemsEn:['Customer speech bubbles','Staff system: Collector / Roller / Seller','5-minute day with closing settlement'] },
-  { ver:'v0.17', titleZh:'配饰系统 + 隐藏彩蛋', titleEn:'Decorations + Easter Egg',
+  { ver:'v0.19', titleZh:'配饰系统 + 隐藏彩蛋', titleEn:'Decorations + Easter Egg',
     itemsZh:['12 款小摊装饰','制作人员页点击彩蛋'],
     itemsEn:['12 stall decorations','Easter egg on the credits page'] },
-  { ver:'v0.16', titleZh:'返回按钮改成左箭头 + 左上角', titleEn:'Back Button Moved to Top-Left',
+  { ver:'v0.18', titleZh:'返回按钮改成左箭头 + 左上角', titleEn:'Back Button Moved to Top-Left',
     itemsZh:['返回按钮统一到左上角左箭头样式'],
     itemsEn:['Back button standardized to a top-left arrow'] },
-  { ver:'v0.15', titleZh:'节奏调慢 + 工作室显示优化', titleEn:'Pacing + Studio Display',
+  { ver:'v0.17', titleZh:'节奏调慢 + 工作室显示优化', titleEn:'Pacing + Studio Display',
     itemsZh:['整体节奏放缓','工作室名称显示优化'],
     itemsEn:['Slower overall pacing','Studio name display improved'] },
-  { ver:'v0.14', titleZh:'制作人员名单 + 全家桶工作室', titleEn:'Credits + Family Bucket Studio',
+  { ver:'v0.16', titleZh:'制作人员名单 + 全家桶工作室', titleEn:'Credits + Family Bucket Studio',
     itemsZh:['新增制作人员名单页','署名「全家桶工作室」'],
     itemsEn:['Added a credits page','Credited to “Family Bucket Studio”'] },
-  { ver:'v0.13', titleZh:'反馈按钮只在首页和规则页显示', titleEn:'Feedback Button Scope',
+  { ver:'v0.15', titleZh:'反馈按钮只在首页和规则页显示', titleEn:'Feedback Button Scope',
     itemsZh:['反馈按钮只在首页和规则页显示'],
     itemsEn:['Feedback button now only appears on the home and rules pages'] },
-  { ver:'v0.12', titleZh:'规则页美化', titleEn:'Rules Page Polish',
+  { ver:'v0.14', titleZh:'规则页美化', titleEn:'Rules Page Polish',
     itemsZh:['规则页视觉重做'],
     itemsEn:['Visual redesign of the rules page'] },
-  { ver:'v0.11', titleZh:'主页加反馈入口', titleEn:'Feedback Entry on Home',
+  { ver:'v0.13', titleZh:'主页加反馈入口', titleEn:'Feedback Entry on Home',
     itemsZh:['主页新增反馈入口'],
     itemsEn:['Added a feedback entry on the home screen'] },
-  { ver:'v0.10', titleZh:'升级改名：工艺 · 品牌', titleEn:'Renamed Upgrades: Craft · Brand',
+  { ver:'v0.12', titleZh:'升级改名：工艺 · 品牌', titleEn:'Renamed Upgrades: Craft · Brand',
     itemsZh:['升级名称统一改为「工艺」「品牌」体系'],
     itemsEn:['Upgrades unified under “Craft” and “Brand” naming'] },
-  { ver:'v0.9', titleZh:'离线收益封顶 + 机器可升级', titleEn:'Offline Cap + Machine Upgrades',
+  { ver:'v0.11', titleZh:'离线收益封顶 + 机器可升级', titleEn:'Offline Cap + Machine Upgrades',
     itemsZh:['离线收益加入封顶','自动化设备可升级'],
     itemsEn:['Added a cap to offline earnings','Automation equipment can now be upgraded'] },
-  { ver:'v0.8', titleZh:'摊位节奏重做 + 加急卖', titleEn:'Stall Pacing Rework + Rush Sale',
+  { ver:'v0.10', titleZh:'摊位节奏重做 + 加急卖', titleEn:'Stall Pacing Rework + Rush Sale',
     itemsZh:['摊位卖货节奏重做','新增「加急卖」'],
     itemsEn:['Reworked stall selling pace','Added “Rush Sale”'] },
-  { ver:'v0.7', titleZh:'存档迁移', titleEn:'Save Transfer',
+  { ver:'v0.9', titleZh:'存档迁移', titleEn:'Save Transfer',
     itemsZh:['新增存档迁移（导出/导入密文）'],
     itemsEn:['Added save transfer (export / import cipher)'] },
-  { ver:'v0.6', titleZh:'更新信息页独立', titleEn:'Dedicated Updates Page',
+  { ver:'v0.8', titleZh:'更新信息页独立', titleEn:'Dedicated Updates Page',
     itemsZh:['更新信息页从主页拆出'],
     itemsEn:['Updates page split out from the home screen'] },
-  { ver:'v0.5', titleZh:'自动化设备 + 存档兼容', titleEn:'Automation + Save Compat',
+  { ver:'v0.7', titleZh:'自动化设备 + 存档兼容', titleEn:'Automation + Save Compat',
     itemsZh:['自动化设备上线','兼容旧存档'],
     itemsEn:['Automation equipment added','Backwards-compatible with old saves'] },
-  { ver:'v0.4', titleZh:'挂机系统 + 员工', titleEn:'Idle System + Staff',
+  { ver:'v0.6', titleZh:'挂机系统 + 员工', titleEn:'Idle System + Staff',
     itemsZh:['挂机产出','员工系统雏形'],
     itemsEn:['Idle production','Early staff system'] },
-  { ver:'v0.3', titleZh:'真实小店场景 + CSS 角色', titleEn:'Shop Scene + CSS Characters',
+  { ver:'v0.5', titleZh:'真实小店场景 + CSS 角色', titleEn:'Shop Scene + CSS Characters',
     itemsZh:['小店场景改用 CSS 绘制','角色改用 CSS 绘制'],
     itemsEn:['Shop scene redrawn with CSS','Characters drawn with CSS'] },
-  { ver:'v0.2', titleZh:'首页 + 昵称 + 存档', titleEn:'Home + Nickname + Save',
+  { ver:'v0.4', titleZh:'首页 + 昵称 + 存档', titleEn:'Home + Nickname + Save',
     itemsZh:['首页上线','昵称系统','本地存档'],
     itemsEn:['Home screen added','Nickname system','Local save'] },
-  { ver:'v0.1', titleZh:'原型', titleEn:'Prototype',
+  { ver:'v0.3', titleZh:'原型', titleEn:'Prototype',
     itemsZh:['核心玩法原型'],
     itemsEn:['Core gameplay prototype'] }
 ];
