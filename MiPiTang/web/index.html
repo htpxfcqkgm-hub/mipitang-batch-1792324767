@@ -100,8 +100,7 @@
   .offlineBig { font-size: clamp(30px, 10vw, 42px); font-weight: 900; color: #d68a1e; letter-spacing: 1px; line-height: 1.15; margin: 2px 0 4px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 #fff6; }
   .offlineBig .plus { color: #5bc23f; }
   .offlineBig .unit { font-size: 13px; font-weight: 800; color: #a9714c; margin-left: 4px; letter-spacing: 0; }
-  .offlineReason, .offlineTip { font-size: 12px; line-height: 1.7; color: #6b3a1f; background: #fff3e2; border-radius: 12px; padding: 10px 12px; margin-top: 10px; text-align: left; }
-  .offlineTip { background: #eaf7e6; color: #3f6b32; }
+  .offlineReason { font-size: 12px; line-height: 1.7; color: #6b3a1f; background: #fff3e2; border-radius: 12px; padding: 10px 12px; margin-top: 10px; text-align: left; }
   button.green { background: linear-gradient(180deg, #8fe06a, #5bc23f); color: #fff; text-shadow: 0 1px 0 #3f8f28aa; box-shadow: 0 3px 0 #47971f, inset 0 1px 0 #fff8; }
   button.green:active { box-shadow: 0 1px 0 #47971f, inset 0 1px 0 #fff8; }
   #offlineMask .modalBtns { margin-top: 14px; }
@@ -656,7 +655,6 @@
     <div class="offlineLabel" data-zh="离线收益" data-en="Offline Earnings">离线收益</div>
     <div class="offlineBig"><span class="plus">+</span><span id="offlineGainAmount">0</span><span class="unit" data-zh="金币" data-en="coins">金币</span></div>
     <div class="offlineReason" id="offlineReason"></div>
-    <div class="offlineTip" id="offlineTip"></div>
     <div class="modalBtns">
       <button class="green" id="offlineOk" data-zh="收下金币，开始营业" data-en="Collect &amp; Open Shop">收下金币，开始营业</button>
     </div>
@@ -3076,17 +3074,13 @@ function renderUpdates(){
       if (running) render();
     }
   }
-  /* 弹窗文案：没雇员工时先说清惩罚，再按摊位等级分段 */
+  /* 弹窗只留一条文案：原因 + 一句建议 */
   function offlineReasonText() {
     if (autoBoughtCount() === 0) return L('你的摊位没人看管，收益极少。快去雇佣【收糖工】或【售货员】，或者升级【店铺托管】吧！', 'Nobody was minding the stall, so earnings were tiny. Hire a Collector or a Seller, or upgrade the Staffing Service!');
     var lv = state.sell.lv;
-    if (lv < 5) return L('因为你的摊位等级较低（Lv.' + lv + '），客流有限，离线收益较少。', 'Your stall is still small (Lv.' + lv + '), so foot traffic was limited and offline earnings stayed low.');
-    if (lv < 15) return L('摊位人气不错（Lv.' + lv + '），在你离开的时候卖出了不少米皮糖！', 'Your stall has real buzz (Lv.' + lv + ') — quite a few candies sold while you were away!');
+    if (lv < 5) return L('摊位还小（Lv.' + lv + '），客流有限，离线收益不多。升级【店铺托管】能提升效率。', 'Your stall is still small (Lv.' + lv + '), so offline earnings stayed low. Upgrade the Staffing Service to boost it.');
+    if (lv < 15) return L('摊位人气不错（Lv.' + lv + '），你离开的时候也卖出了不少米皮糖！', 'Your stall has real buzz (Lv.' + lv + ') — quite a few candies sold while you were away!');
     return L('你的品牌远近闻名（Lv.' + lv + '），顾客络绎不绝，收获满满！', 'Your brand is famous by now (Lv.' + lv + ') — customers kept coming and the till is full!');
-  }
-  function offlineTipText() {
-    if (!state.auto.sell.bought) return L('建议：雇佣【售货员】并升级【品牌影响力】，可以大幅提升离线收益效率！', 'Tip: hire the Seller and upgrade Brand Influence to boost offline efficiency!');
-    return L('建议：继续升级品牌影响力，摊位等级越高，离线上限时间越长。', 'Tip: keep upgrading Brand Influence — higher stall levels mean longer offline caps.');
   }
   var pendingOffline = 0, pendingOfflineAway = 0;
   function openOfflineModal(off) {
@@ -3094,7 +3088,6 @@ function renderUpdates(){
     pendingOfflineAway = off.away;
     var amt = $('offlineGainAmount'); if (amt) amt.textContent = fmtCoin(off.gain);
     var rs = $('offlineReason'); if (rs) rs.textContent = offlineReasonText();
-    var tp = $('offlineTip'); if (tp) tp.textContent = offlineTipText();
     var mk = $('offlineMask'); if (mk) mk.classList.add('show');
   }
 
@@ -5344,7 +5337,6 @@ function renderUpdates(){
     var om = $('offlineMask');
     if (om && om.classList.contains('show') && state) {
       var ors = $('offlineReason'); if (ors) ors.textContent = offlineReasonText();
-      var otp = $('offlineTip'); if (otp) otp.textContent = offlineTipText();
     }
     renderSettings();
     renderFriends();
