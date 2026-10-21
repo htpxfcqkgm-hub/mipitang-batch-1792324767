@@ -557,12 +557,12 @@
 
 <div class="modalMask" id="noticeMask">
   <div class="modal">
-    <h2 style="text-align:center;font-size:22px" data-zh="📢 官方公告" data-en="📢 Official Notice">📢 官方公告</h2>
+    <h2 id="noticeTitle" style="text-align:center;font-size:22px">📢 官方公告</h2>
     <div id="noticeBody" style="font-size:14px;line-height:1.75;color:#6b3a1f;font-weight:600;white-space:pre-line;word-break:break-word;max-height:46vh;overflow-y:auto;background:#fff3e0;border:1px dashed #ffb347;border-radius:8px;padding:10px 12px;"></div>
     <div class="modalBtns">
       <button class="primary" id="noticeOk" data-zh="我知道了" data-en="Got it">我知道了</button>
     </div>
-    <label style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:10px;font-size:12px;font-weight:700;color:#a9714c;cursor:pointer;">
+    <label id="noticeHideRow" style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:10px;font-size:12px;font-weight:700;color:#a9714c;cursor:pointer;">
       <input type="checkbox" id="noticeHideToday" style="width:16px;height:16px;margin:0;flex:none;accent-color:#ff9f43;cursor:pointer;">
       <span data-zh="今日不再显示" data-en="Don't show today">今日不再显示</span>
     </label>
@@ -1027,7 +1027,7 @@
    语言系统（全局）
    ========================================================= */
 var LANG = 'zh';
-var cloudNotice = { zh: '', en: '' };   /* 云端公告内容（全局，避免 ReferenceError） */
+var cloudNotice = { zh: '', en: '', mode: 'all' };   /* 云端公告内容（全局，避免 ReferenceError）；mode: all = 全服 / directed = 定向 */
 function L(zh, en){ return LANG === 'zh' ? zh : en; }
 
 function fmtTime(sec){
@@ -1410,13 +1410,14 @@ function renderUpdates(){
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
   var toastTimer = null;
-  function toast(msg, cls) {
+  function toast(msg, cls, ms) {
     var el = $('toast');
     if (!el) return;
     el.textContent = msg;
     el.className = 'toast show' + (cls ? ' ' + cls : '');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { el.className = 'toast'; }, 1800);
+    var wait = Number(ms) > 0 ? Number(ms) : 1800;   /* v0.45 重要提示可延长显示 */
+    toastTimer = setTimeout(function () { el.className = 'toast'; }, wait);
   }
 
   /* 游戏内确认弹窗，返回 Promise<boolean> */
@@ -1557,7 +1558,8 @@ function renderUpdates(){
       dayStart: 0, dayEarned: 0, daySold: 0, dayClosedFrom: 0, daySettledDay: 1, day: 1,
       uid: '', friends: [], tradeClaims: [], claimedWallets: [],
       payPassword: '', tradeHistory: [],
-      lastTime: Date.now(), version: 16
+      pendingTrades: [], readNotices: [],
+      lastTime: Date.now(), version: 17
     };
     return ensureUid(s);
   }
@@ -1630,7 +1632,11 @@ function renderUpdates(){
     s.claimedWallets = Array.isArray(s.claimedWallets)
       ? s.claimedWallets.filter(function (x) { return x != null && x !== ''; }).map(function (x) { return String(x); })
       : [];
-    s.version = 16;
+    /* v17：未领取赠与码登记（v0.45 封号自动退回用） */
+    s.pendingTrades = normalizePendingTrades(s.pendingTrades);
+    /* v17：已读定向公告 id（v0.46 防重复弹窗） */
+    s.readNotices = normalizeReadNotices(s.readNotices);
+    s.version = 17;
     ensureTimeline(s);
     return s;
   }
@@ -1657,7 +1663,7 @@ function renderUpdates(){
     if (!state) return;
     ensureUid(state);
     state.lastTime = Date.now();
-    state.version = 16;
+    state.version = 17;
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
     cachedSave = state;
     cachedSaveLoaded = true;
@@ -2028,6 +2034,51 @@ function renderUpdates(){
     for (i = 0; i < parts.length && i < 3; i++) { obj = decodeTradePayload(parts[i]); if (obj) return obj; }
     return null;
   }
+  /* =========================================================
+     v0.45 未领取赠与码登记（封号后自动原路退回）
+     ========================================================= */
+  var PENDING_KEEP = 300;
+  var PENDING_TTL = 30 * 24 * 3600 * 1000;   /* 登记只保留 30 天，超时不再参与退回 */
+  function normalizePendingTrades(raw) {
+    var out = [], seen = {}, now = Date.now();
+    if (!Array.isArray(raw)) return out;
+    for (var i = 0; i < raw.length; i++) {
+      var r = raw[i];
+      if (!r || typeof r !== 'object') continue;
+      var id = String(r.id == null ? '' : r.id).slice(0, 40);
+      var to = normalizeUid(r.to);
+      var coins = Math.floor(Number(r.coins) || 0);
+      var tax = Math.floor(Number(r.tax) || 0);
+      var at = Number(r.at) || 0;
+      if (!id || seen[id] || !isValidUid(to) || coins < TRADE_MIN_COINS) continue;
+      if (at && now - at > PENDING_TTL) continue;   /* 过期登记直接丢弃 */
+      seen[id] = 1;
+      out.push({ id: id, to: to, coins: coins, tax: tax < 0 ? 0 : tax, at: at || now });
+    }
+    return out.slice(-PENDING_KEEP);
+  }
+  function pendingList(s) {
+    var t = s || ensureState();
+    if (!Array.isArray(t.pendingTrades)) t.pendingTrades = [];
+    return t.pendingTrades;
+  }
+  function pushPending(id, to, coins, tax, at) {
+    var arr = pendingList();
+    arr.push({
+      id: String(id), to: normalizeUid(to),
+      coins: Math.floor(Number(coins) || 0), tax: Math.floor(Number(tax) || 0),
+      at: Number(at) || Date.now()
+    });
+    if (arr.length > PENDING_KEEP) arr.splice(0, arr.length - PENDING_KEEP);
+  }
+  function dropPending(id) {
+    if (!state || !Array.isArray(state.pendingTrades)) return;
+    var arr = state.pendingTrades;
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i] && arr[i].id === id) { arr.splice(i, 1); return; }
+    }
+  }
+
   function makeTrade(toUid, coins) {
     ensureState();
     if (state.devMode) return { ok: false, code: 'devmode' };   /* v0.41 测试模式隔离 */
@@ -2035,6 +2086,8 @@ function renderUpdates(){
     var to = normalizeUid(toUid);
     if (!isValidUid(to)) return { ok: false, code: 'badto' };
     if (to === state.uid) return { ok: false, code: 'self' };
+    /* v0.44 接收方被黑名单封禁：直接拒绝，绝不扣发送方一分钱 */
+    if (isBlacklisted(to)) return { ok: false, code: 'toban' };
     coins = Math.floor(Number(coins));
     if (!isFinite(coins) || coins < TRADE_MIN_COINS) return { ok: false, code: 'low' };
     if (coins > TRADE_MAX_COINS) return { ok: false, code: 'high' };
@@ -2054,6 +2107,8 @@ function renderUpdates(){
     };
     t.sig = TradeCrypto.sign(t);
     state.coins = roundCoins(state.coins - total);
+    /* v0.45 登记未领取赠与码：接收方一旦被封禁，把这笔钱原路退回 */
+    pushPending(t.id, to, coins, tax, now);
     /* v0.37 记账：发钱 = out（含税，按实际出账金额记） */
     pushTrade('out', total, to, peerName(to));
     saveSoon();
@@ -2082,6 +2137,7 @@ function renderUpdates(){
     state.coins = roundCoins(state.coins + coins);
     state.tradeClaims.push(t.id);
     if (state.tradeClaims.length > 200) state.tradeClaims = state.tradeClaims.slice(-200);
+    dropPending(t.id);   /* v0.45：已被领取，不再参与封号退回 */
     /* v0.37 记账：收钱 = in */
     pushTrade('in', coins, normalizeUid(t.from), String(t.fromName || '') || peerName(t.from));
     saveSoon();
@@ -2219,22 +2275,29 @@ function renderUpdates(){
         coins: Math.floor(Number(r.coins) || 0),
         uid: normalizeUid(r.uid || ''),
         name: String(r.name == null ? '' : r.name).slice(0, 20),
+        note: String(r.note == null ? '' : r.note).slice(0, 24),   /* v0.45 标记（如 refund） */
         at: Number(r.at) || Date.now()
       });
     }
     return out.slice(-LEDGER_KEEP);
   }
-  function pushTrade(dir, coins, uid, name) {
-    var s = ensureState();
+  function pushTrade(dir, coins, uid, name, note, sv) {
+    var s = sv || ensureState();
     if (!Array.isArray(s.tradeHistory)) s.tradeHistory = [];
     s.tradeHistory.push({
       dir: dir === 'in' ? 'in' : 'out',
       coins: Math.floor(Number(coins) || 0),
       uid: normalizeUid(uid || ''),
       name: String(name == null ? '' : name).slice(0, 20),
+      note: String(note == null ? '' : note).slice(0, 24),
       at: Date.now()
     });
     if (s.tradeHistory.length > LEDGER_KEEP) s.tradeHistory = s.tradeHistory.slice(-LEDGER_KEEP);
+  }
+  /* v0.45 账单备注双语（存 key，渲染时再翻译，切语言不会串） */
+  function ledgerNote(n) {
+    if (n === 'refund') return L('封禁退回', 'banned refund');
+    return '';
   }
   function peerName(uid) {
     var f = friendGet(uid);
@@ -2269,7 +2332,8 @@ function renderUpdates(){
       nm.textContent = (r.dir === 'in' ? '← ' : '→ ') + (nick ? nick + ' · ' : '') + who;
       var tm = document.createElement('div');
       tm.className = 'ledgerTime';
-      tm.textContent = ledgerTime(r.at) + ' · ' + (r.dir === 'in' ? L('收款', 'Received') : L('支出', 'Sent'));
+      tm.textContent = ledgerTime(r.at) + ' · ' + (r.dir === 'in' ? L('收款', 'Received') : L('支出', 'Sent'))
+        + (r.note && ledgerNote(r.note) ? ' · ' + ledgerNote(r.note) : '');
       main.appendChild(nm); main.appendChild(tm);
       var amt = document.createElement('div');
       amt.className = 'ledgerAmt ' + (r.dir === 'in' ? 'in' : 'out');
@@ -2330,6 +2394,8 @@ function renderUpdates(){
     /* 拉完立刻刷交易页的红字/按钮状态 */
     renderBlacklistStatus();
     if (state && $('tradeScreen') && $('tradeScreen').classList.contains('active')) renderTrade();
+    /* v0.45 封号联动：退回发给被封禁玩家的未领取赠与码 */
+    sweepBannedTrades(true);
   }
   function loadBlacklist() {
     var cache = readBlacklistCache();
@@ -2369,6 +2435,45 @@ function renderUpdates(){
   function selfBlacklisted() {
     if (!state || !state.uid) return false;
     return isBlacklisted(state.uid);
+  }
+  /* v0.45 封号联动清理：拿到黑名单后，把发给被封禁玩家的未领取赠与码原路退回 */
+  function sweepBannedTrades(showTip) {
+    if (!blacklist.ready || !blacklist.count) return 0;
+    var s = state;
+    if (!s) {
+      if (!cachedSaveLoaded) { cachedSave = readSave(); cachedSaveLoaded = true; }
+      s = cachedSave;
+    }
+    if (!s || !s.uid || s.devMode) return 0;   /* v0.41 测试模式不动正式数据 */
+    var arr = Array.isArray(s.pendingTrades) ? s.pendingTrades : [];
+    if (!arr.length) return 0;
+    var keep = [], hit = [], i, p, back, refund = 0;
+    for (i = 0; i < arr.length; i++) {
+      p = arr[i];
+      if (p && isValidUid(p.to) && isBlacklisted(p.to)) hit.push(p);
+      else keep.push(p);
+    }
+    if (!hit.length) return 0;
+    for (i = 0; i < hit.length; i++) {
+      p = hit[i];
+      back = Math.floor(Number(p.coins) || 0) + Math.floor(Number(p.tax) || 0);
+      if (back > 0) { s.coins = roundCoins((Number(s.coins) || 0) + back); refund += back; }
+      pushTrade('in', back, p.to, peerName(p.to), 'refund', s);   /* 账单记一笔，备注封禁退回 */
+    }
+    s.pendingTrades = keep.slice(-PENDING_KEEP);
+    ensureState();     /* 有真正退款时落地为正式存档 */
+    writeSave();        /* 立即写盘，不等 saveSoon，防闪退丢钱 */
+    if (showTip && refund > 0) {
+      var names = [];
+      for (i = 0; i < hit.length && i < 3; i++) names.push(peerName(hit[i].to) || uidLabel(hit[i].to));
+      var who = names.join(L('、', ', '));
+      if (hit.length > 3) who += L(' 等 ' + hit.length + ' 位', ' +' + (hit.length - 3) + ' more');
+      toast(L('您发给 ' + who + ' 的赠与码因对方违规被封禁，金币已退回。',
+              'Your gift code to ' + who + ' was refunded — that account is banned.'), 'good', 5000);
+    }
+    if ($('tradeScreen') && $('tradeScreen').classList.contains('active')) renderLedger();
+    refreshHomeInfo();
+    return hit.length;
   }
   function blacklistStatusText() {
     if (!blacklist.ready) return L('加载中…', 'Loading…');
@@ -2523,6 +2628,7 @@ function renderUpdates(){
     expired:  ['交易码已过期', 'This code has expired'],
     used:     ['这张交易码已经领过了', 'This code was already claimed'],
     blocked:  ['对方在黑名单中，交易已拒绝', 'Sender is blacklisted — trade rejected'],
+    toban:    ['发送失败：该玩家账号已被封禁，无法接收金币。', 'Send failed: that account is banned and cannot receive coins.'],
     isvip:    ['你已经是 VIP 了', 'You are already VIP'],
     vipneed:  ['金币不足 100 万，还差一点', 'Need 1,000,000 coins to upgrade'],
     paywrong: ['支付密码错误', 'Wrong payment password'],
@@ -2645,6 +2751,13 @@ function renderUpdates(){
 
       var nick = document.createElement('div');
       nick.className = 'friendNick'; nick.textContent = f.nick;
+      /* v0.44 好友被封禁：名字旁加红字标记 */
+      if (isBlacklisted(f.uid)) {
+        var btag = document.createElement('span');
+        btag.style.cssText = 'color:#c92a2a;font-weight:800;font-size:11px;margin-left:4px;white-space:nowrap;';
+        btag.textContent = L('（已封禁）', '(banned)');
+        nick.appendChild(btag);
+      }
       main.appendChild(nick); main.appendChild(uid);
 
       var bGift = document.createElement('button');
@@ -2687,7 +2800,8 @@ function renderUpdates(){
       arr.forEach(function (f) {
         var o = document.createElement('option');
         o.value = f.uid;
-        o.textContent = (isVipUid(f.uid) ? '👑 ' : '') + f.nick + ' · ' + f.uid;
+        o.textContent = (isVipUid(f.uid) ? '👑 ' : '') + f.nick + ' · ' + f.uid +
+          (isBlacklisted(f.uid) ? L(' （已封禁）', ' (banned)') : '');
         sel.appendChild(o);
       });
       if (preUid) sel.value = normalizeUid(preUid);
@@ -4146,6 +4260,13 @@ function renderUpdates(){
       var coins = $('tradeCoins').value;
       var msg = $('tradeMakeMsg');
       if (!to) { showTradeMsg(msg, L('先去通讯录添加联系人', 'Add a contact first'), true); return; }
+      /* v0.44 接收方封禁：先拦一道，不让玩家白输密码 */
+      if (isBlacklisted(normalizeUid(to))) {
+        showTradeMsg(msg, tradeErr('toban'), true);
+        toast(tradeErr('toban'));
+        renderTrade(to);
+        return;
+      }
       /* v0.37 强制支付密码：发放前必验；未设置则先强制设置 */
       withPayPwd(function () { doMakeTrade(to, coins); });
     };
@@ -4457,14 +4578,112 @@ function renderUpdates(){
 
   function todayStr() { return new Date().toDateString(); }
 
-  /* 打开公告弹窗（唯一入口） */
-  function openNoticeModal() {
+  /* 打开公告弹窗（唯一入口）；mode 省略时沿用上一次的类型 */
+  function openNoticeModal(mode) {
     var mask = document.getElementById('noticeMask');
     var body = document.getElementById('noticeBody');
     if (!mask || !body) { console.warn('公告弹窗节点缺失'); return; }
+    var m = (mode === 'directed' || mode === 'all') ? mode : (cloudNotice.mode || 'all');
+    cloudNotice.mode = m;
+    var t = document.getElementById('noticeTitle');
+    if (t) t.textContent = noticeTitleText(m);
+    var row = document.getElementById('noticeHideRow');
+    if (row) row.style.display = m === 'directed' ? 'none' : '';   /* 定向公告不给“今日不再显示” */
     body.innerHTML = LANG === 'en' ? (cloudNotice.en || cloudNotice.zh) : (cloudNotice.zh || cloudNotice.en);
     mask.classList.add('show');
-    console.log('公告弹窗已弹出', mask.className);
+    console.log('公告弹窗已弹出', m);
+  }
+  function noticeTitleText(mode) {
+    return mode === 'directed'
+      ? L('📢 管理员定向公告', '📢 Admin Notice')
+      : L('📢 官方公告', '📢 Official Notice');
+  }
+
+  /* ---- v0.46 定向公告：targets 命中本机玩家 ID 且未读 → 入队弹窗 ---- */
+  var directedQueue = [], pendingNoticeId = '';
+  function normalizeReadNotices(raw) {
+    var out = [], seen = {};
+    if (!Array.isArray(raw)) return out;
+    for (var i = 0; i < raw.length; i++) {
+      var v = String(raw[i] == null ? '' : raw[i]).trim().slice(0, 40);
+      if (!v || seen[v]) continue;
+      seen[v] = 1; out.push(v);
+    }
+    return out.slice(-200);
+  }
+  /* 取可写存档：优先 state，其次磁盘缓存（不强行开局） */
+  function noticeSave(writable) {
+    if (state) return state;
+    if (writable) return ensureState();
+    if (!cachedSaveLoaded) { cachedSave = readSave(); cachedSaveLoaded = true; }
+    return cachedSave;
+  }
+  function collectDirectedNotices(data) {
+    var out = [];
+    if (!data || !Array.isArray(data.directedNotices)) return out;
+    var s = noticeSave(false);
+    var myUid = (s && s.uid) || identityUid();
+    var read = (s && Array.isArray(s.readNotices)) ? s.readNotices : [];
+    for (var i = 0; i < data.directedNotices.length && i < 30; i++) {
+      var it = data.directedNotices[i];
+      if (!it || typeof it !== 'object') continue;
+      var id = String(it.id == null ? '' : it.id).trim().slice(0, 40);
+      if (!id || read.indexOf(id) >= 0) continue;      /* 已读不再弹 */
+      var targets = Array.isArray(it.targets) ? it.targets : (Array.isArray(it.uids) ? it.uids : []);
+      var hit = false;
+      for (var j = 0; j < targets.length; j++) {
+        var tg = String(targets[j] == null ? '' : targets[j]).trim().toLowerCase();
+        if (tg === 'all' || tg === '*') { hit = true; break; }      /* 通配全部 */
+        if (myUid && normalizeUid(targets[j]) === myUid) { hit = true; break; }
+      }
+      if (!hit) continue;
+      var zh = String(it.content != null ? it.content : (it.zh != null ? it.zh : ''));
+      var en = String(it.contentEn != null ? it.contentEn : (it.en != null ? it.en : zh));
+      if (!zh && !en) continue;
+      out.push({ id: id, zh: zh || en, en: en || zh });
+    }
+    return out;
+  }
+  function queueDirectedNotices(list) {
+    if (!list || !list.length) return;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === pendingNoticeId) continue;
+      var dup = false;
+      for (var j = 0; j < directedQueue.length; j++) { if (directedQueue[j].id === list[i].id) { dup = true; break; } }
+      if (!dup) directedQueue.push(list[i]);
+    }
+    showNextDirectedNotice();
+  }
+  /* 一次只弹一条：已有弹窗在就不抢 */
+  function showNextDirectedNotice() {
+    if (!directedQueue.length) return;
+    var mask = document.getElementById('noticeMask');
+    if (mask && mask.classList.contains('show')) return;
+    var it = directedQueue.shift();
+    pendingNoticeId = it.id;
+    cloudNotice.zh = it.zh;
+    cloudNotice.en = it.en;
+    openNoticeModal('directed');
+  }
+  function markNoticeRead(id) {
+    if (!id) return;
+    var s = noticeSave(true);
+    if (!Array.isArray(s.readNotices)) s.readNotices = [];
+    if (s.readNotices.indexOf(id) >= 0) return;
+    s.readNotices.push(id);
+    if (s.readNotices.length > 200) s.readNotices = s.readNotices.slice(-200);
+    writeSave();   /* 立即落盘，防闪退重复弹 */
+  }
+  /* 云端数据统一入口：全服公告 + 定向公告 */
+  function applyCloudNotices(data) {
+    if (!data) return;
+    if (data.notice) {                 /* 1. 全服公告（原有逻辑） */
+      cloudNotice.zh = String(data.notice);
+      cloudNotice.en = String(data.noticeEn || data.notice);
+      try { localStorage.removeItem(NOTICE_HIDE_KEY); } catch (e) {}
+      openNoticeModal('all');
+    }
+    queueDirectedNotices(collectDirectedNotices(data));   /* 2. 定向公告 */
   }
 
   function checkCloudConfig() {
@@ -4478,12 +4697,7 @@ function renderUpdates(){
         return r.json();
       })
       .then(function (data) {
-        if (!data || !data.notice) return;
-        cloudNotice.zh = String(data.notice);
-        cloudNotice.en = String(data.noticeEn || data.notice);
-
-        try { localStorage.removeItem('mpt_hide_notice_date'); } catch (e) {}
-        openNoticeModal();
+        applyCloudNotices(data);
       })
       .catch(function (err) {
         console.error('拉取公告失败:', err);
@@ -4492,16 +4706,13 @@ function renderUpdates(){
 
   /* 原生兜底：Swift 拉取后用 evaluateJavaScript 注入 __mptApplyCloud(json) */
   window.__mptApplyCloud = function (data) {
-    if (!data || !data.notice) return;
-    cloudNotice.zh = String(data.notice);
-    cloudNotice.en = String(data.noticeEn || data.notice);
-    try { localStorage.removeItem(NOTICE_HIDE_KEY); } catch (e) {}
-    openNoticeModal();
+    applyCloudNotices(data);
   };
 
   (function bindNoticeModal() {
     var ok = $('noticeOk');
     if (ok) ok.addEventListener('click', function () {
+      var directedId = cloudNotice.mode === 'directed' ? pendingNoticeId : '';
       var cb = $('noticeHideToday');
       if (cb && cb.checked) {
         try { localStorage.setItem(NOTICE_HIDE_KEY, todayStr()); } catch (e) {}
@@ -4509,6 +4720,9 @@ function renderUpdates(){
       var mask = document.getElementById('noticeMask');
       if (mask) mask.classList.remove('show');
       if (cb) cb.checked = false;
+      pendingNoticeId = '';
+      if (directedId) markNoticeRead(directedId);   /* v0.46 记住已读，不再重复弹 */
+      showNextDirectedNotice();                     /* 队列里还有就接着弹 */
     });
   })();
 
