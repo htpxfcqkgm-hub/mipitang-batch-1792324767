@@ -7,12 +7,18 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
-      - name: 显示 Xcode 版本
-        run: xcodebuild -version
+      - name: 选择 Xcode（优先 26，才能编译液态玻璃）
+        run: |
+          ls /Applications | grep -i '^Xcode' || true
+          pick=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$pick" ]; then pick=$(ls -d /Applications/Xcode*.app | sort -V | tail -1); fi
+          echo "使用: $pick"
+          sudo xcode-select -s "$pick"
+          xcodebuild -version
 
       - name: 编译（不签名）
         run: |
