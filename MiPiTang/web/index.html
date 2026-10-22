@@ -641,10 +641,10 @@
 
 <div class="modalMask" id="walletMask">
   <div class="modal">
-    <h2 style="text-align:center;font-size:22px" data-zh="🎁 账户变动" data-en="🎁 Account Update">🎁 账户变动</h2>
+    <h2 style="text-align:center;font-size:22px" data-zh="🪙 资金变动" data-en="🪙 Funds Update">🪙 资金变动</h2>
     <div id="walletBody" style="font-size:14px;line-height:1.75;color:#6b3a1f;font-weight:600;white-space:pre-line;word-break:break-word;max-height:46vh;overflow-y:auto;background:#fff3e0;border:1px dashed #ffb347;border-radius:8px;padding:10px 12px;"></div>
     <div class="modalBtns">
-      <button class="primary" id="walletOk" data-zh="收下" data-en="OK">收下</button>
+      <button class="primary" id="walletOk" data-zh="知道了" data-en="Got it">知道了</button>
     </div>
   </div>
 </div>
@@ -796,7 +796,7 @@
       <div class="creditCard"><div class="creditEmoji e1" data-zh="主" data-en="P">主</div><div class="creditLabel" data-zh="主制作" data-en="Lead Creator">主制作</div><div class="creditName egg" id="creditEgg" data-zh="臭鸡条" data-en="Chou Ji Tiao">臭鸡条</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
       <div class="creditCard"><div class="creditEmoji e2" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName" data-zh="臭鸡块" data-en="Chou Ji Kuai">臭鸡块</div></div>
       <div class="creditCard"><div class="creditEmoji e3" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName ds" id="creditDeepSeek">DeepSeek · 千问</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
-      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.57 · 感谢游玩" data-en="v0.57 · Thanks for playing">v0.57 · 感谢游玩</div></div>
+      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.66 · 感谢游玩" data-en="v0.66 · Thanks for playing">v0.66 · 感谢游玩</div></div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -1123,6 +1123,28 @@
 
 <script>
 /* =========================================================
+   v0.64 内存保护：先把原生 setItem 抓在手里，再让其他代码跑起来
+   玩家用赋值 / defineProperty 覆盖 localStorage.setItem 之后，
+   NATIVE_SET_ITEM 仍然指向原生实现，存档一律走它落盘
+   ========================================================= */
+var NATIVE_SET_ITEM = (function () {
+  try {
+    if (typeof Storage !== 'undefined' && Storage.prototype && Storage.prototype.setItem) return Storage.prototype.setItem;
+  } catch (e) {}
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage.setItem) return localStorage.setItem;
+  } catch (e) {}
+  return null;
+})();
+function nativeSaveSet(key, val) {
+  if (NATIVE_SET_ITEM) {
+    try { NATIVE_SET_ITEM.call(localStorage, key, val); return true; } catch (e) {}
+  }
+  try { localStorage.setItem(key, val); return true; } catch (e) {}
+  return false;
+}
+
+/* =========================================================
    语言系统（全局）
    ========================================================= */
 var LANG = 'zh';
@@ -1139,7 +1161,182 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.57', latest:true,
+  { ver:'v0.66', latest:true,
+    titleZh:'读接口灾备：Worker 挂了自动切 CDN 备份', titleEn:'Read Failover: Automatic CDN Backup When the Worker Is Down',
+    itemsZh:[
+      '公告、补偿金币、喇叭、黑名单先走 Worker，只要失败就自动改读 GitHub 上的静态备份，玩家照常玩',
+      '备用节点两条：fastly.jsdelivr.net 与 cdn.jsdmirror.com，一条不通立刻换下一条',
+      '路径自动映射：/notice 读 version.json、/wallets 读 wallets.json、根路径读 shoutouts.json、/blacklist 读 blacklist.json',
+      '写接口（发喇叭、注册、改名、上报作弊、强制改名检查）不参与降级，仍然只认 Worker，绝不写进只读镜像',
+      '只有主备全挂才算这次读取失败，原来的重试节奏与提示一条没改，不会卡在加载'
+    ],
+    itemsEn:[
+      'Notices, coin grants, horn messages and the blacklist try the Worker first and fall back to static GitHub copies, so the game keeps running',
+      'Two fallback nodes: fastly.jsdelivr.net and cdn.jsdmirror.com; if one is unreachable the next one is used at once',
+      'Paths map automatically: /notice to version.json, /wallets to wallets.json, root to shoutouts.json, /blacklist to blacklist.json',
+      'Writes (horns, register, rename, cheat reports, force-rename checks) never fall back and stay on the Worker only',
+      'Only when both channels fail is the read treated as failed; the existing retry rhythm is unchanged, so nothing hangs'
+    ]
+  },
+  { ver:'v0.65', latest:false,
+    titleZh:'开发者密码不再明文出现在源码', titleEn:'Developer Password No Longer in Plain Sight',
+    itemsZh:[
+      '源码里彻底删掉明文密码与「明文 → 哈希」这一步，只保留一串 32 位哈希常量',
+      '校验逻辑不变：玩家输入先经过 simpleHash 归一为哈希，再与常量对比，正确才进测试模式',
+      '搜索源码已找不到那四个数字，改密码只需在控制台执行 __mptPassHash(新密码) 回填哈希',
+      '密码校验、错误提示、连点三次进密码框的入口全部保持原样，测试模式行为不受影响'
+    ],
+    itemsEn:[
+      'The plaintext password and the "plaintext to hash" step are gone; only a 32-character hash constant remains',
+      'Validation is unchanged: input is normalised through simpleHash and compared with the constant before test mode opens',
+      'Searching the source no longer finds those four digits; to change the password run __mptPassHash(newPassword) and paste the hash',
+      'The password box, error hints and the triple-click entry point are untouched, so test mode behaves exactly as before'
+    ]
+  },
+  { ver:'v0.64', latest:false,
+    titleZh:'极限反作弊：逻辑自洽查账 + 静默制裁', titleEn:'Anti-Cheat: Save Consistency Audit + Silent Sanction',
+    itemsZh:[
+      '开局读档后立刻查账：金币上百万却连 15 级售货台或熬糖锅都没有，直接判定为硬改存档',
+      '再查「无中生有」：资产比历史总收益多出 50 万以上，或者上千万金币却没雇售货员，一律判定为作弊',
+      '制裁是静默的：不弹窗不提示，把金币与历史总收益一起打回 6，并立刻向后台上报「硬改缓存，金币异常」',
+      '制裁当场覆盖本地存档，靠拦截保存写进 10 亿的手法会立刻失效',
+      '金币监控补上启动瞬间的盲区：第一次监控会重新查一遍账，之后每 3 秒都查',
+      '存档写盘改用启动时抓取的原生 setItem，玩家后续覆写 localStorage.setItem 也拦不住保存',
+      '测试模式必须自证：金币不是测试档初始值、本地又没有测试备份的「假测试模式」，同样会被查账'
+    ],
+    itemsEn:[
+      'An audit runs right after the save loads: over a million coins without a Level 15 sell counter or sugar pot is treated as a hand-edited save',
+      '"Out of thin air" check: assets exceeding lifetime earnings by 500k+, or 10M+ coins without a hired seller, counts as cheating',
+      'The sanction is silent: no popup, coins and lifetime earnings are both reset to 6, and a "硬改缓存，金币异常" report is sent at once',
+      'The save is overwritten on the spot, so intercepting the save write to inject a billion coins stops working immediately',
+      'The startup blind spot in the coin watcher is closed: the first tick re-audits, and every tick after that audits again',
+      'Save writes use a native setItem captured at startup, so a later monkey-patch of localStorage.setItem cannot block persistence',
+      'Fake dev mode must prove itself: a dev flag without the genuine test-save value or backup is audited like any other save'
+    ]
+  },
+  { ver:'v0.63', latest:false,
+    titleZh:'首页直接到账 + 资金变动提示改版', titleEn:'Payouts on the Home Screen + New Funds Notice',
+    itemsZh:[
+      '补偿到账不再必须先点「继续经营」：停在首页（还没进游戏）也会自动领，领完首页存档信息里的金币、库存当场刷新',
+      '首页结算只读本地存档，不会给纯新玩家凭空建档，也不会改动离线收益的结算起点（离线金币照常拿）',
+      '弹窗标题从礼物图标改成金币图标，文案改为「资金变动」：多少金币、什么原因、当前余额，一行一项',
+      '弹窗按钮从「收下」改成「知道了」，扣钱（负数变动）时也不会再出现「收下」的别扭说法',
+      '发钱条件、幂等去重、测试模式语义完全没变，仍只有作弊标记与黑名单会拦截官方补偿',
+      '切后台暂停、回前台补拉、10 分钟周期静默重拉全部保留，首页长时间挂机同样会收到新补偿'
+    ],
+    itemsEn:[
+      'Grants no longer wait for "Continue": if you stay on the home screen the coins are claimed automatically and the save summary (coins, stock) refreshes on the spot',
+      'Home payouts only read the local save: no save is created for brand-new players and the offline-earnings start time is left untouched',
+      'The notice now uses a coin icon and reads "Funds update": amount, reason and current balance, one per line',
+      'The button is now "Got it" instead of "OK/claim", which also fits negative (deduction) entries',
+      'Grant eligibility, dedupe and test-mode semantics are unchanged: only a cheat flag or the blacklist blocks a grant',
+      'Background pause, foreground re-pull and the 10-minute silent refresh all stay, so idle time on the home screen still receives new grants'
+    ]
+  },
+  { ver:'v0.62', latest:false,
+    titleZh:'云端补偿收款加固：不再静默吞单', titleEn:'Hardened Coin Grant Pickup',
+    itemsZh:[
+      '后台返回空列表或结构异常时不再当成「已经拉完」：异常立即重试，空列表 60 秒后再确认（最多 3 次）',
+      '补偿金额全程校验：缺少 amount、写成 0、写成全角「＋100」或「1,000」都能正确识别',
+      '金额为 0 或认不出的条目不再写入已领名单，等后台把金额修正后下一轮照常到账',
+      '每条补偿到账都会打日志（金额、原因、余额），不到账时对照日志一眼看到卡在哪一步',
+      '新增「本次发放 N 条补偿」汇总日志，多条一起发时也能确认',
+      '后台处理慢也不丢单：连续 5 轮（每 6 秒）失败后，10 分钟周期照旧继续拉',
+      '领钱条件没有放宽也没有收紧：仍只有作弊标记与黑名单会拦截，官方补偿不受交易限制影响'
+    ],
+    itemsEn:[
+      'An empty list or an unrecognised payload no longer counts as a successful pull: bad payloads retry at once, empty lists re-check after 60 seconds (up to 3 times)',
+      'Grant amounts are validated: missing amount, 0, full-width "＋100" and "1,000" are all handled correctly',
+      'Entries with a zero or unreadable amount are no longer marked as claimed, so they still arrive once the server fixes the amount',
+      'Every grant logs its amount, reason and resulting balance, so a missing payout can be traced step by step',
+      'A "This round paid N grants" summary log confirms multi-grant batches',
+      'A slow backend loses nothing: after 5 failed rounds (every 6 seconds) the 10-minute cycle keeps trying',
+      'Eligibility is unchanged: only a cheat flag or the blacklist blocks a grant; trade limits still do not'
+    ]
+  },
+  { ver:'v0.61', latest:false,
+    titleZh:'云端强制删档：违规账号一键重置', titleEn:'Remote Account Reset for Violations',
+    itemsZh:[
+      '启动时会先向后台查询一次账号状态（GET /check-delete），确认没被强制注销才继续读取存档',
+      '被判删档时立即清空本地全部数据（存档、昵称、弹幕记录、缓存一并抹掉），不会残留旧进度',
+      '弹出无法关闭的警告窗「⚠️ 您的账号因严重违规已被强制注销重置」，点确认后自动刷新重开新档',
+      '本地没有 UID 的新玩家直接跳过检查，不产生任何请求，开局速度不受影响',
+      '检查最慢 3 秒、断网或后台异常都按「正常」放行，绝不因为查询失败把人挡在门外',
+      '删档判定只认后台返回的 isDeleted:true，本地无法伪造也无法绕过',
+      '控制台可用 __mptCheckDelete() 手动复查一次状态，方便排查'
+    ],
+    itemsEn:[
+      'On boot the game asks the server for account status (GET /check-delete) before touching the save file',
+      'If reset is ordered, all local data is wiped immediately — save, nickname, shout history and caches',
+      'A non-dismissable warning shows "⚠️ Your account has been reset for serious violations"; confirming reloads into a fresh account',
+      'Brand-new players without a local UID skip the check entirely, so first boot stays instant',
+      'The check times out after 3 seconds and any network/server error is treated as normal — nobody gets locked out by a failed query',
+      'Only an isDeleted:true from the server can trigger the wipe; it cannot be faked or bypassed locally',
+      'Run __mptCheckDelete() in the console to re-check the status manually'
+    ]
+  },
+  { ver:'v0.60', latest:false,
+    titleZh:'接口统一：读写全走极速域名 + 切后台自动省电', titleEn:'One Domain for All + Background Power Saver',
+    itemsZh:[
+      '公告、金币补偿、全服喇叭、黑名单、强制改名，读取全部走 https://broadcast.us.ci，不再经过任何 CDN',
+      '每个读请求都自动带 ?t= 时间戳并禁用缓存，发钱和公告不会读到旧数据',
+      '新增 apiGet() 统一读入口：8 秒超时，失败静默重试（金币补偿每 6 秒重试，最多 5 轮）',
+      '切到后台（息屏 / 切出浏览器）立即存盘并清空所有定时器，喇叭轮询、金币监控、10 分钟刷新全部暂停',
+      '回到前台恢复全部定时器，并立刻补拉一次金币补偿、喇叭、黑名单与强制改名，不用等下一轮',
+      '定时器统一托管：一次性任务（重试、首屏延迟）不会在恢复时被重复触发',
+      '喇叭发送、注册、改名、作弊上报保持原样，仍走同一域名'
+    ],
+    itemsEn:[
+      'Notice, coin grants, shouts, blacklist and forced rename now read from https://broadcast.us.ci — no CDN in between',
+      'Every read carries a ?t= timestamp with caching disabled, so grants and notices never come from a stale copy',
+      'New apiGet() read entry: 8-second timeout, silent retries (coin grants retry every 6 seconds, up to 5 rounds)',
+      'Going to background (screen off / switching apps) saves immediately and clears every timer: shout polling, coin watch and the 10-minute refresh all pause',
+      'Coming back resumes all timers and immediately re-pulls grants, shouts, blacklist and forced rename',
+      'Timers are centrally managed: one-shot tasks (retries, first-paint delays) are not re-fired on resume',
+      'Horn send, registration, rename and cheat report are unchanged and still use the same domain'
+    ]
+  },
+  { ver:'v0.59', latest:false,
+    titleZh:'网络读写分离：读走 CDN 节点池，写走 Worker', titleEn:'Reads on CDN Pool, Writes on Worker',
+    itemsZh:[
+      '新增 fetchWithFallback()：读取按节点顺序自动兜底（fastly.jsdelivr → cdn.jsdmirror），一个挂了立刻切下一个',
+      '公告 version.json、全服喇叭 shoutouts.json 都走这个入口，每个请求都带 ?t= 时间戳 + no-store',
+      '金币补偿更严：两个节点并行取 wallets.json，谁的数据最新用谁，旧缓存挡不住新发的钱',
+      '黑名单也改走节点池，ghproxy 长期不可用时不会一直吃旧缓存',
+      '写入严格只走 Worker（broadcast.us.ci）：发喇叭、注册名册、改名同步、作弊上报，绝不混用 CDN',
+      '每个节点都有 8 秒超时，慢网络直接切节点，不卡界面也不卡开局',
+      '发钱失败重试（每 6 秒最多 5 轮）与 10 分钟静默刷新保留，后台新发的补偿照常自动到账'
+    ],
+    itemsEn:[
+      'New fetchWithFallback(): reads walk the node pool in order (fastly.jsdelivr → cdn.jsdmirror) and switch instantly when one dies',
+      'version.json and shoutouts.json use it, each request with ?t=timestamp + no-store',
+      'Coin grants are stricter: wallets.json is pulled from both nodes in parallel and the newest dataset wins, so a stale cache cannot hide new grants',
+      'The blacklist uses the node pool too, so a dead ghproxy can no longer keep serving stale cache',
+      'Writes stay exclusively on the Worker (broadcast.us.ci): horn send, registration, rename sync, cheat report — never the CDN',
+      'Every node has an 8-second timeout, so a slow network switches nodes instead of freezing the UI or the boot',
+      'Grant retries (every 6 seconds, up to 5 rounds) and the 10-minute silent refresh are kept — new grants still arrive on their own'
+    ]
+  },
+  { ver:'v0.58', latest:false,
+    titleZh:'云端发钱修复：多镜像重试 + 全链路日志', titleEn:'Cloud Grants Fixed: Mirrors, Retries, Logs',
+    itemsZh:[
+      '发钱文件改成 4 个镜像轮流试（ghproxy / raw / jsDelivr / statically），每个都拼 ?t=时间戳 破缓存',
+      '全部镜像失败也不再静默放弃：每 6 秒重试一轮，最多 5 轮，网络恢复后自动补领',
+      '游戏中每 10 分钟静默重拉一次，后台新发补偿不用重启就能到账',
+      '领取判断全部打印日志：找到新金币补偿 / 跳过原因（作弊标记、黑名单、已领过），一眼定位问题',
+      '测试模式下不再整段跳过：金币只加在测试存档上并弹窗提示，退出测试模式后正式存档照常领取',
+      'ID 匹配兼容大小写、空格、中英文别名（all / 全服、target / 单发、range / 范围），只在两条规则下拦截：作弊标记与黑名单'
+    ],
+    itemsEn:[
+      'Wallet grants now rotate through 4 mirrors (ghproxy / raw / jsDelivr / statically), each with a ?t=timestamp cache buster',
+      'Mirror failure is no longer silent: a retry round every 6 seconds, up to 5 rounds, so grants land once the network returns',
+      'The grant file is re-fetched quietly every 10 minutes while playing — new grants arrive without a restart',
+      'Every decision is logged: "found new grant" or why it was skipped (cheater flag, blacklist, already claimed)',
+      'Test mode no longer skips the whole flow: coins go to the test save only with a popup, and the real save still claims after exiting',
+      'ID matching tolerates case, spaces and CN/EN aliases (all / target / range); only cheater-flagged or blacklisted accounts are blocked'
+    ]
+  },
+  { ver:'v0.57', latest:false,
     titleZh:'改名云端同步 · 断网自动补发', titleEn:'Nickname Sync · Auto Retry on Failure',
     itemsZh:[
       '改名后同步云端名册，如果当时网络不好或超时，会留下一个「待同步」标记存在本地',
@@ -1781,7 +1978,9 @@ function renderUpdates(){
     var h4 = (h2 ^ (h1 << 3)) >>> 0;
     return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0') + h3.toString(16).padStart(8, '0') + h4.toString(16).padStart(8, '0');
   }
-  var PASSWORD_HASH = simpleHash('0815');
+  /* v0.65 开发者密码：源码里不再出现明文，只留哈希（simpleHash 保留，仅用于把玩家输入转成哈希再比对）
+     想要换密码：控制台执行 __mptPassHash('新密码') 拿到 32 位哈希，替换下面这串即可 */
+  var PASSWORD_HASH = '7c7856738e0e278b7c78d87d6dcc9413';
 
   var SCREENS = ['home', 'rulesScreen', 'updatesScreen', 'creditsScreen', 'decoScreen', 'settingsScreen', 'friendsScreen', 'tradeScreen', 'gameScreen'];
   function showScreen(id) {
@@ -1873,7 +2072,7 @@ function renderUpdates(){
   var cachedSaveLoaded = false;
 
   var playerName = '';
-  var APP_VERSION = 'v0.57';
+  var APP_VERSION = 'v0.66';
   var DAY_DURATION = 5 * 60;
   var transferShouldClear = false;
 
@@ -2010,12 +2209,19 @@ function renderUpdates(){
     }
     return null;
   }
-  function writeSave() {
+  /* v0.64 所有存档写盘都走这里：原生 setItem，绕过被 monkey-patch 的版本 */
+  function persistSave(s, keepLastTime) {
+    if (!s) return false;
+    ensureUid(s);
+    if (!keepLastTime) s.lastTime = Date.now();
+    s.version = 18;
+    var ok = nativeSaveSet(SAVE_KEY, JSON.stringify(s));
+    if (s === state) { cachedSave = state; cachedSaveLoaded = true; }
+    return ok;
+  }
+  function writeSave(keepLastTime) {
     if (!state) return;
-    ensureUid(state);
-    state.lastTime = Date.now();
-    state.version = 18;
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+    persistSave(state, keepLastTime);
     cachedSave = state;
     cachedSaveLoaded = true;
   }
@@ -2703,9 +2909,137 @@ function renderUpdates(){
   }
 
   /* =========================================================
+     v0.60 唯一网络出口：读写全部走专属极速域名 broadcast.us.ci
+     读：GET /notice · /wallets · /（喇叭）· /blacklist · /read-rename
+     写：POST /（发喇叭）· /register · /update-name · /report-cheat
+     ========================================================= */
+  var API_BASE = 'https://broadcast.us.ci';
+  var API_TIMEOUT_MS = 8000;   /* 读接口超时：到点静默放弃，绝不卡游戏 */
+
+  /* =========================================================
+     v0.66 灾备：Worker 主通道 + GitHub CDN 备用降级
+     主通道读失败 → 按路径映射成静态 JSON → 依次试两个 CDN 节点
+     写接口（POST）不受影响，永远只走 Worker
+     ========================================================= */
+  var CDN_FALLBACKS = [
+    'https://fastly.jsdelivr.net/gh/htpxfcqkgm-hub/mipitang-assets@main/',
+    'https://cdn.jsdmirror.com/gh/htpxfcqkgm-hub/mipitang-assets@main/'
+  ];
+
+  /* 只读接口 → 静态文件名；返回空串表示不支持降级 */
+  function cdnFileFor(path) {
+    if (path === '/notice') return 'version.json';
+    if (path === '/wallets') return 'wallets.json';
+    if (path === '/blacklist') return 'blacklist.json';
+    if (!path || path === '/') return 'shoutouts.json';   /* 根路径 = 喇叭 */
+    return '';   /* read-rename 等必须实时的接口不降级 */
+  }
+
+  /* 单次 GET + JSON 解析：失败一律 reject，交给上层决定降级 */
+  function apiFetchJson(url, ms) {
+    return fetchTimeout(url, { cache: 'no-store' }, ms).then(function (r) {
+      if (!r) throw new Error('no response');
+      if (r.ok === false) throw new Error('HTTP ' + r.status);
+      return r.json ? r.json() : r;
+    });
+  }
+
+  /* 备用通道：两个 CDN 节点依次尝试，都不行才算失败 */
+  function apiGetCDN(path, ms) {
+    var file = cdnFileFor(path);
+    if (!file) return Promise.reject(new Error('该接口不支持 CDN 降级：' + (path || '/')));
+    var i = 0;
+    function nextNode() {
+      if (i >= CDN_FALLBACKS.length) return Promise.reject(new Error('所有备用 CDN 节点均失败'));
+      var url = CDN_FALLBACKS[i] + file + '?t=' + Date.now();
+      i++;
+      return apiFetchJson(url, ms).then(function (data) {
+        console.log('CDN 降级成功：' + file + ' ← ' + url);
+        return data;
+      }, function () {
+        return nextNode();   /* 这个节点不通，换下一个 */
+      });
+    }
+    return nextNode();
+  }
+
+  /* 统一读入口：自动拼 ?t= 时间戳 + 禁用缓存 + 超时保护 + 主备切换 */
+  function apiGet(path, ms, noCache) {
+    var timeout = ms || API_TIMEOUT_MS;
+    var url = API_BASE + (path || '') + (noCache === false ? '' : '?t=' + Date.now());
+    return apiFetchJson(url, timeout).then(function (data) {
+      console.log('接口读取成功：' + (path || '/'));
+      return data;
+    }, function (err) {
+      console.warn('Worker 主通道失败，尝试切换 CDN 备用通道，原路径：' + (path || '/') + '，错误：' + ((err && err.message) || err));
+      return apiGetCDN(path, timeout).then(null, function (e2) {
+        console.warn('CDN 备用通道也失败：' + (path || '/') + '，原因：' + ((e2 && e2.message) || e2));
+        throw e2;   /* 主备全挂：沿用原来的失败语义，交给上层重试 */
+      });
+    });
+  }
+
+  /* =========================================================
+     v0.60 省电：常驻定时器集中登记，切后台全停，回前台全恢复
+     ========================================================= */
+  var APP_TIMERS = [];         /* { id, fn, ms, repeat, done } */
+  var TIMERS_PAUSED = false;
+
+  function stopTimer(o) {
+    if (o.id === null || o.id === undefined) return;
+    if (o.repeat) clearInterval(o.id); else clearTimeout(o.id);
+    o.id = null;
+  }
+  function startTimer(o) {
+    stopTimer(o);
+    o.done = false;
+    if (o.repeat) {
+      o.id = setInterval(function () { try { o.fn(); } catch (e) {} }, o.ms);
+    } else {
+      o.id = setTimeout(function () { o.id = null; o.done = true; try { o.fn(); } catch (e) {} }, o.ms);
+    }
+  }
+  /* repeat=true 走 setInterval；false 走一次性 timeout（断网重试 / 首屏延迟） */
+  function appTimer(fn, ms, repeat) {
+    var o = { id: null, fn: fn, ms: ms, repeat: !!repeat, done: false };
+    APP_TIMERS.push(o);
+    if (!TIMERS_PAUSED) startTimer(o);
+    return o;
+  }
+  function pauseTimers() {
+    if (TIMERS_PAUSED) return;
+    TIMERS_PAUSED = true;
+    for (var i = 0; i < APP_TIMERS.length; i++) stopTimer(APP_TIMERS[i]);
+    console.log('已切后台：定时器全部暂停');
+  }
+  function resumeTimers() {
+    if (!TIMERS_PAUSED) return;
+    TIMERS_PAUSED = false;
+    var keep = [], i, o;
+    for (i = 0; i < APP_TIMERS.length; i++) {
+      o = APP_TIMERS[i];
+      if (!o.repeat && o.done) continue;   /* 已跑完的一次性任务不再重排 */
+      startTimer(o);
+      keep.push(o);
+    }
+    APP_TIMERS = keep;
+    console.log('回前台：定时器已恢复 ' + keep.length + ' 个');
+  }
+
+  /* v0.60 回前台立刻补拉一次最新数据，不等定时器下一轮 */
+  function onForeground() {
+    if (typeof document !== 'undefined' && document.hidden) return;
+    loadWallets();        /* 金币补偿 */
+    pollShouts();         /* 全服喇叭 */
+    loadBlacklist();      /* 黑名单 */
+    checkForcedRename();  /* 管理员强制改名 */
+    console.log('回前台：已立即刷新云端数据');
+  }
+
+  /* =========================================================
      v0.35 黑名单（只读拉取，24h 缓存，失败静默用旧缓存）
      ========================================================= */
-  var BLACKLIST_URL = 'https://ghproxy.net/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/main/blacklist.json';
+  var BLACKLIST_PATH = '/blacklist';   /* v0.60 黑名单读接口（Worker GET） */
   var BLACKLIST_KEY = 'mpt_blacklist_cache';
   var BLACKLIST_TTL = 24 * 3600 * 1000;
   var blacklist = { map: {}, reason: {}, count: 0, updatedAt: '', fromCache: false, failed: false, ready: false };
@@ -2781,10 +3115,7 @@ function renderUpdates(){
       return;
     }
     try {
-      fetch(BLACKLIST_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
-        if (!r || !r.ok) throw new Error('http');
-        return r.json();
-      }).then(function (data) {
+      apiGet(BLACKLIST_PATH, 8000).then(function (data) {
         var parsed = parseBlacklistData(data);
         try { localStorage.setItem(BLACKLIST_KEY, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
         applyBlacklist(parsed, false, false);
@@ -2865,38 +3196,86 @@ function renderUpdates(){
   /* =========================================================
      v0.43 后台发钱 wallets.json（单发 / 范围 / 全服 / 撤销）
      ========================================================= */
-  var WALLET_URLS = [
-    'https://ghproxy.net/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/main/wallets.json',
-    'https://fastly.jsdelivr.net/gh/htpxfcqkgm-hub/mipitang-assets@main/wallets.json'
-  ];
-  var wallets = { list: [], ready: false, busy: false, queue: [], showing: false, current: null };
+  var WALLET_PATH = '/wallets';   /* v0.60 金币补偿读接口（Worker GET） */
+  var WALLET_RETRY_MS = 6000;        /* v0.58 全部镜像失败后的重试间隔 */
+  var WALLET_RETRY_MAX = 5;          /* v0.58 最多重试 5 轮（约 30 秒内持续补救） */
+  var WALLET_REFRESH_MS = 600000;    /* v0.58 游戏中每 10 分钟静默重拉 */
+  var WALLET_EMPTY_RETRY_MS = 60000;  /* v0.62 返回 0 条时 60 秒后再确认，最多 3 次 */
+  var wallets = { list: [], ready: false, busy: false, queue: [], showing: false, current: null,
+                  tries: 0, timer: null, reported: false,
+                  loadedAt: 0, loadedOnce: false, emptyTries: 0 };
 
+  /* v0.62 返回 null = 结构认不出来（当失败处理）；返回数组 = 真的数据（可能是空数组） */
   function parseWalletsData(data) {
     if (Array.isArray(data)) return data;
     if (data && typeof data === 'object') {
       var arr = data.wallets || data.list || data.items || data.data;
       if (Array.isArray(arr)) return arr;
     }
-    return [];
+    return null;
+  }
+  /* v0.62 金额归一：认数字 / 字符串 / 全角数字 / 全角＋－ / 千分位逗号；认不出返回 NaN */
+  function walletAmount(raw) {
+    if (typeof raw === 'number') return isFinite(raw) ? Math.round(raw) : NaN;
+    var t = String(raw == null ? '' : raw).trim();
+    if (!t) return NaN;
+    t = t.replace(/[\uFF10-\uFF19]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+    t = t.replace(/[\uFF0B\uFF0B\u2795]/g, '+').replace(/[\uFF0D\u2212\u2014]/g, '-').replace(/[,\uFF0C\s]/g, '');
+    var v = Number(t);
+    return isFinite(v) ? Math.round(v) : NaN;
   }
   function loadWallets() {
     if (typeof fetch !== 'function') return;
-    fetchWalletsAt(0);
-  }
-  function fetchWalletsAt(i) {
-    if (i >= WALLET_URLS.length) return;
-    fetch(WALLET_URLS[i] + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
-      if (!r || !r.ok) throw new Error('http');
-      return r.json();
-    }).then(function (data) {
-      wallets.list = parseWalletsData(data);
+    wallets.reported = false;
+    function fail(e) {
+      if (!wallets.loadedOnce) wallets.ready = false;   /* 已经有旧数据就不要把界面打回未就绪 */
+      if (wallets.tries < WALLET_RETRY_MAX) {
+        wallets.tries++;
+        console.log('wallets 拉取失败（' + (e && e.message ? e.message : e) + '），' + (WALLET_RETRY_MS / 1000) + ' 秒后重试（第 ' + wallets.tries + ' 轮）');
+        appTimer(loadWallets, WALLET_RETRY_MS, false);
+      } else {
+        wallets.tries = 0;
+        console.log('wallets 重试次数用尽，下个 10 分钟周期再试');
+      }
+    }
+    /* v0.60 单一数据源：Worker /wallets 就是唯一真相 */
+    apiGet(WALLET_PATH, API_TIMEOUT_MS).then(function (data) {
+      var list = parseWalletsData(data);
+      if (!list) return fail(new Error('数据结构无法识别'));
+      wallets.list = list;
       wallets.ready = true;
+      wallets.loadedOnce = true;
+      wallets.loadedAt = Date.now();
+      wallets.tries = 0;
+      console.log('wallets 已加载：' + list.length + ' 条');
+      if (!list.length) scheduleEmptyRetry();   /* v0.62 空列表 = 可能后台还在写，稍后再问 */
+      else wallets.emptyTries = 0;
       claimWallets();
-    }).catch(function () { fetchWalletsAt(i + 1); });
+    }, fail);
   }
-  /* 命中判定：all 全服 / target 单发 / range 前缀 */
+  /* v0.62 空列表轻量重试：60 秒一次，最多 3 次，避免「后台抖一下，钱 10 分钟不到账」 */
+  function scheduleEmptyRetry() {
+    if (wallets.emptyTries >= 3) { wallets.emptyTries = 0; return; }
+    wallets.emptyTries++;
+    console.log('wallets 返回 0 条，' + (WALLET_EMPTY_RETRY_MS / 1000) + ' 秒后再确认（第 ' + wallets.emptyTries + ' 次）');
+    appTimer(loadWallets, WALLET_EMPTY_RETRY_MS, false);
+  }
+  /* v0.58 游戏中定时静默重拉：后台新增补偿不用重启 */
+  function startWalletRefresh() {
+    if (wallets.timer) return;
+    wallets.timer = appTimer(function () { loadWallets(); }, WALLET_REFRESH_MS, true);
+  }
+  /* v0.58 类型归一：中英别名都认，未知类型一律不发 */
+  function walletTypeOf(item) {
+    var t = String(item.type == null ? '' : item.type).trim().toLowerCase();
+    if (t === 'all' || t === 'everyone' || t === 'global' || t === '全服' || t === '所有' || t === '所有人' || t === '全体') return 'all';
+    if (t === 'target' || t === 'single' || t === 'uid' || t === '单发' || t === '指定') return 'target';
+    if (t === 'range' || t === 'prefix' || t === '范围' || t === '前缀') return 'range';
+    return t;
+  }
+  /* 命中判定：all 全服 / target 单发（相等） / range 前缀 */
   function walletMatch(item, uid) {
-    var type = String(item.type || '').toLowerCase();
+    var type = walletTypeOf(item);
     if (type === 'all') return true;
     var target = normalizeUid(item.uid || '');
     if (!target) return false;
@@ -2904,8 +3283,15 @@ function renderUpdates(){
     if (type === 'range') return uid.indexOf(target) === 0;
     return false;
   }
-  function applyWallet(item) {
-    var want = Math.round(Number(item.amount) || 0);
+  function walletLogSkip(why) {
+    if (wallets.reported) return;
+    wallets.reported = true;
+    console.log('发钱跳过：' + why);
+  }
+  /* 正式入账：金币 + 记录已领 + 入弹窗队列 */
+  function applyWallet(item, test, want) {
+    want = walletAmount(want);
+    if (!isFinite(want)) want = 0;
     var before = Number(state.coins) || 0;
     var after = before + want;
     if (after < 0) after = 0;                     /* 扣钱保底 0 */
@@ -2913,52 +3299,114 @@ function renderUpdates(){
     state.coins = after;
     if (delta > 0) state.totalEarned = (Number(state.totalEarned) || 0) + delta;
     if (delta > 0) noteLegitGain(delta);   /* v0.52 官方补偿 = 合法收入 */
-    state.claimedWallets.push(String(item.id));
+    if (!test) state.claimedWallets.push(String(item.id));   /* v0.58 测试模式不记已领 */
     wallets.queue.push({
       reason: String(item.reason == null ? '' : item.reason).trim(),
       amount: delta,
-      capped: delta !== want
+      balance: after,                        /* v0.63 弹窗显示当前余额 */
+      capped: delta !== want,
+      test: !!test
     });
+    console.log('发放到账：' + (delta >= 0 ? '+' : '') + delta + (item.reason ? '（' + item.reason + '）' : '') +
+      ' · 余额 ' + after + (test ? ' · 测试模式不记已领' : ' · 已记入 claimedWallets'));
   }
-  /* 拉完 / 进游戏 / 退出测试模式时都试一次；条件不满足就什么都不做 */
+  /* 拉完 / 进游戏 / 退出测试模式 / 每 10 分钟 都试一次；条件不满足就什么都不做 */
   function claimWallets() {
-    if (!wallets.ready || wallets.busy || !state) return;
-    if (state.devMode) return;                    /* 开发者模式：不领、不记、不弹 */
-    if (selfBlacklisted()) return;                /* v0.52 封禁不领官方补偿 */
+    if (!wallets.ready || wallets.busy) return;
+    /* v0.63 首页也能直接到账：有存档就把 state 提前载入（只读本地，不新建存档） */
+    if (!state) {
+      if (!cachedSaveLoaded) { cachedSave = readSave(); cachedSaveLoaded = true; }
+      if (!cachedSave) { walletLogSkip('首页暂无存档，进游戏后再领'); return; }
+      ensureState();
+      console.log('首页结算：载入存档 ' + (cachedSave.uid || '') + '，直接发放补偿');
+    }
     var uid = normalizeUid(state.uid || '');
-    if (!uid) return;
+    if (!uid) { walletLogSkip('本机还没有玩家 ID'); return; }
+    /* v0.58 只有两种情况拦官方补偿：作弊标记、黑名单；交易限制不影响补偿 */
+    if (state.isCheater === true) { walletLogSkip('存档被标记为作弊（isCheater），可在设置页确认'); return; }
+    if (isBlacklisted(uid)) { walletLogSkip('玩家 ID ' + uid + ' 在黑名单中'); return; }
+    var dev = !!state.devMode;   /* v0.58 测试模式也走一遍，但不写正式存档 */
     if (!Array.isArray(state.claimedWallets)) state.claimedWallets = [];
     var hits = [], seen = {}, i, it;
     for (i = 0; i < wallets.list.length; i++) {
       it = wallets.list[i];
       if (!it || typeof it !== 'object') continue;
-      if (String(it.status || 'active') !== 'active') continue;        /* 已撤销 */
+      if (String(it.status == null ? 'active' : it.status).trim().toLowerCase() !== 'active') continue;  /* 已撤销 */
       var id = String(it.id == null ? '' : it.id);
-      if (!id || seen[id]) continue;                                  /* 同批重复 id */
-      if (state.claimedWallets.indexOf(id) !== -1) continue;          /* 已领过 */
+      if (!id) continue;                                   /* 没有 id 无法记已领，跳过防重复发放 */
+      if (seen[id]) continue;                              /* 同批重复 id */
+      if (state.claimedWallets.indexOf(id) !== -1) continue;   /* 已领过 */
       if (!walletMatch(it, uid)) continue;
+      /* v0.62 金额认不出或为 0：先不发、也不写已领，等后台把金额补好下一轮再领 */
+      var amt = walletAmount(it.amount);
+      if (!isFinite(amt) || amt === 0) {
+        console.log('补偿金额无效（' + (it.amount === undefined ? '缺少 amount' : JSON.stringify(it.amount)) + '），暂不入账:', it);
+        continue;
+      }
       seen[id] = 1;
       hits.push(it);
+      console.log('找到新金币补偿:', it);
     }
-    if (!hits.length) return;
+    if (!hits.length) { return; }
     wallets.busy = true;
-    for (i = 0; i < hits.length; i++) applyWallet(hits[i]);
+    for (i = 0; i < hits.length; i++) applyWallet(hits[i], dev, hits[i].amount);
+    console.log('本次发放 ' + hits.length + ' 条补偿');
     wallets.busy = false;
-    state.lastTime = Date.now();
-    writeSave();
+    if (dev) {   /* 测试模式：只在测试存档生效，弹窗提示，退出后正式存档照常领 */
+      console.log('测试模式：补偿只加在测试存档上，退出测试模式后会重新领取');
+      showWalletNext();
+      return;
+    }
+    var inGame = inGameScreen();       /* v0.63 首页结算：不动 lastTime，离线收益照常算 */
+    if (inGame) state.lastTime = Date.now();
+    writeSave(!inGame);
     render();
     refreshHomeInfo();
     renderSettings();
     showWalletNext();
   }
+  /* v0.58 排查工具：控制台执行 __mptWalletDebug() 看完整匹配情况 */
+  window.__mptWalletDebug = function () {
+    var uid = state ? normalizeUid(state.uid || '') : '';
+    var out = {
+      uid: uid,
+      mirrorReady: wallets.ready,
+      cloudTotal: wallets.list.length,
+      loadedAt: wallets.loadedAt ? new Date(wallets.loadedAt).toISOString() : '',
+      emptyTries: wallets.emptyTries,
+      queue: wallets.queue.length,
+      showing: !!wallets.showing,
+      devMode: !!(state && state.devMode),
+      isCheater: !!(state && state.isCheater),
+      blacklisted: uid ? isBlacklisted(uid) : false,
+      claimed: state && state.claimedWallets ? state.claimedWallets.slice() : [],
+      mine: []
+    };
+    for (var i = 0; i < wallets.list.length; i++) {
+      var it = wallets.list[i];
+      if (it && walletMatch(it, uid)) {
+        out.mine.push({
+          id: it.id, amount: it.amount, reason: it.reason, status: it.status,
+          claimed: out.claimed.indexOf(String(it.id)) !== -1
+        });
+      }
+    }
+    console.log('__mptWalletDebug', out);
+    return out;
+  };
   function walletText(w) {
     var sign = w.amount > 0 ? '+' : '';
-    var body = L(
-      '管理员对您的账户操作：' + (w.reason || '（无说明）') + '，金币变动：' + sign + fmtCoin(w.amount),
-      'Admin action on your account: ' + (w.reason || '(no note)') + ', coin change: ' + sign + fmtCoin(w.amount)
-    );
+    var body = L('资金变动：', 'Funds update: ') + sign + fmtCoin(w.amount) + L(' 金币', ' coins') +
+      '\n' + L('说明：', 'Note: ') + (w.reason || L('（无说明）', '(no note)'));
+    if (typeof w.balance === 'number') body += '\n' + L('当前余额：', 'Balance: ') + fmtCoin(w.balance);
     if (w.capped) body += '\n' + L('（余额不足，已按当前余额扣除）', '(Not enough coins — capped at your balance)');
+    if (w.test) body = L('[测试模式] ', '[Test mode] ') + body + '\n' + L('仅计入测试存档，退出测试模式后会重新领取', 'Test save only — it will be claimed again after leaving test mode');
     return body;
+  }
+  /* v0.63 判断是否已经在游戏内（首页不算） */
+  function inGameScreen() {
+    var g = $('gameScreen');
+    return !!(g && g.classList && g.classList.contains('active'));
   }
   function showWalletNext() {
     if (wallets.showing || !wallets.queue.length) return;
@@ -4228,6 +4676,9 @@ function renderUpdates(){
     setTimeout(function () { $('passInput').focus(); }, 120);
   }
   function closePassModal() { $('passMask').classList.remove('show'); }
+  /* v0.65 换密码用：只输入新密码，拿到哈希回填 PASSWORD_HASH */
+  window.__mptPassHash = function (v) { return simpleHash(String(v == null ? '' : v).trim()); };
+
   function tryPassword() {
     var v = ($('passInput').value || '').trim();
     if (!v) { $('passHint').innerHTML = '<span class="bad">' + L('请输入密码', 'Please enter a password') + '</span>'; return; }
@@ -4571,7 +5022,7 @@ function renderUpdates(){
     }
     XSYNC_LAST = xsExport();
     try { window.addEventListener('storage', tick); } catch (e) {}
-    setInterval(tick, 2500);
+    appTimer(tick, 2500, true);
   }
   /* 自动领取其他游戏（蛋仔/氧气/酱味）兑换后写入的金币 */
   function claimMirroredCoins(silent) {
@@ -5168,22 +5619,38 @@ function renderUpdates(){
     /* 结算面板的两个按钮行为完全同义：结算并开始下一天；区别只是去不去首页 */
     $('csContinue').onclick = function () { settleDay(); };
     $('csHome').onclick = function () { settleDay(); leaveGame(); };
+    /* v0.60 切后台：存盘 + 清空所有定时器（不耗电、不耗流量）；回前台：恢复 + 立即拉一次 */
     document.addEventListener('visibilitychange', function () {
-      if (document.hidden) writeSave();
-      else { if (state) applyOffline(); lastTick = 0; }
+      if (document.hidden) {
+        writeSave();
+        pauseTimers();
+      } else {
+        resumeTimers();
+        if (state) { applyOffline(); lastTick = 0; }
+        onForeground();
+      }
+    });
+    /* WebView / APK 里偶尔只发 pagehide：同样存盘并停表，pageshow 再恢复 */
+    window.addEventListener('pagehide', function () {
+      if (document.hidden) return;   /* visibilitychange 已处理，别重复 */
+      writeSave(); pauseTimers();
+    });
+    window.addEventListener('pageshow', function () {
+      if (document.hidden) return;
+      resumeTimers(); onForeground();
     });
     window.addEventListener('beforeunload', writeSave);
-    setInterval(function () {
+    appTimer(function () {
       if (!state) return;
       writeSave();
-      if (running && !shopClosed) autoCloseCheck();   /* 标签页被挂起也能准时打烊 */
-    }, 5000);
+      if (running && !shopClosed) autoCloseCheck();
+    }, 5000, true);
   }
 
   /* =========================================================
      云端公告：纯 fetch 拉取 + 直接弹窗（不带任何前置判断）
      ========================================================= */
-  var CLOUD_CONFIG_URL = 'https://fastly.jsdelivr.net/gh/htpxfcqkgm-hub/mipitang-assets@main/version.json';   /* 备用，实际请求见 checkCloudConfig */
+  var CLOUD_CONFIG_URL = 'https://broadcast.us.ci/notice';   /* v0.60 备用，实际请求见 checkCloudConfig */
   var NOTICE_HIDE_KEY = 'mpt_hide_notice_date';
 
   function todayStr() { return new Date().toDateString(); }
@@ -5299,21 +5766,12 @@ function renderUpdates(){
   }
 
   function checkCloudConfig() {
-    /* ghproxy.net 代理（jsDelivr 节点会死缓存旧数据） */
-    var baseUrl = 'https://ghproxy.net/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/main/version.json';
-    var noCacheUrl = baseUrl + '?t=' + Date.now();
-
-    fetch(noCacheUrl, { cache: 'no-store' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function (data) {
-        applyCloudNotices(data);
-      })
-      .catch(function (err) {
-        console.error('拉取公告失败:', err);
-      });
+    /* v0.60：公告走 Worker /notice */
+    apiGet('/notice', 8000).then(function (data) {
+      applyCloudNotices(data);
+    }).catch(function (err) {
+      console.error('拉取公告失败:', err);
+    });
   }
 
   /* 原生兜底：Swift 拉取后用 evaluateJavaScript 注入 __mptApplyCloud(json) */
@@ -5341,7 +5799,7 @@ function renderUpdates(){
   /* =========================================================
      v0.47 全服喇叭（云广播）
      ========================================================= */
-  var HORN_API = 'https://broadcast.us.ci';   /* v0.50 换服务地址 */
+  var HORN_API = API_BASE;   /* v0.60 同一域名：POST / 发喇叭，GET / 拉喇叭 */
   /* v0.49 套餐价：[0,1条,2条,3条,4条,5条] */
   var HORN_PRICES = [0, 100000, 180000, 250000, 320000, 380000];
   var HORN_PRICE = HORN_PRICES[1];  /* 单条价，兼容旧引用 */
@@ -5669,16 +6127,16 @@ function renderUpdates(){
   function pollShouts() {
     if (!danmuOn()) return;   /* v0.54 关闭弹幕：直接跳过拉取，省流量也不渲染 */
     if (typeof fetch !== 'function') return;
-    fetchTimeout(HORN_API + '?t=' + Date.now(), { cache: 'no-store' }, HORN_TIMEOUT_MS)
-      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    /* v0.60 读：GET https://broadcast.us.ci?t= */
+    apiGet('', HORN_TIMEOUT_MS)
       .then(handleShoutList)
       .catch(function () {});   /* 网络慢 / 挂掉：静默跳过，下一轮再来 */
   }
 
   function startHornPoll() {
     if (hornPollTimer) return;
-    setTimeout(pollShouts, 2500);
-    hornPollTimer = setInterval(pollShouts, HORN_POLL_MS);
+    appTimer(pollShouts, 2500, false);   /* 首轮 2.5s 后 */
+    hornPollTimer = appTimer(pollShouts, HORN_POLL_MS, true);
   }
 
   /* ---- 发送 UI（v0.49 套餐 / 限购 / 串行） ---- */
@@ -5848,6 +6306,7 @@ function renderUpdates(){
       refreshHornUI();
     }
 
+    /* v0.59 写：发喇叭固定走 Worker，绝不走 CDN */
     fetchTimeout(HORN_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -5862,7 +6321,7 @@ function renderUpdates(){
   /* =========================================================
      v0.52 安全中心：UID 防篡改 / 封禁 / 名册注册 / 金币监控
      ========================================================= */
-  var CLOUD_API = 'https://broadcast.us.ci';       /* 统一云服务地址 */
+  var CLOUD_API = API_BASE;                        /* v0.60 register / update-name / report-cheat 写接口 */
   var REG_KEY = 'mpt_registered_uid';
   var REG_NAME_KEY = 'mpt_registered_name';   /* 已上报的昵称，改名后重传 */
   var CHEAT_REPORT_GAP = 5000;                     /* 同会话最短上报间隔，防刷请求 */
@@ -5893,6 +6352,69 @@ function renderUpdates(){
     if (!s || s.isVipPurchased !== true) return false;
     var r = String(s.vipReceipt || '');
     return r !== '' && r === vipSign(s.uid);
+  }
+
+  /* =========================================================
+     v0.64 逻辑自洽查账：不看「涨得多快」，直接算这份存档合不合理
+     ========================================================= */
+  var COINS_LV_GATE = 1000000;        /* 100 万以上：熬糖锅 / 售货台都得 15 级 */
+  var LV_GATE = 15;
+  var EARN_GAP_MAX = 500000;          /* 资产比历史总收益多 50 万 = 无中生有 */
+  var IDLE_COINS_GATE = 10000000;     /* 千万资产必须雇了售货员 */
+  var CHEAT_RESET_COINS = 6;
+  var CHEAT_REASON_COINS = '硬改缓存，金币异常';
+
+  /* 测试模式本来就给 1000 万亿：只放行「真·测试档」（金币正好 DEV_GOLD，或本地有开测试模式时写的备份） */
+  function devSaveTrusted(s) {
+    if (!s || s.devMode !== true) return false;
+    if (Number(s.coins) === Number(DEV_GOLD)) return true;
+    try { return !!localStorage.getItem(BACKUP_KEY); } catch (e) { return false; }
+  }
+
+  /* 只判断不改数据：返回 '' = 正常，否则返回人话原因 */
+  function saveCheatReason(s) {
+    if (!s) return '';
+    var coins = Number(s.coins) || 0;
+    var earned = Number(s.totalEarned) || 0;
+    var sellLv = Number(s.sell && s.sell.lv) || 0;
+    var potLv = Number(s.pot && s.pot.lv) || 0;
+    var seller = !!(s.auto && s.auto.sell && s.auto.sell.bought);
+    /* ① 算力溢出：钱多到不像这个等级能赚出来的 */
+    if (coins > COINS_LV_GATE) {
+      if (sellLv < LV_GATE) return '算力溢出：金币 ' + Math.round(coins) + '，售货台只有 Lv.' + sellLv;
+      if (potLv < LV_GATE) return '算力溢出：金币 ' + Math.round(coins) + '，熬糖锅只有 Lv.' + potLv;
+    }
+    /* ② 无中生有：资产比一辈子赚的还多几十万 */
+    if (coins > earned + EARN_GAP_MAX) return '无中生有：金币 ' + Math.round(coins) + ' 超过历史总收益 ' + Math.round(earned);
+    /* ③ 没有售货员却上千万 */
+    if (coins > IDLE_COINS_GATE && !seller) return '无中生有：金币 ' + Math.round(coins) + ' 却没有雇售货员';
+    return '';
+  }
+
+  /* 静默制裁：标记作弊 → 金币归 6 → 上报 → 覆盖存档。不弹窗、不提示 */
+  function punishCheat(s, why) {
+    if (!s || devSaveTrusted(s)) return false;
+    s.isCheater = true;
+    s.cheatReason = String(why || CHEAT_REASON_COINS).slice(0, 60);
+    s.coins = CHEAT_RESET_COINS;
+    s.totalEarned = CHEAT_RESET_COINS;
+    if (coinWatch) { coinWatch.prev = CHEAT_RESET_COINS; coinWatch.allow = 0; }
+    console.log('存档查账未通过（' + s.cheatReason + '）：金币与总收益已重置为 ' + CHEAT_RESET_COINS + '，并已静默上报');
+    reportCheat(CHEAT_REASON_COINS + '：' + s.cheatReason);
+    persistSave(s, true);            /* 保留 lastTime：别顺手把离线收益也清掉 */
+    if (s === state) { cachedSave = state; cachedSaveLoaded = true; }
+    try { refreshHomeInfo(); } catch (e) {}
+    return true;
+  }
+
+  /* 接入点：开局读档后一次 / 金币监控每帧一次。返回 true = 判定作弊并已制裁 */
+  function verifySaveIntegrity(s) {
+    var target = s || state || cachedSave;
+    if (!target) return false;
+    if (devSaveTrusted(target)) return false;
+    var why = saveCheatReason(target);
+    if (!why) return false;
+    return punishCheat(target, why);
   }
 
   function flagCheater(s, reason) {
@@ -6079,9 +6601,21 @@ function renderUpdates(){
   }
   function coinWatchTick() {
     if (!state) return;
-    if (state.devMode) { coinWatch.prev = Number(state.coins) || 0; coinWatch.allow = 0; return; }
+    if (state.devMode) {
+      verifySaveIntegrity(state);        /* v0.64 假测试模式（改 devMode 骗过监控）照样查 */
+      coinWatch.prev = Number(state.coins) || 0;
+      coinWatch.allow = 0;
+      return;
+    }
     var c = Number(state.coins) || 0;
-    if (coinWatch.prev < 0) { coinWatch.prev = c; coinWatch.allow = 0; return; }
+    if (coinWatch.prev < 0) {
+      coinWatch.prev = c;                /* 首帧：先记 prev */
+      coinWatch.allow = 0;
+      verifySaveIntegrity(state);        /* v0.64 首帧补查：启动瞬间注入的假金币 */
+      coinWatch.prev = Number(state.coins) || 0;   /* 查账可能已把金币重置 */
+      return;
+    }
+    if (verifySaveIntegrity(state)) return;   /* v0.64 每帧查账（含千万资产无售货员） */
     var d = c - coinWatch.prev;
     coinWatch.prev = c;
     var allow = coinWatch.allow;
@@ -6095,10 +6629,119 @@ function renderUpdates(){
   }
   function startCoinWatch() {
     if (coinWatch.timer) return;
-    coinWatch.timer = setInterval(coinWatchTick, 3000);
+    coinWatch.timer = appTimer(coinWatchTick, 3000, true);
+  }
+
+  /* =========================================================
+     v0.61 云端强制删档：启动前先问后台，命中就清空本地并锁死页面
+     ========================================================= */
+  var DELETE_LOCKED = false;
+  var DELETE_CHECK_TIMEOUT = 3000;   /* 检查最慢 3 秒，超时照常进游戏 */
+
+  /* 只读本地存档里的 UID：绝不加载 / 迁移存档，也不碰 state */
+  function rawLocalUid() {
+    for (var i = 0; i < SAVE_KEYS.length; i++) {
+      try {
+        var raw = localStorage.getItem(SAVE_KEYS[i]);
+        if (!raw) continue;
+        var o = JSON.parse(raw);
+        var u = o && (o.uid || o.playerUid);
+        if (u) return String(u).replace(/\s+/g, '').toUpperCase();
+      } catch (e) {}
+    }
+    return '';
+  }
+
+  /* 返回 cb(deleted)；新玩家（本地无 UID）直接跳过，不发请求 */
+  function checkForceDelete(cb) {
+    var uid = rawLocalUid();
+    if (!uid) { cb(false); return; }
+    if (typeof fetch !== 'function') { cb(false); return; }
+    var settled = false;
+    function fin(deleted) {
+      if (settled) return;
+      settled = true;
+      if (deleted) { lockDeleted(); return; }   /* 锁屏：不再继续启动 */
+      cb(false);
+    }
+    try {
+      fetchTimeout(API_BASE + '/check-delete?uid=' + encodeURIComponent(uid), { cache: 'no-store' }, DELETE_CHECK_TIMEOUT)
+        .then(function (r) {
+          if (!r || r.ok === false) throw new Error('http');
+          return r.json ? r.json() : r;
+        })
+        .then(function (d) {
+          var del = !!(d && (d.isDeleted === true || String(d.isDeleted) === 'true'));
+          console.log('删档检查：UID ' + uid + ' · ' + (del ? '已被强制注销' : '正常'));
+          fin(del);
+        }, function () { fin(false); });   /* 网络挂了不拦玩家 */
+    } catch (e) { fin(false); }
+  }
+
+  /* 命中删档：清空本地所有数据（存档、昵称、弹幕已读、缓存全没） */
+  function lockDeleted() {
+    if (DELETE_LOCKED) return;
+    DELETE_LOCKED = true;
+    var okClear = false;
+    try { localStorage.clear(); okClear = true; } catch (e) {}
+    if (!okClear) {
+      try { for (var i = 0; i < SAVE_KEYS.length; i++) localStorage.removeItem(SAVE_KEYS[i]); } catch (e2) {}
+    }
+    console.log('账号已被强制注销：本地数据已清空，等待确认刷新');
+    showDeletedLock();
+  }
+
+  function reloadPage() {
+    try { location.reload(); return; } catch (e) {}
+    try { location.href = location.href; } catch (e2) {}
+  }
+
+  /* 无法关闭的警告弹窗：没有关闭按钮、点遮罩无效，只能点确认刷新 */
+  function showDeletedLock() {
+    var root = document.body || document.documentElement;
+    if (!root) { reloadPage(); return; }
+    var mask = document.createElement('div');
+    mask.id = 'deletedLockMask';
+    mask.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;z-index:99999;background:rgba(30,16,10,.9);display:flex;align-items:center;justify-content:center;padding:24px;';
+    var box = document.createElement('div');
+    box.style.cssText = 'width:100%;max-width:330px;background:#fff8f0;border-radius:20px;padding:24px 20px 18px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.45);';
+    var emo = document.createElement('div');
+    emo.textContent = '⚠️';
+    emo.style.cssText = 'font-size:44px;line-height:1;margin-bottom:10px;';
+    var t1 = document.createElement('div');
+    t1.textContent = '您的账号因严重违规已被强制注销重置';
+    t1.style.cssText = 'font-size:16px;font-weight:800;color:#a3312a;line-height:1.5;';
+    var t2 = document.createElement('div');
+    t2.textContent = 'Your account has been reset for serious violations.';
+    t2.style.cssText = 'font-size:12px;color:#9a8a7c;margin-top:8px;line-height:1.4;';
+    var btn = document.createElement('button');
+    btn.id = 'deletedLockOk';
+    btn.textContent = '我知道了';
+    btn.style.cssText = 'margin-top:20px;width:100%;height:46px;border:0;border-radius:14px;background:#c0553f;color:#fff;font-size:16px;font-weight:800;';
+    btn.onclick = function () { reloadPage(); };
+    box.appendChild(emo); box.appendChild(t1); box.appendChild(t2); box.appendChild(btn);
+    mask.appendChild(box);
+    root.appendChild(mask);
+    /* 锁死一切交互：只放行确认按钮 */
+    function swallow(ev) {
+      if (ev && ev.target === btn) return;
+      if (ev && ev.preventDefault) ev.preventDefault();
+      if (ev && ev.stopPropagation) ev.stopPropagation();
+    }
+    document.addEventListener('click', swallow, true);
+    document.addEventListener('touchstart', swallow, true);
+    document.addEventListener('contextmenu', swallow, true);
+    document.addEventListener('keydown', swallow, true);
   }
 
   function init() {
+    /* v0.61 启动前先问后台：账号是否被强制删档（此时还没加载任何存档） */
+    checkForceDelete(function (deleted) {
+      if (deleted) return;   /* 已锁屏，不再进入游戏 */
+      bootGame();
+    });
+  }
+  function bootGame() {
     buildBgCandy();
     bind();
     setupEgg();
@@ -6106,22 +6749,27 @@ function renderUpdates(){
 
     cachedSave = readSave();
     cachedSaveLoaded = true;
+    verifySaveIntegrity(cachedSave);         /* v0.64 开局查账：算力溢出 / 无中生有 */
 
     refreshHomeInfo();
     renderUpdates();
     showScreen('home');
     loadBlacklist();
     loadWallets();                        /* v0.43 后台发钱 */
+    startWalletRefresh();                 /* v0.58 每 10 分钟静默重拉，新补偿免重启 */
     registerUid();                        /* v0.52 名册注册（UID 变化才报一次） */
     syncPendingName();                    /* v0.57 上次改名没同步成功就补发 */
     checkForcedRename();                  /* v0.54 拉一次管理员强制改名指令 */
     startCoinWatch();                     /* v0.52 每 3 秒金币异常监控 */
     refreshBanUI();
-    setTimeout(checkCloudConfig, 1000);   /* 等 DOM 渲染完再拉公告 */
+    appTimer(checkCloudConfig, 1000, false);   /* 等 DOM 渲染完再拉公告 */
     startHornPoll();                      /* v0.47 全服喇叭：先 2.5s 后拉一次，再每 15s 一次 */
     if (!playerName) setTimeout(function () { openNameModal('first'); }, 400);
     requestAnimationFrame(tick);
   }
+
+  /* v0.61 排查：控制台执行 __mptCheckDelete() 手动复查一次删档状态 */
+  window.__mptCheckDelete = function (cb) { checkForceDelete(cb || function () {}); };
 
   window.__mptRefresh = function(){
     refreshHomeInfo();
