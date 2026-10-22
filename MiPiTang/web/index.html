@@ -796,7 +796,7 @@
       <div class="creditCard"><div class="creditEmoji e1" data-zh="主" data-en="P">主</div><div class="creditLabel" data-zh="主制作" data-en="Lead Creator">主制作</div><div class="creditName egg" id="creditEgg" data-zh="臭鸡条" data-en="Chou Ji Tiao">臭鸡条</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
       <div class="creditCard"><div class="creditEmoji e2" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName" data-zh="臭鸡块" data-en="Chou Ji Kuai">臭鸡块</div></div>
       <div class="creditCard"><div class="creditEmoji e3" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName ds" id="creditDeepSeek">DeepSeek · 千问</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
-      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.66 · 感谢游玩" data-en="v0.66 · Thanks for playing">v0.66 · 感谢游玩</div></div>
+      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.67 · 感谢游玩" data-en="v0.67 · Thanks for playing">v0.67 · 感谢游玩</div></div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -1161,7 +1161,24 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.66', latest:true,
+  { ver:'v0.67', latest:true,
+    titleZh:'云端解封：管理员可远程解除误封', titleEn:'Remote Unban: Admins Can Lift False Bans',
+    itemsZh:[
+      '启动和回前台时向 Worker 查询解封指令，3 秒超时，断网或失败完全静默，绝不影响进游戏',
+      '收到 { isUnbanned: true } 就清掉本地的作弊标记与违规原因，立即写盘，红色封禁标与封禁弹窗同步消失，并提示「账号封禁已被管理员解除」',
+      '反作弊一条都没关：金币监控、UID 校验、查账规则照旧运行，解封后再次改数据照样判为作弊并重新封禁',
+      '同一条解封指令只能用一次；后台建议带上 unbanId 或 unbanAt，否则旧的解封令洗不掉之后的作弊判定',
+      '黑名单优先级不变：还在黑名单里的账号，清掉本地标记依然处于封禁状态'
+    ],
+    itemsEn:[
+      'The game asks the Worker for an unban order at launch and when returning to the foreground, with a 3-second timeout and fully silent failure — startup is never blocked',
+      'On { isUnbanned: true } the local cheat flag and reason are cleared and saved at once; the red ban tag and ban dialog disappear and a toast confirms the admin lifted the ban',
+      'Anti-cheat stays fully enabled: coin monitoring, UID checks and save verification keep running, so tampering again is flagged and banned again',
+      'Each unban order is honoured only once; servers should send an unbanId or unbanAt, otherwise an old order cannot clear a later cheat verdict',
+      'Blacklist priority is unchanged: accounts still blacklisted remain banned even after the local flag is cleared'
+    ]
+  },
+  { ver:'v0.66', latest:false,
     titleZh:'读接口灾备：Worker 挂了自动切 CDN 备份', titleEn:'Read Failover: Automatic CDN Backup When the Worker Is Down',
     itemsZh:[
       '公告、补偿金币、喇叭、黑名单先走 Worker，只要失败就自动改读 GitHub 上的静态备份，玩家照常玩',
@@ -2072,7 +2089,7 @@ function renderUpdates(){
   var cachedSaveLoaded = false;
 
   var playerName = '';
-  var APP_VERSION = 'v0.66';
+  var APP_VERSION = 'v0.67';
   var DAY_DURATION = 5 * 60;
   var transferShouldClear = false;
 
@@ -2178,6 +2195,10 @@ function renderUpdates(){
     s.vipReceipt = typeof s.vipReceipt === 'string' ? s.vipReceipt : '';
     s.isCheater = s.isCheater === true;
     s.cheatReason = typeof s.cheatReason === 'string' ? s.cheatReason : '';
+    /* v0.67：作弊时刻 + 解封指令回执（防止同一条解封令洗掉新作弊） */
+    s.cheatAt = Number(s.cheatAt) || 0;
+    s.unbanAck = typeof s.unbanAck === 'string' ? s.unbanAck : '';
+    s.unbanAckAt = Number(s.unbanAckAt) || 0;
     /* v0.54：弹幕开关 / 速度 / 上次改名时间 */
     s.danmuEnabled = s.danmuEnabled !== false;
     s.danmuSpeed = (s.danmuSpeed === 'slow' || s.danmuSpeed === 'fast') ? s.danmuSpeed : 'medium';
@@ -3033,6 +3054,7 @@ function renderUpdates(){
     pollShouts();         /* 全服喇叭 */
     loadBlacklist();      /* 黑名单 */
     checkForcedRename();  /* 管理员强制改名 */
+    checkUnban();         /* v0.67 管理员解封 */
     console.log('回前台：已立即刷新云端数据');
   }
 
@@ -6396,6 +6418,9 @@ function renderUpdates(){
     if (!s || devSaveTrusted(s)) return false;
     s.isCheater = true;
     s.cheatReason = String(why || CHEAT_REASON_COINS).slice(0, 60);
+    s.cheatAt = Date.now();          /* v0.67：记录作弊时刻，解封令必须比它新 */
+    cheatCaughtAt = Date.now();      /* v0.67：本次启动刚抓到，1 分钟内不接受解封 */
+    banAcked = false;                /* v0.67：解封后再作弊，封禁拦截重新生效 */
     s.coins = CHEAT_RESET_COINS;
     s.totalEarned = CHEAT_RESET_COINS;
     if (coinWatch) { coinWatch.prev = CHEAT_RESET_COINS; coinWatch.allow = 0; }
@@ -6734,6 +6759,104 @@ function renderUpdates(){
     document.addEventListener('keydown', swallow, true);
   }
 
+  /* =========================================================
+     v0.67 云端强制解封
+     后台下发 { isUnbanned: true } → 只清 isCheater / cheatReason
+     反作弊监控（金币监控、UID 校验、查账）原样保持开启
+     黑名单优先级不变：黑名单里的人清了标记仍然封禁
+     ========================================================= */
+  var UNBAN_PATH = '/check-unban';
+  var UNBAN_TIMEOUT = 3000;      /* 3 秒超时，失败静默，不卡启动 */
+  var UNBAN_FRESH_MS = 60000;    /* 本次启动刚判定作弊：1 分钟内不接受解封 */
+  var cheatCaughtAt = 0;
+  var unbanBusy = false;
+
+  /* 指令 id：后台给什么用什么，没给就按同一条静态指令处理 */
+  function unbanKeyOf(d) {
+    var k = d && (d.unbanId || d.token || d.rev || d.id);
+    k = k == null ? '' : String(k).slice(0, 64);
+    return k || 'static';
+  }
+  /* 指令时间：兼容秒级 / 毫秒级时间戳，取不到返回 0 */
+  function unbanTimeOf(d) {
+    var t = Number(d && (d.unbanAt || d.at || d.time)) || 0;
+    if (t > 0 && t < 1e12) t = t * 1000;
+    return t;
+  }
+
+  /* 返回 true = 本次真的解封了 */
+  function applyUnban(uid, d) {
+    var on = !!(d && (d.isUnbanned === true || String(d.isUnbanned) === 'true'));
+    if (!on) return false;
+    var s = activeSave();
+    if (!s || normalizeUid(s.uid || '') !== normalizeUid(uid)) {
+      console.warn('解封指令被忽略：本机存档身份与查询 UID 不一致');
+      return false;
+    }
+    if (s.isCheater !== true) {
+      console.log('解封指令：本机未被标记作弊，无需处理');
+      return false;
+    }
+    var key = unbanKeyOf(d);
+    var at = unbanTimeOf(d);
+    var cheatAt = Number(s.cheatAt) || 0;
+    /* ① 指令比作弊更旧：拒绝，防止旧指令洗掉新作弊 */
+    if (at && cheatAt && cheatAt > at) {
+      console.warn('解封指令已过期：作弊发生在 ' + cheatAt + '，指令时间 ' + at);
+      return false;
+    }
+    /* ② 同一条指令用过，之后又判过作弊：拒绝（无 unbanId 时尤其关键） */
+    if (String(s.unbanAck || '') === key && cheatAt > (Number(s.unbanAckAt) || 0)) {
+      console.warn('解封指令 ' + key + ' 已使用过，且之后又判定作弊，拒绝解封');
+      return false;
+    }
+    /* ③ 本次启动刚抓到作弊：拒绝，防止改完缓存立刻被旧指令洗白 */
+    if (cheatCaughtAt && Date.now() - cheatCaughtAt < UNBAN_FRESH_MS) {
+      console.warn('解封被拒：本次启动刚检测到作弊');
+      return false;
+    }
+    s.isCheater = false;
+    s.cheatReason = '';
+    s.unbanAck = key;
+    s.unbanAckAt = Date.now();
+    /* 首页阶段 state 还没建：两路都覆盖，保证立刻落盘 */
+    if (s === state) writeSave(true);
+    else { persistSave(s, true); cachedSave = s; cachedSaveLoaded = true; }
+    /* 清封禁 UI：红标、弹窗、待弹标记；黑名单命中时红标会再亮回来 */
+    try { banAcked = true; banShownOnce = true; closeBanModal(); refreshBanUI(); } catch (e) {}
+    try { refreshHomeInfo(); } catch (e2) {}
+    try {
+      if (state && $('tradeScreen') && $('tradeScreen').classList.contains('active')) renderTrade();
+    } catch (e3) {}
+    console.log('云端解封成功：isCheater 已清除（反作弊监控保持开启）· 指令 ' + key);
+    toast(L('✅ 您的账号封禁已被管理员解除。', '✅ Your ban has been lifted by the admin.'), 'good', 3200);
+    return true;
+  }
+
+  /* 查询解封指令：无 UID / 无 fetch / 网络失败一律静默跳过 */
+  function checkUnban(cb) {
+    cb = cb || function () {};
+    if (typeof fetch !== 'function' || unbanBusy) { cb(false); return; }
+    var s = activeSave();
+    var uid = (s && s.uid) || rawLocalUid();
+    if (!uid) { cb(false); return; }
+    unbanBusy = true;
+    var settled = false;
+    function fin(r) { if (settled) return; settled = true; unbanBusy = false; cb(!!r); }
+    try {
+      fetchTimeout(API_BASE + UNBAN_PATH + '?uid=' + encodeURIComponent(uid), { cache: 'no-store' }, UNBAN_TIMEOUT)
+        .then(function (r) {
+          if (!r || r.ok === false) throw new Error('http');
+          return r.json ? r.json() : r;
+        })
+        .then(function (d) {
+          var hit = false;
+          try { hit = applyUnban(uid, d); } catch (e) { hit = false; }
+          fin(hit);
+        }, function () { fin(false); });   /* 断网 / 超时：静默放行 */
+    } catch (e2) { fin(false); }
+  }
+
   function init() {
     /* v0.61 启动前先问后台：账号是否被强制删档（此时还没加载任何存档） */
     checkForceDelete(function (deleted) {
@@ -6750,6 +6873,7 @@ function renderUpdates(){
     cachedSave = readSave();
     cachedSaveLoaded = true;
     verifySaveIntegrity(cachedSave);         /* v0.64 开局查账：算力溢出 / 无中生有 */
+    checkUnban();                            /* v0.67 云端解封指令：3 秒超时，失败静默 */
 
     refreshHomeInfo();
     renderUpdates();
@@ -6770,6 +6894,8 @@ function renderUpdates(){
 
   /* v0.61 排查：控制台执行 __mptCheckDelete() 手动复查一次删档状态 */
   window.__mptCheckDelete = function (cb) { checkForceDelete(cb || function () {}); };
+  /* v0.67 排查：控制台执行 __mptCheckUnban() 手动查一次解封指令 */
+  window.__mptCheckUnban = function (cb) { checkUnban(cb || function () {}); };
 
   window.__mptRefresh = function(){
     refreshHomeInfo();
