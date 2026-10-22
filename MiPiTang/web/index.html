@@ -1161,7 +1161,24 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.72', latest:true,
+  { ver:'v0.73', latest:true,
+    titleZh:'安全：暗号改为云端验证', titleEn:'Security: Secret Verified Server-Side',
+    itemsZh:[
+      '彻底删除前端密码哈希与本地比对逻辑，源码里再也搜不到任何暗号痕迹',
+      '制作人员名单连点三次后输入暗号 → POST /verify-dev 交给 Worker 校验',
+      '验证期间按钮变为「验证中…」并禁用，避免连点重复请求',
+      '成功：关闭弹窗并进入测试模式；失败：提示「暗号错误或网络异常」并清空输入框',
+      '8 秒超时，断网不会卡死弹窗；改暗号只需服务端改，不用再发新版' 
+    ],
+    itemsEn:[
+      'The password hash and all local comparison logic are gone — nothing secret is left in the source',
+      'Tapping the credits three times and entering the secret now POSTs /verify-dev for the Worker to check',
+      'While verifying, the button shows “Verifying…” and is disabled to prevent repeat requests',
+      'On success the popup closes and test mode starts; on failure it says “Wrong secret or network error” and clears the field',
+      '8-second timeout so a dead network never freezes the popup; changing the secret is a server-side edit only'
+    ]
+  },
+  { ver:'v0.72', latest:false,
     titleZh:'安全：氧气 / 酱味 / 蛋仔的积分也上签名', titleEn:'Security: Signed Scores for Oxygen, Saucy Chicken and Eggy',
     itemsZh:[
       '同样漏洞：氧气余额、酱味总分、蛋仔总分曾经也是裸数字，F12 改完就能在互通弹窗里兑金币',
@@ -1301,13 +1318,13 @@ var UPDATES = [
     itemsZh:[
       '源码里彻底删掉明文密码与「明文 → 哈希」这一步，只保留一串 32 位哈希常量',
       '校验逻辑不变：玩家输入先经过 simpleHash 归一为哈希，再与常量对比，正确才进测试模式',
-      '搜索源码已找不到那四个数字，改密码只需在控制台执行 __mptPassHash(新密码) 回填哈希',
+      '搜索源码已找不到那四个数字（v0.73 起改为云端验证，源码里连哈希都没有了）',
       '密码校验、错误提示、连点三次进密码框的入口全部保持原样，测试模式行为不受影响'
     ],
     itemsEn:[
       'The plaintext password and the "plaintext to hash" step are gone; only a 32-character hash constant remains',
       'Validation is unchanged: input is normalised through simpleHash and compared with the constant before test mode opens',
-      'Searching the source no longer finds those four digits; to change the password run __mptPassHash(newPassword) and paste the hash',
+      'Searching the source no longer finds those four digits (as of v0.73 the secret is verified server-side — there is not even a hash in the code)',
       'The password box, error hints and the triple-click entry point are untouched, so test mode behaves exactly as before'
     ]
   },
@@ -2096,9 +2113,8 @@ function renderUpdates(){
     var h4 = (h2 ^ (h1 << 3)) >>> 0;
     return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0') + h3.toString(16).padStart(8, '0') + h4.toString(16).padStart(8, '0');
   }
-  /* v0.65 开发者密码：源码里不再出现明文，只留哈希（simpleHash 保留，仅用于把玩家输入转成哈希再比对）
-     想要换密码：控制台执行 __mptPassHash('新密码') 拿到 32 位哈希，替换下面这串即可 */
-  var PASSWORD_HASH = '7c7856738e0e278b7c78d87d6dcc9413';
+  /* v0.73 暗号已改为云端验证：前端不再存密码哈希，源码里没有任何可爆破的东西
+     校验在 Worker 的 /verify-dev 做，改密码只需要改服务端 */
 
   var SCREENS = ['home', 'rulesScreen', 'updatesScreen', 'creditsScreen', 'decoScreen', 'settingsScreen', 'friendsScreen', 'tradeScreen', 'gameScreen'];
   function showScreen(id) {
@@ -2190,7 +2206,7 @@ function renderUpdates(){
   var cachedSaveLoaded = false;
 
   var playerName = '';
-  var APP_VERSION = 'v0.72';
+  var APP_VERSION = 'v0.73';
   var DAY_DURATION = 5 * 60;
   var transferShouldClear = false;
 
@@ -4920,20 +4936,52 @@ function renderUpdates(){
     setTimeout(function () { $('passInput').focus(); }, 120);
   }
   function closePassModal() { $('passMask').classList.remove('show'); }
-  /* v0.65 换密码用：只输入新密码，拿到哈希回填 PASSWORD_HASH */
-  window.__mptPassHash = function (v) { return simpleHash(String(v == null ? '' : v).trim()); };
+  /* v0.73 换密码：直接改 Worker 上的 /verify-dev，前端无需任何改动 */
+  var VERIFY_DEV_PATH = '/verify-dev';
+  var VERIFY_DEV_TIMEOUT = 8000;
+  var devVerifyBusy = false;
 
   function tryPassword() {
-    var v = ($('passInput').value || '').trim();
-    if (!v) { $('passHint').innerHTML = '<span class="bad">' + L('请输入密码', 'Please enter a password') + '</span>'; return; }
-    var inputHash = simpleHash(v);
-    if (inputHash === PASSWORD_HASH) {
-      $('passHint').innerHTML = '<span class="ok">' + L('密码正确', 'Correct') + '</span>';
-      closePassModal();
-      activateDevMode();
-    } else {
-      $('passHint').innerHTML = '<span class="bad">' + L('密码不对', 'Wrong password') + '</span>';
+    if (devVerifyBusy) return;
+    var input = $('passInput'), okBtn = $('passOk'), hint = $('passHint');
+    var v = ((input && input.value) || '').trim();
+    if (!v) { hint.innerHTML = '<span class="bad">' + L('请输入密码', 'Please enter a password') + '</span>'; return; }
+    if (typeof fetch !== 'function') {
+      hint.innerHTML = '<span class="bad">' + L('当前页面无法联网验证', 'This page cannot verify online') + '</span>';
+      return;
     }
+    devVerifyBusy = true;
+    var oldText = okBtn ? okBtn.textContent : '';
+    if (okBtn) { okBtn.disabled = true; okBtn.textContent = L('验证中…', 'Verifying…'); }
+    hint.innerHTML = '<span class="muted">' + L('正在云端校验…', 'Checking with server…') + '</span>';
+
+    function done() {
+      devVerifyBusy = false;
+      if (okBtn) { okBtn.disabled = false; okBtn.textContent = oldText; }
+    }
+    function fail() {
+      done();
+      hint.innerHTML = '<span class="bad">' + L('暗号错误或网络异常', 'Wrong secret or network error') + '</span>';
+      if (input) { input.value = ''; try { input.focus(); } catch (e) {} }
+    }
+    try {
+      fetchTimeout(CLOUD_API + VERIFY_DEV_PATH, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: v })
+      }, VERIFY_DEV_TIMEOUT).then(function (r) {
+        if (!r || r.ok === false) throw new Error('http');
+        return r.json ? r.json() : r;
+      }).then(function (d) {
+        var okv = !!(d && (d.success === true || String(d.success) === 'true'));
+        if (!okv) { fail(); return; }
+        done();
+        hint.innerHTML = '<span class="ok">' + L('验证通过', 'Verified') + '</span>';
+        closePassModal();
+        if (input) input.value = '';
+        activateDevMode();
+      }, function () { fail(); });
+    } catch (e) { fail(); }
   }
   /* ===== v0.41 开发者模式：数据隔离 ===== */
   var DEV_GOLD = 1000000000000000;   /* 1000 万亿：足够测满级 / 指数级费用 */
