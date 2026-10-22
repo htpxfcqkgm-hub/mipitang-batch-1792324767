@@ -796,7 +796,7 @@
       <div class="creditCard"><div class="creditEmoji e1" data-zh="主" data-en="P">主</div><div class="creditLabel" data-zh="主制作" data-en="Lead Creator">主制作</div><div class="creditName egg" id="creditEgg" data-zh="臭鸡条" data-en="Chou Ji Tiao">臭鸡条</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
       <div class="creditCard"><div class="creditEmoji e2" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName" data-zh="臭鸡块" data-en="Chou Ji Kuai">臭鸡块</div></div>
       <div class="creditCard"><div class="creditEmoji e3" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName ds" id="creditDeepSeek">DeepSeek · 千问</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
-      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.56 · 感谢游玩" data-en="v0.56 · Thanks for playing">v0.56 · 感谢游玩</div></div>
+      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.57 · 感谢游玩" data-en="v0.57 · Thanks for playing">v0.57 · 感谢游玩</div></div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -1139,7 +1139,20 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.56', latest:true,
+  { ver:'v0.57', latest:true,
+    titleZh:'改名云端同步 · 断网自动补发', titleEn:'Nickname Sync · Auto Retry on Failure',
+    itemsZh:[
+      '改名后同步云端名册，如果当时网络不好或超时，会留下一个「待同步」标记存在本地',
+      '下次打开游戏时自动静默补发一次，后台名册不会再出现名字对不上的情况',
+      '同步成功才清掉标记，失败就一直留着，直到真正发出去为止'
+    ],
+    itemsEn:[
+      'Renames are pushed to the cloud registry; if the network or timeout fails, a "pending sync" flag is kept locally',
+      'Next launch silently re-sends it once, so the registry can no longer lag behind your nickname',
+      'The flag clears only after a successful sync — otherwise it stays until it really goes through'
+    ]
+  },
+  { ver:'v0.56', latest:false,
     titleZh:'语言切换收进设置页', titleEn:'Language Switch Lives in Settings',
     itemsZh:[
       '中英文切换按钮只在设置页保留，首页右上角不再悬浮显示，界面更干净'
@@ -1860,7 +1873,7 @@ function renderUpdates(){
   var cachedSaveLoaded = false;
 
   var playerName = '';
-  var APP_VERSION = 'v0.56';
+  var APP_VERSION = 'v0.57';
   var DAY_DURATION = 5 * 60;
   var transferShouldClear = false;
 
@@ -1878,7 +1891,7 @@ function renderUpdates(){
       dayStart: 0, dayEarned: 0, daySold: 0, dayClosedFrom: 0, daySettledDay: 1, day: 1,
       uid: '', friends: [], tradeClaims: [], claimedWallets: [],
       isVipPurchased: false, vipReceipt: '', isCheater: false, cheatReason: '',
-      danmuEnabled: true, danmuSpeed: 'medium', danmuDensity: 3, lastNameChange: 0,
+      danmuEnabled: true, danmuSpeed: 'medium', danmuDensity: 3, lastNameChange: 0, pendingNameSync: false,
       payPassword: '', tradeHistory: [],
       pendingTrades: [], readNotices: [],
       lastTime: Date.now(), version: 17
@@ -1971,6 +1984,7 @@ function renderUpdates(){
     s.danmuSpeed = (s.danmuSpeed === 'slow' || s.danmuSpeed === 'fast') ? s.danmuSpeed : 'medium';
     s.danmuDensity = (Number(s.danmuDensity) === 1 || Number(s.danmuDensity) === 5) ? Number(s.danmuDensity) : 3;
     s.lastNameChange = Number(s.lastNameChange) || 0;
+    s.pendingNameSync = s.pendingNameSync === true;   /* v0.57 改名同步待补发 */
     s.version = 18;
     ensureUid(s);
     verifyUidIntegrity(s, rawVer < 18);   /* 防篡改：迁移末尾统一校验 UID / VIP 凭证 */
@@ -4126,17 +4140,38 @@ function renderUpdates(){
     return L('改名冷却中，还需等待 ' + d + ' 天 ' + h + ' 小时',
              'Rename on cooldown — ' + d + 'd ' + h + 'h left');
   }
+  /* v0.57 待同步标记：只写这一个字段并立刻落盘，不碰 lastTime（免得吞掉离线收益） */
+  function markNameSync(on) {
+    var st = ensureState();
+    if (!st) return;
+    st.pendingNameSync = !!on;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(st)); } catch (e) {}
+    cachedSave = st; cachedSaveLoaded = true;
+  }
   /* v0.54 改名成功后同步云端名册（管理员后台可查） */
+  /* v0.57：请求失败保留标记，下次启动自动补发 */
   function postNameUpdate(name) {
     var uid = identityUid();
     if (!uid || typeof fetch !== 'function') return;
+    markNameSync(true);                 /* 先记「待同步」，成功才清 */
     try {
       fetchTimeout(CLOUD_API + '/update-name', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid: uid, name: String(name).slice(0, 12) })
-      }, HORN_SEND_TIMEOUT_MS).then(function () {}, function () {});
+      }, HORN_SEND_TIMEOUT_MS).then(function (r) {
+        if (r && r.ok === false) return;  /* 服务端报错：保留标记 */
+        markNameSync(false);              /* 同步成功，清掉标记 */
+      }, function () {});                 /* 网络失败：标记留在存档里 */
     } catch (e) {}
+  }
+  /* v0.57 启动补发：上次改名没同步成功，就静默再发一次 */
+  function syncPendingName() {
+    var st = activeSave();              /* 只读：没有存档就不补发 */
+    if (!st || !st.pendingNameSync) return;
+    if (!playerName) return;
+    if (!identityUid() || typeof fetch !== 'function') return;
+    postNameUpdate(playerName);
   }
 
   var nameMode = 'first';
@@ -6078,6 +6113,7 @@ function renderUpdates(){
     loadBlacklist();
     loadWallets();                        /* v0.43 后台发钱 */
     registerUid();                        /* v0.52 名册注册（UID 变化才报一次） */
+    syncPendingName();                    /* v0.57 上次改名没同步成功就补发 */
     checkForcedRename();                  /* v0.54 拉一次管理员强制改名指令 */
     startCoinWatch();                     /* v0.52 每 3 秒金币异常监控 */
     refreshBanUI();
