@@ -1161,7 +1161,49 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.68', latest:true,
+  { ver:'v0.70', latest:true,
+    titleZh:'修复：解封指令网络差时永远解不了封', titleEn:'Fix: Bans Could Never Be Lifted on Flaky Networks',
+    itemsZh:[
+      '/check-unban 改成只读不删：后台不再自动清指令，改由前端收到后主动回执',
+      '查到 isUnbanned 就立刻清本地作弊标记、写盘、提示「账号已解封」',
+      '紧接着静默 POST /ack-unban（body 只有 uid），4 秒超时，失败自动重试最多 3 次',
+      '回执失败会留一个本机记号，下次启动自动补发，不靠玩家再碰上同一个后台状态',
+      '即使本地仍是 isCheater（被防重放或刚抓到作弊拦下），拿到 isUnbanned 也先回执一次，避免后台指令一直阻着',
+      '回执全程后台静默，断网 / 超时不影响开局与游戏，控制台可用 __mptAckUnban() 手动补发'
+    ],
+    itemsEn:[
+      '/check-unban is now read-only: the backend no longer clears orders itself, the client acknowledges them instead',
+      'Whenever isUnbanned arrives, the local cheat flag is cleared, the save is written and an “account unbanned” toast shows',
+      'A silent POST /ack-unban (body: uid only) follows, with a 4-second timeout and up to 3 retries',
+      'A failed ack leaves a local marker that is resent on the next launch, so players are not stuck waiting for the same backend state',
+      'Even when the account is still flagged as a cheater (blocked by replay protection or a fresh detection), an isUnbanned order is still acknowledged once',
+      'Acks are fully silent and never block startup; __mptAckUnban() in the console resends one manually'
+    ]
+  },
+  { ver:'v0.69', latest:false,
+    titleZh:'动态盐 + 印记 Cookie 双绑定 + 请求带资产', titleEn:'Dynamic Salt + Cookie-Bound Seal + Asset Audit',
+    itemsZh:[
+      '盐值改成启动时向 Worker 的 /get-salt 拉一次，拉不到就用默认盐，绝不卡启动',
+      '签名与印记都改用动态盐计算，存档里同时记下当时用的盐，升级与断网都不会误判',
+      '旧的 v0.68 盐在验算时仍作为兼容项，老玩家更新后不会被当成作弊',
+      '幽灵印记同时写 localStorage 和 Cookie（mpt_seal，一年有效）；两端对不上且都对不上存档时判定作弊',
+      '浏览器清掉 Cookie、或多标签页写晚一端不会误封，下次存档会自动把两端补齐',
+      '清空存档、强删档、导入存档都会同步清理或重写两端印记',
+      '发全服喇叭与发红包都会额外上报 localCoins / totalEarned，后台可对账',
+      '买喇叭与发红包前的消费额度反查继续生效，拦截不合法的假币消费'
+    ],
+    itemsEn:[
+      'The salt is now fetched from the Worker at /get-salt on launch, falling back to the default salt so startup is never blocked',
+      'Signatures and ghost seals use the dynamic salt, and the save records which salt was used, so upgrades and offline starts never misfire',
+      'The old v0.68 salt is still accepted while verifying, so existing players are not flagged as cheaters',
+      'The ghost seal is written to both localStorage and a cookie (mpt_seal, one year); a mismatch that also disagrees with the save counts as cheating',
+      'Cleared cookies or a late write from another tab never bans an honest player — the next save repairs both sides',
+      'Clearing the save, force-deleting it or importing a save clears or rewrites both seals',
+      'Horn posts and gift trades now report localCoins / totalEarned so the backend can audit them',
+      'The spend audit before buying horns or gifting stays active, blocking fake-coin spending'
+    ]
+  },
+  { ver:'v0.68', latest:false,
     titleZh:'三重防伪：幽灵印记 + 存档签名 + 消费反查', titleEn:'Triple Seal: Ghost Seal + Save Signature + Spend Audit',
     itemsZh:[
       '幽灵印记：每次存档都把金币/总收益/玩家ID/熬糖锅等级/售货台等级算成一个哈希，写进独立的 mpt_ghost_seal',
@@ -2108,7 +2150,7 @@ function renderUpdates(){
   var cachedSaveLoaded = false;
 
   var playerName = '';
-  var APP_VERSION = 'v0.68';
+  var APP_VERSION = 'v0.70';
   var DAY_DURATION = 5 * 60;
   var transferShouldClear = false;
 
@@ -2129,7 +2171,7 @@ function renderUpdates(){
       danmuEnabled: true, danmuSpeed: 'medium', danmuDensity: 3, lastNameChange: 0, pendingNameSync: false,
       payPassword: '', tradeHistory: [],
       pendingTrades: [], readNotices: [],
-      _sig: '', spendTotal: 0,          /* v0.68 存档签名 + 累计消费 */
+      _sig: '', _salt: '', spendTotal: 0,   /* v0.68 存档签名 + 累计消费；v0.69 记下当时用的盐 */
       lastTime: Date.now(), version: 17
     };
     return ensureUid(s);
@@ -2227,6 +2269,7 @@ function renderUpdates(){
     s.pendingNameSync = s.pendingNameSync === true;   /* v0.57 改名同步待补发 */
     /* v0.68：存档签名 / 累计消费；老存档没有就直接补空，不参与判罪 */
     s._sig = typeof s._sig === 'string' ? s._sig : '';
+    s._salt = typeof s._salt === 'string' ? s._salt : '';
     s.spendTotal = Math.max(0, Math.round(Number(s.spendTotal) || 0));
     s.version = 18;
     ensureUid(s);
@@ -2242,7 +2285,7 @@ function renderUpdates(){
         var parsed = JSON.parse(raw);
         /* v0.68 先验签名：对原始数据验（迁移会动字段），对不上先记下，开局统一判 */
         var gotSig = String((parsed && parsed._sig) || '');
-        if (gotSig && gotSig !== sigOf(parsed)) tamperPending = '存档签名对不上，疑似硬改存档';
+        if (gotSig && !sigMatches(parsed, gotSig, SALT_V68)) tamperPending = '存档签名对不上，疑似硬改存档';
         var migrated = migrate(parsed);
         if (!migrated) continue;
         if (SAVE_KEYS[i] !== SAVE_KEY) {
@@ -2258,14 +2301,26 @@ function renderUpdates(){
     return null;
   }
   /* =========================================================
-     v0.68 双重防伪：幽灵印记（独立 key）+ 存档签名（存档内 _sig）
+     v0.68 双重防伪：幽灵印记（localStorage + Cookie 双端）+ 存档签名（_sig）
+     v0.69：盐值改为云端动态下发，失败退回默认盐
      ========================================================= */
   var GHOST_SEAL_KEY = 'mpt_ghost_seal';
-  var SEAL_SALT = 'mpt.seal.7d3a';
-  var SIG_SALT = 'mpt_secret_salt';
+  var SEAL_COOKIE = 'mpt_seal';
+  var SALT_DEFAULT = 'mpt_default_salt';   /* 拉不到盐时用这个 */
+  var SALT_V68 = 'mpt_secret_salt';        /* v0.68 旧签名盐：只用于升级后验一次 */
+  var SEAL_V68 = 'mpt.seal.7d3a';          /* v0.68 旧印记盐：同上 */
+  var SALT_PATH = '/get-salt';
+  var SALT_FETCH_TIMEOUT = 2500;
+  /* 动态盐：启动时向 Worker 拉，拉不到就用默认盐，绝不卡启动 */
+  try { window.DYNAMIC_SALT = window.DYNAMIC_SALT || ''; } catch (e) {}
+  function activeSalt() {
+    var v = '';
+    try { v = String(window.DYNAMIC_SALT || ''); } catch (e) { v = ''; }
+    return v || SALT_DEFAULT;
+  }
 
   /* 幽灵印记：改金币 / 总收益 / 玩家 ID / 锅、台子等级，都会让这里对不上 */
-  function sealOf(s) {
+  function sealOfWith(s, salt) {
     if (!s) return '';
     return simpleHash([
       Number(s.coins) || 0,
@@ -2273,32 +2328,76 @@ function renderUpdates(){
       String(s.uid || ''),
       Number(s.pot && s.pot.lv) || 0,
       Number(s.sell && s.sell.lv) || 0,
-      SEAL_SALT
+      String(salt || '')
     ].join('|'));
   }
   /* 存档签名：金币 / 库存 / 总收益 / 玩家 ID + 盐值 */
-  function sigOf(s) {
+  function sigOfWith(s, salt) {
     if (!s) return '';
     return simpleHash([
       Number(s.coins) || 0,
       Number(s.stock) || 0,
       Number(s.totalEarned) || 0,
       String(s.uid || ''),
-      SIG_SALT
+      String(salt || '')
     ].join('|'));
   }
+  function sealOf(s) { return sealOfWith(s, activeSalt()); }
+  function sigOf(s) { return sigOfWith(s, activeSalt()); }
+  /* 验算时容许的盐：当前动态盐 / 存档里记的盐 / 默认盐 / v0.68 旧盐 */
+  function saltListFor(s, legacy) {
+    var out = [activeSalt()];
+    if (s && s._salt) out.push(String(s._salt));
+    out.push(SALT_DEFAULT);
+    if (legacy) out.push(legacy);
+    var uniq = [];
+    for (var i = 0; i < out.length; i++) if (out[i] && uniq.indexOf(out[i]) < 0) uniq.push(out[i]);
+    return uniq;
+  }
+  function sealMatches(s, value, legacy) {
+    if (!s || !value) return false;
+    var salts = saltListFor(s, legacy);
+    for (var i = 0; i < salts.length; i++) if (sealOfWith(s, salts[i]) === value) return true;
+    return false;
+  }
+  function sigMatches(s, value, legacy) {
+    if (!s || !value) return false;
+    var salts = saltListFor(s, legacy);
+    for (var i = 0; i < salts.length; i++) if (sigOfWith(s, salts[i]) === value) return true;
+    return false;
+  }
+
+  /* ---- 印记写双端：localStorage + Cookie ---- */
   function writeGhostSeal(s) {
     if (!s) return;
-    nativeSaveSet(GHOST_SEAL_KEY, sealOf(s));
+    var v = sealOf(s);
+    nativeSaveSet(GHOST_SEAL_KEY, v);
+    writeSealCookie(v);
   }
   function readGhostSeal() {
     try { return String(localStorage.getItem(GHOST_SEAL_KEY) || ''); } catch (e) { return ''; }
   }
-  function clearGhostSeal() { try { localStorage.removeItem(GHOST_SEAL_KEY); } catch (e) {} }
-  /* 任何落盘前的统一盖章：签名 + 印记都按当前状态重算 */
+  function readSealCookie() {
+    try {
+      var m = String(document.cookie || '').match(/(?:^|;\s*)mpt_seal=([^;]*)/);
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) { return ''; }
+  }
+  function writeSealCookie(v) {
+    try { document.cookie = SEAL_COOKIE + '=' + encodeURIComponent(v) + '; max-age=31536000; path=/'; } catch (e) {}
+  }
+  function clearSealCookie() {
+    try { document.cookie = SEAL_COOKIE + '=; max-age=0; path=/'; } catch (e) {}
+  }
+  function clearGhostSeal() {
+    try { localStorage.removeItem(GHOST_SEAL_KEY); } catch (e) {}
+    clearSealCookie();
+  }
+  /* 任何落盘前的统一盖章：签名 + 印记（双端）都按当前状态与当前盐重算 */
   function stampSave(s) {
     if (!s || typeof s !== 'object') return s;
     s._sig = sigOf(s);
+    s._salt = activeSalt();
     writeGhostSeal(s);
     return s;
   }
@@ -2767,6 +2866,7 @@ function renderUpdates(){
     pushPending(t.id, to, coins, tax, now);
     /* v0.37 记账：发钱 = out（含税，按实际出账金额记） */
     pushTrade('out', total, to, peerName(to));
+    postTradeAudit(t.id, to, coins, tax, total);   /* v0.69 上报交易 + 本机资产 */
     saveSoon();
     return { ok: true, trade: t, code: encodeTrade(t), coins: coins, tax: tax, total: total };
   }
@@ -6419,10 +6519,17 @@ function renderUpdates(){
     }
 
     /* v0.59 写：发喇叭固定走 Worker，绝不走 CDN */
+    /* v0.69 请求体附带本机资产，后台可对账 */
+    var as = state || activeSave();
     fetchTimeout(HORN_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name, text: text })
+      body: JSON.stringify({
+        name: name,
+        text: text,
+        localCoins: Math.floor(Number(as && as.coins) || 0),
+        totalEarned: Math.floor(Number(as && as.totalEarned) || 0)
+      })
     }, HORN_SEND_TIMEOUT_MS).then(function (r) {
       if (!r.ok) throw new Error('http ' + r.status);
       if (r.json) return r.json().catch(function () { return true; });
@@ -6534,29 +6641,62 @@ function renderUpdates(){
 
   /* =========================================================
      v0.68 幽灵印记校验：开局跑一次（持续校验会误伤没来得及落盘的改动）
+     v0.69 升级为双端校验：localStorage 印记 + Cookie 印记
      ========================================================= */
   function verifySealIntegrity(s) {
     if (!s) return false;
     var pending = tamperPending;
     tamperPending = '';
     if (devSaveTrusted(s)) { stampSave(s); return false; }   /* 测试模式号不查 */
+    var lsSeal = readGhostSeal();
+    var ckSeal = readSealCookie();
+    var lsOk = lsSeal ? sealMatches(s, lsSeal, SEAL_V68) : false;
+    var ckOk = ckSeal ? sealMatches(s, ckSeal, SEAL_V68) : false;
     var why = pending;
     if (!why) {
-      var sealed = readGhostSeal();
-      if (!sealed) {
+      if (lsSeal && ckSeal && lsSeal !== ckSeal) {
+        /* 双端不一致：两端都对不上存档 = 硬改；只是一端写晚了 = 正常竞争 */
+        if (!lsOk && !ckOk) why = '幽灵印记不一致/双端不匹配，疑似硬改存档';
+      } else if ((lsSeal || ckSeal) && !(lsOk || ckOk)) {
+        why = lsSeal ? '幽灵印记不一致，疑似硬改存档' : '幽灵印记不一致/双端不匹配，疑似硬改存档';
+      } else if (!lsSeal && !ckSeal) {
         /* 老版本存档（没有 _sig）没印记是正常的；新版本存档丢了印记就不正常 */
         if (String(s._sig || '')) why = '幽灵印记丢失，疑似硬改存档';
-      } else if (sealed !== sealOf(s)) {
-        why = '幽灵印记不一致，疑似硬改存档';
       }
     }
     if (!why) {
-      /* 一致或老存档：补写签名与印记，不重写存档本体（不碰 lastTime） */
-      if (!s._sig) s._sig = sigOf(s);
+      /* 通过：把两端印记与签名补齐（同步成当前盐），但不重写存档本体（不碰 lastTime） */
+      if (!s._sig || !sigMatches(s, s._sig, SALT_V68)) s._sig = sigOf(s);
+      s._salt = activeSalt();
       writeGhostSeal(s);
       return false;
     }
     return punishCheat(s, why);
+  }
+
+  /* =========================================================
+     v0.69 动态盐拉取：拉不到就用默认盐，绝不卡启动
+     ========================================================= */
+  function loadDynamicSalt() {
+    if (typeof fetch !== 'function') return;
+    try {
+      fetchTimeout(API_BASE + SALT_PATH, { cache: 'no-store' }, SALT_FETCH_TIMEOUT)
+        .then(function (r) {
+          if (!r || r.ok === false) throw new Error('http');
+          return r.json ? r.json() : r;
+        })
+        .then(function (d) {
+          var v = '';
+          if (typeof d === 'string') v = d;
+          else if (d && typeof d === 'object') v = String(d.salt || d.value || d.token || '');
+          v = v.replace(/\s+/g, '').slice(0, 64);
+          if (!v) throw new Error('empty');
+          window.DYNAMIC_SALT = v;
+          console.log('动态盐已更新（长度 ' + v.length + '）');
+        }, function () {
+          console.log('动态盐拉取失败，本次会话使用默认盐');
+        });
+    } catch (e) {}
   }
 
   /* =========================================================
@@ -6615,6 +6755,31 @@ function renderUpdates(){
           name: String(playerName || '').slice(0, 20),
           reason: String(reason || '').slice(0, 60),
           ts: now
+        })
+      }, 5000).then(function () {}, function () {});
+    } catch (e) {}
+  }
+
+  /* v0.69 交易上报：附上本机资产（发红包没有服务端接口，这里只做静默对账） */
+  function postTradeAudit(tradeId, toUid, coins, tax, total) {
+    if (typeof fetch !== 'function') return;
+    var s = state || activeSave();
+    if (!s || s.devMode) return;
+    try {
+      fetchTimeout(CLOUD_API + '/trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: s.uid || '',
+          name: String(playerName || '').slice(0, 20),
+          tradeId: tradeId || '',
+          to: toUid || '',
+          coins: Math.floor(Number(coins) || 0),
+          tax: Math.floor(Number(tax) || 0),
+          total: Math.floor(Number(total) || 0),
+          localCoins: Math.floor(Number(s.coins) || 0),
+          totalEarned: Math.floor(Number(s.totalEarned) || 0),
+          ts: Date.now()
         })
       }, 5000).then(function () {}, function () {});
     } catch (e) {}
@@ -6984,6 +7149,63 @@ function renderUpdates(){
     return true;
   }
 
+  /* =========================================================
+     v0.70 解封回执（ACK）
+     /check-unban 改成「只读不删」：后台不会自己清解封令，
+     必须前端确认收到后主动 POST /ack-unban，否则网络差的玩家永远解不了封。
+     回执全程静默 + 超时重试；失败就留记号，下次启动补发。
+     ========================================================= */
+  var ACK_UNBAN_PATH = '/ack-unban';
+  var ACK_UNBAN_TIMEOUT = 4000;
+  var ACK_UNBAN_TRIES = 3;                        /* 同一次启动最多试 3 次 */
+  var ACK_PENDING_KEY = 'mpt_unban_ack_pending';  /* 没回执成功就留个记号，下次启动补发 */
+
+  function readPendingAck() {
+    try { return String(localStorage.getItem(ACK_PENDING_KEY) || ''); } catch (e) { return ''; }
+  }
+  function writePendingAck(uid, key) {
+    try { localStorage.setItem(ACK_PENDING_KEY, String(uid) + '|' + String(key || '')); } catch (e) {}
+  }
+  function clearPendingAck() { try { localStorage.removeItem(ACK_PENDING_KEY); } catch (e) {} }
+
+  /* 静默上报回执：成功才清记号，失败留着下次启动再发 */
+  function ackUnban(uid, key) {
+    if (!uid || typeof fetch !== 'function') return;
+    writePendingAck(uid, key);
+    var tries = 0;
+    function attempt() {
+      tries++;
+      try {
+        fetchTimeout(CLOUD_API + ACK_UNBAN_PATH, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: String(uid) })
+        }, ACK_UNBAN_TIMEOUT).then(function (r) {
+          if (r && r.ok === false) throw new Error('http ' + (r.status || ''));
+          return r;
+        }).then(function () {
+          clearPendingAck();
+          console.log('解封回执已上报：' + uid + (key ? ' · 指令 ' + key : ''));
+        }, function () {
+          if (tries < ACK_UNBAN_TRIES) { setTimeout(attempt, 1200 * tries); return; }
+          console.warn('解封回执失败（已试 ' + tries + ' 次），下次启动补发：' + uid);
+        });
+      } catch (e) {}
+    }
+    attempt();
+  }
+
+  /* 启动补发：上次没确认成功的回执照样再发一次 */
+  function retryPendingAck() {
+    var raw = readPendingAck();
+    if (!raw) return;
+    var parts = raw.split('|');
+    var uid = normalizeUid(parts[0] || '');
+    if (!isValidUid(uid)) { clearPendingAck(); return; }
+    console.log('发现未完成的解封回执，重试：' + uid);
+    ackUnban(uid, parts[1] || '');
+  }
+
   /* 查询解封指令：无 UID / 无 fetch / 网络失败一律静默跳过 */
   function checkUnban(cb) {
     cb = cb || function () {};
@@ -7001,14 +7223,20 @@ function renderUpdates(){
           return r.json ? r.json() : r;
         })
         .then(function (d) {
+          var on = !!(d && (d.isUnbanned === true || String(d.isUnbanned) === 'true'));
           var hit = false;
           try { hit = applyUnban(uid, d); } catch (e) { hit = false; }
+          /* v0.70 只要拿到解封令就回执一次：
+             ① 真解封了 → 告知后台可以清掉这条指令；
+             ② 本地仍是 isCheater（被防重放 / 刚抓到作弊拦下）也先发一次，不能让后台的指令一直阻着 */
+          if (on) { try { ackUnban(uid, unbanKeyOf(d)); } catch (e4) {} }
           fin(hit);
         }, function () { fin(false); });   /* 断网 / 超时：静默放行 */
     } catch (e2) { fin(false); }
   }
 
   function init() {
+    loadDynamicSalt();   /* v0.69 先向云端要动态盐：不阻塞启动，拿不到走默认盐 */
     /* v0.61 启动前先问后台：账号是否被强制删档（此时还没加载任何存档） */
     checkForceDelete(function (deleted) {
       if (deleted) return;   /* 已锁屏，不再进入游戏 */
@@ -7025,6 +7253,7 @@ function renderUpdates(){
     cachedSaveLoaded = true;
     verifySealIntegrity(cachedSave);         /* v0.68 幽灵印记 / 存档签名 */
     verifySaveIntegrity(cachedSave);         /* v0.64 开局查账：算力溢出 / 无中生有 */
+    retryPendingAck();                       /* v0.70 上次没回执成功的解封 ACK，这次补发 */
     checkUnban();                            /* v0.67 云端解封指令：3 秒超时，失败静默 */
 
     refreshHomeInfo();
@@ -7048,6 +7277,13 @@ function renderUpdates(){
   window.__mptCheckDelete = function (cb) { checkForceDelete(cb || function () {}); };
   /* v0.67 排查：控制台执行 __mptCheckUnban() 手动查一次解封指令 */
   window.__mptCheckUnban = function (cb) { checkUnban(cb || function () {}); };
+  /* v0.70 排查：控制台执行 __mptAckUnban() 手动补发一次解封回执 */
+  window.__mptAckUnban = function (uid) {
+    var u = normalizeUid(uid || (activeSave() && activeSave().uid) || rawLocalUid() || '');
+    if (!isValidUid(u)) { console.warn('回执失败：UID 不合法'); return false; }
+    ackUnban(u, 'manual');
+    return true;
+  };
 
   window.__mptRefresh = function(){
     refreshHomeInfo();
