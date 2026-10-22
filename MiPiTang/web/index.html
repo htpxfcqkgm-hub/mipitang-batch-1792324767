@@ -42,8 +42,6 @@
   #home .logo .sub { font-size: clamp(11px, 3.2vw, 14px); color: #a9714c; font-weight: 700; margin-top: 3px; }
   #home .studio { margin-top: 4px; font-size: clamp(10px, 2.8vw, 12px); font-weight: 600; color: #b3a396; letter-spacing: 3px; opacity: .85; }
   #home .welcome { font-size: clamp(12px, 3.4vw, 15px); font-weight: 800; color: #8a4b2a; margin-top: 8px; background: #fff8eecc; border-radius: 999px; padding: 5px 14px; display: inline-block; }
-  #langBtn { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 12px); right: 12px; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #ff9f43; background: linear-gradient(135deg, #ffd9a8, #ffb347); color: #fff; font-size: 20px; line-height: 1; display: none; align-items: center; justify-content: center; cursor: pointer; padding: 0; z-index: 250; box-shadow: 0 4px 14px rgba(255,159,67,.5), 0 3px 0 #d68a1e; font-family: inherit; margin: 0; }
-  #langBtn.show { display: flex; }
   #devBar { position: fixed; top: calc(env(safe-area-inset-top, 0) + 6px); left: 50%; transform: translateX(-50%) translateY(-200%); background: linear-gradient(135deg, #6bbf4a, #4a9a2a); color: #fff; font-size: 12px; font-weight: 900; padding: 6px 14px; border-radius: 999px; z-index: 150; cursor: pointer; transition: transform .3s cubic-bezier(.2,1.4,.4,1); white-space: nowrap; letter-spacing: 1px; display: none; }
   #devBar.show { display: block; transform: translateX(-50%) translateY(0); }
   /* v0.41 测试模式标识 + 红框隔离 */
@@ -403,14 +401,13 @@
   .toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0) + 64px); transform: translateX(-50%) translateY(-8px); background: #6b3a1fee; color: #fff; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 999px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 300; max-width: 90vw; text-align: center; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.good { background: #4a9a2aee; }
-  /* v0.47 全服喇叭飘屏：全局穿透，pointer-events:none 是灵魂（否则挡住熬糖锅） */
-  .hornBanner { position: fixed; top: 10%; left: 0; width: 100%; z-index: 999999; pointer-events: none; box-sizing: border-box; padding: 0 10px; animation: hornRun 8s linear forwards; will-change: transform, opacity; }
-  .hornBanner .hornInner { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #fff; font-weight: 900; font-size: clamp(13px, 3.8vw, 16px); line-height: 1.4; padding: 10px 14px; border-radius: 14px; text-align: center; box-shadow: 0 6px 20px rgba(255,140,0,.45), inset 0 1px 0 #fff8; text-shadow: 0 2px 0 rgba(160,80,0,.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
-  @keyframes hornRun {
-    0%   { transform: translate3d(100%, 0, 0); opacity: 0; }
-    6%   { transform: translate3d(0, 0, 0);     opacity: 1; }
-    88%  { transform: translate3d(0, 0, 0);     opacity: 1; }
-    100% { transform: translate3d(-100%, 0, 0); opacity: 0; }
+  /* v0.55 多轨道弹幕引擎（B 站式）：固定全屏层 + 5 条互不重叠的轨道，金色半透明胶囊 */
+  #danmuLayer { position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 999999; pointer-events: none; overflow: hidden; }
+  .danmuItem { position: absolute; left: 0; display: inline-block; white-space: nowrap; pointer-events: none; will-change: transform; animation: danmuRun 8s linear forwards; }
+  .danmuItem .danmuPill { display: inline-block; padding: 6px 14px; border-radius: 999px; background: linear-gradient(90deg, rgba(255,215,0,.92), rgba(255,150,20,.82)); color: #fff; font-weight: 900; font-size: clamp(13px, 3.8vw, 16px); line-height: 1.35; text-shadow: 0 2px 3px rgba(120,50,0,.55); box-shadow: 0 4px 16px rgba(255,140,0,.38), inset 0 1px 0 rgba(255,255,255,.5); }
+  @keyframes danmuRun {
+    0%   { transform: translate3d(100vw, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
   }
   #home { overflow-y: auto; -webkit-overflow-scrolling: touch; }   /* v0.47 多一个按钮，小屏可滚动不裁切 */
   #home .menu #btnHorn { background: linear-gradient(180deg, #ffe9a8, #ffc23f); color: #7a4a00; box-shadow: 0 3px 0 #c9981a, inset 0 1px 0 #fffbe0; font-weight: 900; letter-spacing: 1px; }
@@ -449,13 +446,16 @@
   #banMask .banBody { font-size: 13px; line-height: 1.7; color: #ffd9d9; font-weight: 700; white-space: pre-wrap; word-break: break-word; margin: 0 0 14px; }
   #banMask .banHint { font-size: 11px; line-height: 1.6; color: #ff9c9c; opacity: .85; margin: 0 0 14px; }
   #banMask .modalBtns button.primary { background: linear-gradient(180deg, #ff6b6b, #b71c1c); box-shadow: 0 3px 0 #7f1010, inset 0 1px 0 #fff5; }
+  /* ===== v0.53 喇叭库存：买完存着，想发再发 ===== */
+  #hornStock { text-align: center; font-size: 12px; font-weight: 900; color: #8a4b2a; background: #fff6e3; border: 2px solid #f0d2b0; border-radius: 12px; padding: 7px 10px; margin: 0 0 8px; line-height: 1.5; }
+  #hornStock b { color: #d68a1e; font-size: 15px; }
+  #hornBuy { flex: 1 1 auto; }
+  #hornSendRow { margin-top: 8px; }
 </style>
 <style id="floatUpStyle">@keyframes floatUp {0% { transform: translateY(20vh) rotate(0deg); opacity: 0; }10% { opacity: .5; }90% { opacity: .5; }100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }}</style></head>
 <body>
 
 <div id="devBar" data-zh="⚡ 开发者模式 · 点击关闭" data-en="⚡ Dev Mode · Tap to close">⚡ 开发者模式 · 点击关闭</div>
-
-<button id="langBtn" title="Switch to English" class="show">🇨🇳</button>
 
 <div class="screen active" id="home">
   <div class="bgCandy" id="bgCandy"><span style="position: absolute; left: 5.18842%; bottom: -30px; width: 20.2484px; height: 22.6936px; border-radius: 4px; background: rgb(255, 179, 200); opacity: 0.5; animation: 14.115s linear -0.00801345s infinite normal none running floatUp;"></span><span style="position: absolute; left: 19.6002%; bottom: -30px; width: 14.1584px; height: 19.4804px; border-radius: 4px; background: rgb(255, 215, 107); opacity: 0.5; animation: 14.4918s linear -1.43299s infinite normal none running floatUp;"></span><span style="position: absolute; left: 39.2522%; bottom: -30px; width: 15.4388px; height: 20.8893px; border-radius: 4px; background: rgb(168, 224, 138); opacity: 0.5; animation: 10.1795s linear -3.08235s infinite normal none running floatUp;"></span><span style="position: absolute; left: 70.6937%; bottom: -30px; width: 15.9074px; height: 10.5715px; border-radius: 4px; background: rgb(200, 168, 255); opacity: 0.5; animation: 15.3836s linear -9.82927s infinite normal none running floatUp;"></span><span style="position: absolute; left: 64.9021%; bottom: -30px; width: 21.778px; height: 19.6925px; border-radius: 4px; background: rgb(255, 159, 67); opacity: 0.5; animation: 12.0511s linear -9.76719s infinite normal none running floatUp;"></span><span style="position: absolute; left: 16.5782%; bottom: -30px; width: 22.3058px; height: 15.7181px; border-radius: 4px; background: rgb(255, 179, 200); opacity: 0.5; animation: 10.7132s linear -2.58589s infinite normal none running floatUp;"></span><span style="position: absolute; left: 53.6631%; bottom: -30px; width: 18.6472px; height: 22.2881px; border-radius: 4px; background: rgb(255, 215, 107); opacity: 0.5; animation: 11.9907s linear -2.26116s infinite normal none running floatUp;"></span><span style="position: absolute; left: 26.4056%; bottom: -30px; width: 22.9995px; height: 18.5197px; border-radius: 4px; background: rgb(168, 224, 138); opacity: 0.5; animation: 15.5519s linear -5.02648s infinite normal none running floatUp;"></span><span style="position: absolute; left: 42.129%; bottom: -30px; width: 14.3701px; height: 21.1634px; border-radius: 4px; background: rgb(200, 168, 255); opacity: 0.5; animation: 9.42444s linear -7.35492s infinite normal none running floatUp;"></span><span style="position: absolute; left: 61.8985%; bottom: -30px; width: 14.0819px; height: 10.3378px; border-radius: 4px; background: rgb(255, 159, 67); opacity: 0.5; animation: 13.1483s linear -3.48143s infinite normal none running floatUp;"></span><span style="position: absolute; left: 35.8414%; bottom: -30px; width: 21.8459px; height: 21.876px; border-radius: 4px; background: rgb(255, 179, 200); opacity: 0.5; animation: 13.9743s linear -1.81116s infinite normal none running floatUp;"></span><span style="position: absolute; left: 39.8943%; bottom: -30px; width: 13.5559px; height: 16.0845px; border-radius: 4px; background: rgb(255, 215, 107); opacity: 0.5; animation: 13.1735s linear -8.8391s infinite normal none running floatUp;"></span></div>
@@ -487,7 +487,8 @@
 <div class="modalMask" id="hornMask">
   <div class="modal">
     <h2 data-zh="📢 全服喇叭" data-en="📢 Global Horn">📢 全服喇叭</h2>
-    <p data-zh="买得越多越划算：1 条 100,000 · 5 条只要 380,000" data-en="Bundles save coins: 1 for 100,000 · 5 for just 380,000">买得越多越划算：1 条 100,000 · 5 条只要 380,000</p>
+    <p data-zh="买得越多越划算：1 条 100,000 · 5 条只要 380,000。买到的喇叭会存进背包，想发的时候再发。" data-en="Bundles save coins: 1 for 100,000 · 5 for just 380,000. Horns you buy are stored — send them whenever you like.">买得越多越划算：1 条 100,000 · 5 条只要 380,000。买到的喇叭会存进背包，想发的时候再发。</p>
+    <div id="hornStock"></div>
     <input id="hornInput" type="text" maxlength="20" placeholder="喊点什么…" style="letter-spacing:0;font-size:16px;text-align:left;font-weight:700">
     <!-- v0.49 套餐选择：数量 + 总价 -->
     <div class="hornQtyRow" id="hornQtyRow">
@@ -502,7 +503,10 @@
     <div class="hint" id="hornHint" style="text-align:center;min-height:16px"></div>
     <div class="modalBtns">
       <button class="ghost" id="hornCancel" data-zh="取消" data-en="Cancel">取消</button>
-      <button class="primary" id="hornSend">发送 100,000</button>
+      <button class="primary" id="hornBuy">购买 100,000</button>
+    </div>
+    <div class="modalBtns" id="hornSendRow">
+      <button class="primary" id="hornSend" style="width:100%">发送 1 条</button>
     </div>
   </div>
 </div>
@@ -759,7 +763,8 @@
         </div></div>
         <div class="steps">
           <div class="step"><div class="stepNum">1</div><div class="stepBody" data-zh="消耗 &lt;span class=&#39;hl&#39;&gt;100 万金币&lt;/span&gt; 升级 VIP，解锁全局&lt;b&gt;金色 ID&lt;/b&gt;标识。" data-en="Spend &lt;span class=&#39;hl&#39;&gt;1,000,000 coins&lt;/span&gt; to become VIP and unlock a global &lt;b&gt;golden ID&lt;/b&gt;.">消耗 <span class="hl">100 万金币</span> 升级 VIP，解锁全局<b>金色 ID</b>标识。</div></div>
-          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="花金币购买 &lt;span class=&#39;hl&#39;&gt;全服喇叭&lt;/span&gt;，所有人屏幕都会飘过你的豪言壮语！每人 1 小时限发 5 条哦。" data-en="Buy a &lt;span class=&#39;hl&#39;&gt;Global Horn&lt;/span&gt; to scroll your words across everyone&#39;s screen! Max 5 per hour.">花金币购买 <span class="hl">全服喇叭</span>，所有人屏幕都会飘过你的豪言壮语！每人 1 小时限发 5 条哦。</div></div>
+          <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="花金币购买 &lt;span class=&#39;hl&#39;&gt;全服喇叭&lt;/span&gt;，买到的会先存进背包，想什么时候发就什么时候发；每人 1 小时限发 5 条，发送失败自动退回库存。" data-en="Buy &lt;span class=&#39;hl&#39;&gt;Global Horns&lt;/span&gt; and they are stored in your bag — send them whenever you like. Max 5 per hour; a failed send returns the horn to your stock.">花金币购买 <span class="hl">全服喇叭</span>，买到的会先存进背包，想什么时候发就什么时候发；每人 1 小时限发 5 条，发送失败自动退回库存。</div></div>
+          <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="喇叭以&lt;b&gt;滚动弹幕&lt;/b&gt;播报，设置页可关闭或选慢 / 中 / 快三档；改名有 &lt;span class=&#39;hl&#39;&gt;7 天冷却&lt;/span&gt;，管理员后台改名会立即同步到本机。" data-en="Horns fly by as &lt;b&gt;multi-track scrolling danmaku&lt;/b&gt; (5 tracks, never overlapping). In Settings you can switch it off and pick slow / mid / fast plus min / mid / party density. Renaming has a &lt;span class=&#39;hl&#39;&gt;7-day cooldown&lt;/span&gt;; an admin rename syncs to this device instantly.">喇叭以<b>多轨道滚动弹幕</b>播报（5 条轨道、互不重叠），设置页可关闭、切慢 / 中 / 快速度与极简 / 适中 / 狂欢密度；改名有 <span class="hl">7 天冷却</span>，管理员后台改名会立即同步到本机。</div></div>
         </div>
       </div>
       <div class="ruleCard cSave">
@@ -791,7 +796,7 @@
       <div class="creditCard"><div class="creditEmoji e1" data-zh="主" data-en="P">主</div><div class="creditLabel" data-zh="主制作" data-en="Lead Creator">主制作</div><div class="creditName egg" id="creditEgg" data-zh="臭鸡条" data-en="Chou Ji Tiao">臭鸡条</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
       <div class="creditCard"><div class="creditEmoji e2" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName" data-zh="臭鸡块" data-en="Chou Ji Kuai">臭鸡块</div></div>
       <div class="creditCard"><div class="creditEmoji e3" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName ds" id="creditDeepSeek">DeepSeek · 千问</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
-      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.52 · 感谢游玩" data-en="v0.52 · Thanks for playing">v0.52 · 感谢游玩</div></div>
+      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.56 · 感谢游玩" data-en="v0.56 · Thanks for playing">v0.56 · 感谢游玩</div></div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -859,6 +864,30 @@
             <button class="ghost" id="btnLangEn">English</button>
           </div>
         </div>
+        <div class="setRow">
+          <span class="k" data-zh="弹幕" data-en="Danmaku">弹幕</span>
+          <div class="rowRight">
+            <span class="v" id="danmuState">开启</span>
+            <button class="ghost miniBtn" id="btnDanmuToggle" data-zh="关闭" data-en="Turn off">关闭</button>
+          </div>
+        </div>
+        <div class="setRow">
+          <span class="k" data-zh="弹幕速度" data-en="Danmaku Speed">弹幕速度</span>
+          <div class="miniBtns">
+            <button class="ghost" id="btnDanmuSlow" data-zh="慢" data-en="Slow">慢</button>
+            <button class="ghost on" id="btnDanmuMedium" data-zh="中" data-en="Mid">中</button>
+            <button class="ghost" id="btnDanmuFast" data-zh="快" data-en="Fast">快</button>
+          </div>
+        </div>
+        <div class="setRow">
+          <span class="k" data-zh="弹幕密度" data-en="Danmaku Density">弹幕密度</span>
+          <div class="miniBtns">
+            <button class="ghost" id="btnDanmuD1" data-zh="极简" data-en="Min">极简</button>
+            <button class="ghost on" id="btnDanmuD3" data-zh="适中" data-en="Mid">适中</button>
+            <button class="ghost" id="btnDanmuD5" data-zh="狂欢" data-en="Party">狂欢</button>
+          </div>
+        </div>
+        <div class="setHint" data-zh="弹幕就是全服喇叭的滚动播报，5 条轨道依次占用、互不重叠。关掉后不再拉取也不再显示别人的喇叭；速度决定横穿屏幕的时间（慢 12 秒 / 中 8 秒 / 快 5 秒），密度决定同屏最多几条（极简 1 / 适中 3 / 狂欢 5）。" data-en="Danmaku is the scrolling Global Horn feed — 5 tracks are filled in turn so lines never overlap. Turn it off and other players' horns are neither fetched nor shown. Speed sets how long a line takes to cross the screen (slow 12s / mid 8s / fast 5s); density caps how many fly at once (min 1 / mid 3 / party 5).">弹幕就是全服喇叭的滚动播报，5 条轨道依次占用、互不重叠。关掉后不再拉取也不再显示别人的喇叭；速度决定横穿屏幕的时间（慢 12 秒 / 中 8 秒 / 快 5 秒），密度决定同屏最多几条（极简 1 / 适中 3 / 狂欢 5）。</div>
         <div class="setRow"><span class="k" data-zh="黑名单" data-en="Blacklist">黑名单</span><span class="v" id="blStatus">使用本地缓存</span></div>
         <div class="setRow">
           <span class="k" data-zh="支付密码" data-en="Payment Password">支付密码</span>
@@ -879,7 +908,7 @@
       </div>
       <div class="setGroup">
         <div class="setGroupTitle" data-zh="关于" data-en="About">关于</div>
-        <div class="setRow"><span class="k" data-zh="版本" data-en="Version">版本</span><span class="v">v0.50</span></div>
+        <div class="setRow"><span class="k" data-zh="版本" data-en="Version">版本</span><span class="v" id="setVersion">v0.54</span></div>
         <div class="setRow"><span class="k" data-zh="出品" data-en="Studio">出品</span><span class="v" data-zh="全家桶工作室" data-en="Family Bucket Studio">全家桶工作室</span></div>
       </div>
     </div>
@@ -1110,13 +1139,71 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.52', latest:true,
+  { ver:'v0.56', latest:true,
+    titleZh:'语言切换收进设置页', titleEn:'Language Switch Lives in Settings',
+    itemsZh:[
+      '中英文切换按钮只在设置页保留，首页右上角不再悬浮显示，界面更干净'
+    ],
+    itemsEn:[
+      'The language switch now lives only in Settings — the floating button is gone from the home screen'
+    ]
+  },
+  { ver:'v0.55', latest:false,
+    titleZh:'多轨道弹幕引擎 · 密度可调', titleEn:'Multi-Track Danmaku Engine · Density Control',
+    itemsZh:[
+      '喇叭飘屏升级为 B 站式多轨道弹幕：屏幕上方划分 5 条固定轨道，每条弹幕独占一条，互不重叠',
+      '新增弹幕密度设置：极简（同屏 1 条）/ 适中（同屏 3 条）/ 狂欢（同屏 5 条），默认适中',
+      '弹幕速度重调为慢 12 秒 / 中 8 秒 / 快 5 秒，密度满了自动排队，空出轨道立刻补位',
+      '防离线轰炸：待播池最多只留最新 20 条，超过 5 分钟的旧消息直接丢弃不播',
+      '弹幕改为金色半透明胶囊、白字带阴影，容器固定全屏且不拦截点击'
+    ],
+    itemsEn:[
+      'Horn flyby is now a multi-track danmaku engine: five fixed tracks near the top, one line each, never overlapping',
+      'New density setting — minimal (1 on screen), mid (3) or party (5), mid by default',
+      'Speeds retuned to slow 12s / mid 8s / fast 5s; extra lines queue up and fill a track the moment it frees',
+      'Offline flood protection: the queue keeps only the newest 20 lines, and anything older than 5 minutes is dropped',
+      'Danmaku now uses translucent gold pills with white shadowed text on a fixed, click-through full-screen layer'
+    ]
+  },
+  { ver:'v0.54', latest:false,
+    titleZh:'弹幕设置 · 改名冷却 · 云端名册', titleEn:'Danmaku Settings · Rename Cooldown · Cloud Roster',
+    itemsZh:[
+      '设置页新增「弹幕」开关：关掉后不再拉取，也不再显示别人的全服喇叭',
+      '弹幕速度三档可调：慢 15 秒 / 中 10 秒 / 快 5 秒横穿屏幕，默认中速',
+      '喇叭弹幕改为 translateX(100vw) → -100%，滚完立刻删除，绝不残留',
+      '改名加入 7 天冷却，没到时间会提示还需等待几天几小时；改名成功后自动同步云端名册',
+      '管理员可在后台强制改名：进游戏自动拉取改名指令，命中后覆盖昵称并清零冷却'
+    ],
+    itemsEn:[
+      'New danmaku toggle in Settings: turn it off and other players\' horns are neither fetched nor rendered',
+      'Three danmaku speeds — slow 15s / mid 10s / fast 5s to cross the screen (mid by default)',
+      'Horn danmaku now runs translateX(100vw) → -100% and is removed the instant it finishes',
+      'Renaming has a 7-day cooldown with a remaining-time hint, and success syncs the new name to the cloud roster',
+      'Admins can force a rename from the backend: the game reads the order at launch, applies it and clears the cooldown'
+    ]
+  },
+  { ver:'v0.53', latest:false,
+    titleZh:'喇叭库存：买完存着，想发再发', titleEn:'Horn Stock: Buy Now, Shout Later',
+    itemsZh:[
+      '全服喇叭改成「先买后发」：购买的喇叭存入背包，最多可囤 99 条，不再买完立刻全部播出去',
+      '发送时从库存取 1 条，仍受每小时 5 条限制；发送失败自动退回库存，不浪费金币',
+      '弹窗新增库存条与独立「购买」按钮，套餐价格与限购规则不变，规则页同步说明',
+      '喇叭改为滚动弹幕：从右向左横穿屏幕，8 秒滚完自动删除节点，不再是定格横幅'
+    ],
+    itemsEn:[
+      'Global Horns are now buy-first, send-later: purchased horns go into your bag (up to 99) instead of all firing at once',
+      'Sending takes 1 from stock and still counts toward the 5-per-hour limit; failed sends return the horn to your stock',
+      'The panel shows your stock and has a separate Buy button; bundle prices and limits are unchanged, rules updated',
+      'Horns now scroll across the screen like danmaku — right to left, deleted after 8 seconds instead of a fixed banner'
+    ]
+  },
+  { ver:'v0.52', latest:false,
     titleZh:'安全中心：防篡改 · 全方位封禁 · 店铺托管', titleEn:'Security Center: Anti-Tamper · Bans · Autopilot',
     itemsZh:[
       '防篡改系统：启动即校验玩家 ID 格式与 VIP 购买凭证，篡改缓存越权变 VIP 会被静默重置为普通账号',
       '全方位封禁：黑名单兼容 bannedUsers 理由字段，进游戏先弹红黑警告窗；被封禁期间禁止交易码、全服喇叭、官方补偿与 VIP 购买',
       '金币异常监控：每 3 秒比对余额，绕过合法渠道的瞬间暴涨会静默上报后台并标记作弊',
-      '名册注册：本机 UID 变化时自动上报注册，方便封禁名单与后台发钱对账',
+      '名册注册：本机 UID 变化或改名时都会上报最新昵称，方便封禁名单与后台发钱对账',
       '店铺托管数值透明：效率 1% 起、每级托管 +2%（封顶 50%），时限 1 小时起、每级 +0.5（封顶 8 小时），雇售货员再乘 1.5',
       '修复领取离线金币后立刻打烊的计时 bug；喇叭飘屏改为 8 秒必删；震动分轻 / 中 / 重三级并加 80ms 防抖；规则页补充封禁与防篡改说明'
     ],
@@ -1124,7 +1211,7 @@ var UPDATES = [
       'Anti-tamper: the player ID format and VIP receipt are verified at launch. A tampered cache that fakes VIP is silently reset to a normal account',
       'Full bans: the blacklist now reads bannedUsers with reasons, and a red-black warning appears before anything else. Banned accounts lose gift codes, Global Horn, official grants and VIP purchase',
       'Coin watch: balances are compared every 3 seconds; suspicious jumps outside legit channels are silently reported and flagged',
-      'Roster registration: a changed local UID is reported once, keeping bans and admin grants in sync',
+      'Roster registration: a changed local UID or a new nickname is reported, keeping bans and admin grants in sync',
       'Autopilot numbers made transparent: 1% base efficiency, +2% per autopilot level (cap 50%), 1 hour base, +0.5 hour per level (cap 8), x1.5 with a Seller',
       'Fixed the timing bug that closed the shop right after claiming offline coins; horn banners now delete after 8 seconds; light / medium / heavy haptics with 80ms debounce; rules now explain bans and anti-tamper'
     ]
@@ -1694,8 +1781,6 @@ function renderUpdates(){
       if (id === 'home' || id === 'rulesScreen') fb.classList.remove('hide');
       else fb.classList.add('hide');
     }
-    var lb = $('langBtn');
-    if (lb) lb.classList.toggle('show', id === 'home' || id === 'settingsScreen');
   }
 
   var SPEECHES = {
@@ -1775,6 +1860,7 @@ function renderUpdates(){
   var cachedSaveLoaded = false;
 
   var playerName = '';
+  var APP_VERSION = 'v0.56';
   var DAY_DURATION = 5 * 60;
   var transferShouldClear = false;
 
@@ -1792,6 +1878,7 @@ function renderUpdates(){
       dayStart: 0, dayEarned: 0, daySold: 0, dayClosedFrom: 0, daySettledDay: 1, day: 1,
       uid: '', friends: [], tradeClaims: [], claimedWallets: [],
       isVipPurchased: false, vipReceipt: '', isCheater: false, cheatReason: '',
+      danmuEnabled: true, danmuSpeed: 'medium', danmuDensity: 3, lastNameChange: 0,
       payPassword: '', tradeHistory: [],
       pendingTrades: [], readNotices: [],
       lastTime: Date.now(), version: 17
@@ -1879,6 +1966,11 @@ function renderUpdates(){
     s.vipReceipt = typeof s.vipReceipt === 'string' ? s.vipReceipt : '';
     s.isCheater = s.isCheater === true;
     s.cheatReason = typeof s.cheatReason === 'string' ? s.cheatReason : '';
+    /* v0.54：弹幕开关 / 速度 / 上次改名时间 */
+    s.danmuEnabled = s.danmuEnabled !== false;
+    s.danmuSpeed = (s.danmuSpeed === 'slow' || s.danmuSpeed === 'fast') ? s.danmuSpeed : 'medium';
+    s.danmuDensity = (Number(s.danmuDensity) === 1 || Number(s.danmuDensity) === 5) ? Number(s.danmuDensity) : 3;
+    s.lastNameChange = Number(s.lastNameChange) || 0;
     s.version = 18;
     ensureUid(s);
     verifyUidIntegrity(s, rawVer < 18);   /* 防篡改：迁移末尾统一校验 UID / VIP 凭证 */
@@ -2973,6 +3065,22 @@ function renderUpdates(){
     var bz = $('btnLangZh'), be = $('btnLangEn');
     if (bz) bz.classList.toggle('on', LANG === 'zh');
     if (be) be.classList.toggle('on', LANG !== 'zh');
+    /* v0.54 版本号 + 弹幕状态 */
+    var ver = $('setVersion'); if (ver) ver.textContent = APP_VERSION;
+    var ds = $('danmuState'), dt = $('btnDanmuToggle');
+    var on = danmuOn();
+    if (ds) ds.textContent = on ? L('开启', 'On') : L('关闭', 'Off');
+    if (dt) dt.textContent = on ? L('关闭', 'Turn off') : L('开启', 'Turn on');
+    var sp = (state || cachedSave || {}).danmuSpeed || 'medium';
+    var bSlow = $('btnDanmuSlow'), bMid = $('btnDanmuMedium'), bFast = $('btnDanmuFast');
+    if (bSlow) bSlow.classList.toggle('on', sp === 'slow');
+    if (bMid) bMid.classList.toggle('on', sp !== 'slow' && sp !== 'fast');
+    if (bFast) bFast.classList.toggle('on', sp === 'fast');
+    var dn = (state || cachedSave || {}).danmuDensity || 3;
+    var bD1 = $('btnDanmuD1'), bD3 = $('btnDanmuD3'), bD5 = $('btnDanmuD5');
+    if (bD1) bD1.classList.toggle('on', dn === 1);
+    if (bD3) bD3.classList.toggle('on', dn === 3 || (dn !== 1 && dn !== 5));
+    if (bD5) bD5.classList.toggle('on', dn === 5);
     renderBlacklistStatus();
   }
 
@@ -4003,6 +4111,34 @@ function renderUpdates(){
     saveSoon(); render();
   }
 
+  /* v0.54 改名冷却：7 天内只能改一次 */
+  var NAME_COOLDOWN_MS = 7 * 24 * 3600 * 1000;
+  function nameCooldownLeft() {
+    var st = state || activeSave();
+    var last = st ? Number(st.lastNameChange) || 0 : 0;
+    if (!last) return 0;
+    var left = last + NAME_COOLDOWN_MS - Date.now();
+    return left > 0 ? left : 0;
+  }
+  function nameCooldownText(ms) {
+    var totalH = Math.ceil(ms / 3600000);
+    var d = Math.floor(totalH / 24), h = totalH % 24;
+    return L('改名冷却中，还需等待 ' + d + ' 天 ' + h + ' 小时',
+             'Rename on cooldown — ' + d + 'd ' + h + 'h left');
+  }
+  /* v0.54 改名成功后同步云端名册（管理员后台可查） */
+  function postNameUpdate(name) {
+    var uid = identityUid();
+    if (!uid || typeof fetch !== 'function') return;
+    try {
+      fetchTimeout(CLOUD_API + '/update-name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: uid, name: String(name).slice(0, 12) })
+      }, HORN_SEND_TIMEOUT_MS).then(function () {}, function () {});
+    } catch (e) {}
+  }
+
   var nameMode = 'first';
   function openNameModal(mode) {
     nameMode = mode;
@@ -4024,7 +4160,12 @@ function renderUpdates(){
     var v = ($('nameInput').value || '').trim();
     if (!v) { toast(L('请输入昵称', 'Please enter a nickname')); return; }
     if (v.length > 12) v = v.slice(0, 12);
+    var isFirst = (nameMode === 'first');
     playerName = v; writeName(v); closeNameModal();
+    var st = ensureState();
+    if (!isFirst) { st.lastNameChange = Date.now(); saveSoon(); }   /* v0.54 改名进入 7 天冷却 */
+    pushRegister(true);   /* v0.52 改名后立刻上传最新昵称 */
+    if (!isFirst) postNameUpdate(v);   /* v0.54 云端名册同步 */
     /* 首次起名即落户：保证玩家 ID 在此刻生成 */
     if (!identityUid()) { ensureState(); writeSave(); }
     refreshHomeInfo();
@@ -4596,6 +4737,7 @@ function renderUpdates(){
     $('btnHorn').onclick = function () { openHornModal(); };
     $('hornCancel').onclick = function () { closeHornModal(); };
     $('hornSend').onclick = function () { sendHorn(); };
+    $('hornBuy').onclick = function () { buyHorn(); };   /* v0.53 只买不发 */
     $('hornMask').addEventListener('click', function (e) { if (e.target === this) closeHornModal(); });
     $('hornInput').addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); sendHorn(); }
@@ -4627,6 +4769,45 @@ function renderUpdates(){
     };
     $('btnLangZh').onclick = function () { if (LANG === 'zh') return; LANG = 'zh'; applyLang(); };
     $('btnLangEn').onclick = function () { if (LANG === 'en') return; LANG = 'en'; applyLang(); };
+    /* v0.54 弹幕开关与速度 */
+    $('btnDanmuToggle').onclick = function () {
+      var st = ensureState();
+      st.danmuEnabled = (st.danmuEnabled === false);   /* 取反 */
+      saveSoon(); renderSettings();
+      if (st.danmuEnabled) {
+        toast(L('弹幕已开启', 'Danmaku on'), 'good');
+        hornSeen = readHornSeen(); pollShouts();
+      } else {
+        toast(L('弹幕已关闭，不再接收全服喇叭', 'Danmaku off — horns muted'));
+      }
+    };
+    function setDanmuSpeed(v) {
+      var st = ensureState();
+      if (st.danmuSpeed === v) { renderSettings(); return; }
+      st.danmuSpeed = v; saveSoon(); renderSettings();
+      var txt = v === 'slow' ? L('慢速：12 秒', 'Slow: 12s')
+              : v === 'fast' ? L('快速：5 秒', 'Fast: 5s')
+              : L('中速：8 秒', 'Mid: 8s');
+      toast(L('弹幕速度 · ', 'Danmaku speed · ') + txt);
+      renderDanmu();   /* 新速度只影响之后起飞的弹幕 */
+    }
+    $('btnDanmuSlow').onclick = function () { setDanmuSpeed('slow'); };
+    $('btnDanmuMedium').onclick = function () { setDanmuSpeed('medium'); };
+    $('btnDanmuFast').onclick = function () { setDanmuSpeed('fast'); };
+    /* v0.55 弹幕密度：同屏 1 / 3 / 5 条 */
+    function setDanmuDensity(v) {
+      var st = ensureState();
+      if (st.danmuDensity === v) { renderSettings(); return; }
+      st.danmuDensity = v; saveSoon(); renderSettings();
+      var txt = v === 1 ? L('极简：同屏 1 条', 'Min: 1 on screen')
+              : v === 5 ? L('狂欢：同屏 5 条', 'Party: 5 on screen')
+              : L('适中：同屏 3 条', 'Mid: 3 on screen');
+      toast(L('弹幕密度 · ', 'Danmaku density · ') + txt);
+      renderDanmu();
+    }
+    $('btnDanmuD1').onclick = function () { setDanmuDensity(1); };
+    $('btnDanmuD3').onclick = function () { setDanmuDensity(3); };
+    $('btnDanmuD5').onclick = function () { setDanmuDensity(5); };
     $('frAddBtn').onclick = function () {
       var uidIn = $('frUidInput'), nickIn = $('frNickInput');
       var res = friendAdd(uidIn.value, nickIn.value);
@@ -4751,7 +4932,11 @@ function renderUpdates(){
       if ($('settingsScreen').classList.contains('active')) renderSettings();
       toast(L('存档已清空', 'Save cleared'));
     };
-    $('btnRename').onclick = function () { openNameModal('rename'); };
+    $('btnRename').onclick = function () {
+      var left = nameCooldownLeft();
+      if (left > 0) { toast(nameCooldownText(left)); return; }   /* v0.54 7 天冷却 */
+      openNameModal('rename');
+    };
     /* v0.36 VIP 升级 */
     $('btnVipUp').onclick = function () {
       ensureState();
@@ -5132,18 +5317,48 @@ function renderUpdates(){
   var HORN_POLL_MS = 15000;        /* 每 15 秒拉一次 */
   var HORN_TIMEOUT_MS = 3000;      /* 拉取超时：超时直接放弃，绝不卡游戏 */
   var HORN_SEND_TIMEOUT_MS = 8000;
-  var HORN_ANIM_MS = 8000;         /* v0.52 与 CSS 动画一致：8 秒播完必删节点 */
-  var HORN_QUEUE_MAX = 3;          /* 队列上限，防止一次性刷满屏 */
+  var HORN_ANIM_MS = 8000;         /* v0.55 默认（中速）时长，实际按设置动态取 */
+  /* v0.55 弹幕引擎参数 */
+  var DANMU_SPEEDS = { slow: 12, medium: 8, fast: 5 };   /* 划过屏幕的秒数 */
+  var DANMU_TRACKS = 5;            /* 轨道条数：Track 0 ~ Track 4 */
+  var DANMU_TRACK_H = 32;          /* 每条轨道高约 32px，互不重叠 */
+  var DANMU_TOP_RATIO = 0.10;      /* 轨道区从屏幕高度 10% 开始 */
+  var DANMU_POOL_MAX = 20;         /* 池子上限：离线再久也只留最新 20 条 */
+  var DANMU_TTL_MS = 5 * 60 * 1000;/* 超过 5 分钟的消息直接丢弃不播 */
   var HORN_ID_KEY = 'mpt_last_shout_id';
+  var HORN_STOCK_KEY = 'mpt_horn_stock';   /* v0.53 已买未发的喇叭库存 */
+  var HORN_STOCK_MAX = 99;                 /* 库存上限，防止无限囤 */
   var HORN_SEEN_KEY = 'mpt_seen_shouts';
   var HORN_SEEN_MAX = 40;
 
-  var hornQueue = [];
-  var hornBusy = false;
+  /* v0.55 弹幕偏好：不创建存档，读不到就按「开 + 中速 + 适中」处理 */
+  function danmuOn() {
+    var s = state || activeSave();
+    return !s || s.danmuEnabled !== false;
+  }
+  function danmuDurationMs() {
+    var s = state || activeSave();
+    var v = s && DANMU_SPEEDS[s.danmuSpeed];
+    return (v || DANMU_SPEEDS.medium) * 1000;
+  }
+  /* 密度：1 极简 / 3 适中 / 5 狂欢，其它值一律按 3 */
+  function danmuDensity() {
+    var s = state || activeSave();
+    var v = s ? Number(s.danmuDensity) : 3;
+    if (v === 1 || v === 5) return v;
+    return 3;
+  }
+
+  /* ===== v0.55 多轨道弹幕引擎 ===== */
+  var danmuPool = [];                                  /* 待播队列（旧 → 新） */
+  var danmuActive = 0;                                 /* 当前在飞的条数 */
+  var danmuTracks = [null, null, null, null, null];     /* 每条轨道占用中的节点 */
+  var danmuLayerEl = null;
   var hornPollTimer = null;
   var hornSending = false;
   var hornQtySel = 1;                        /* v0.49 当前选中的套餐条数 */
   var hornHistory = readHornHistory();       /* v0.49 最近 1 小时内的发送时间戳 */
+  var hornStock = readHornStock();           /* v0.53 库存：买完可存着，想发再发 */
   var hornSeen = readHornSeen();
   var lastShoutId = readHornId();
 
@@ -5205,6 +5420,28 @@ function renderUpdates(){
     if (n > HORN_LIMIT) n = HORN_LIMIT;
     return HORN_PRICES[n];
   }
+  /* ---- v0.53 库存读写（localStorage，不进存档，和限购账本同源）---- */
+  function readHornStock() {
+    try {
+      var n = parseInt(localStorage.getItem(HORN_STOCK_KEY), 10);
+      if (!isFinite(n) || n < 0) return 0;
+      return n > HORN_STOCK_MAX ? HORN_STOCK_MAX : n;
+    } catch (e) { return 0; }
+  }
+  function saveHornStock() {
+    try {
+      if (hornStock > 0) localStorage.setItem(HORN_STOCK_KEY, String(hornStock));
+      else localStorage.removeItem(HORN_STOCK_KEY);
+    } catch (e) {}
+  }
+  function addHornStock(n) {
+    n = parseInt(n, 10) || 0;
+    if (n < 0) n = 0;
+    hornStock += n;
+    if (hornStock > HORN_STOCK_MAX) hornStock = HORN_STOCK_MAX;
+    saveHornStock();
+  }
+
   /* 千分位，用于展示套餐价（100,000 这种） */
   function hornMoney(n) {
     var s = String(Math.round(Number(n) || 0)), out = '', i = s.length;
@@ -5257,7 +5494,7 @@ function renderUpdates(){
     else if (data && typeof data === 'object') arr = data.items || data.shouts || data.list || data.data || null;
     if (Object.prototype.toString.call(arr) !== '[object Array]') return [];
     if (arr.length > 50) arr = arr.slice(arr.length - 50);
-    var out = [], i, it, id, text, name;
+    var out = [], i, it, id, text, name, ts;
     for (i = 0; i < arr.length; i++) {
       it = arr[i];
       if (!it || typeof it !== 'object') continue;
@@ -5267,7 +5504,10 @@ function renderUpdates(){
       name = it.name != null ? it.name : (it.player != null ? it.player : '');
       text = String(text).replace(/\s+/g, ' ').trim().slice(0, 20);
       if (!text) continue;
-      out.push({ id: String(id), name: String(name || '').slice(0, 20), text: text });
+      ts = Number(it.ts != null ? it.ts : (it.time != null ? it.time : it.createdAt));
+      if (!(ts > 0)) ts = 0;
+      else if (ts < 1e12) ts = ts * 1000;   /* 秒 → 毫秒，兼容两种服务端 */
+      out.push({ id: String(id), name: String(name || '').slice(0, 20), text: text, at: ts });
     }
     return out;
   }
@@ -5278,50 +5518,99 @@ function renderUpdates(){
              '📢 GLOBAL: [' + name + '] shouts: ' + item.text);
   }
 
-  /* 核心：全局穿透飘屏。（节点直挂 body） */
-  function showHornBanner(item) {
-    if (!document.body) { hornBusy = false; pumpHornQueue(); return; }
+  /* 弹幕层：整屏 fixed，pointer-events:none，懒创建 */
+  function danmuLayer() {
+    if (danmuLayerEl && danmuLayerEl.parentNode === document.body) return danmuLayerEl;
+    if (!document.body) return null;
+    var el = document.getElementById('danmuLayer');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'danmuLayer';
+    }
+    if (el.parentNode !== document.body) document.body.appendChild(el);
+    danmuLayerEl = el;
+    return el;
+  }
+  /* 找一条当前空闲的轨道，全忙返回 -1 */
+  function freeTrack() {
+    for (var i = 0; i < DANMU_TRACKS; i++) { if (!danmuTracks[i]) return i; }
+    return -1;
+  }
+  /* 从池中取一条：超过 5 分钟的旧消息直接丢弃 */
+  function pickDanmu() {
+    var now = Date.now();
+    while (danmuPool.length) {
+      var it = danmuPool.shift();
+      var at = Number(it.at) || now;
+      if (now - at > DANMU_TTL_MS) continue;
+      return it;
+    }
+    return null;
+  }
+  /* 入池：旧 → 新，容量上限 20 条（只保留最新） */
+  function pushDanmu(item) {
+    if (!item || !item.text) return;
+    danmuPool.push({
+      id: item.id, name: item.name, text: item.text,
+      at: Number(item.at) || Date.now()
+    });
+    if (danmuPool.length > DANMU_POOL_MAX) danmuPool = danmuPool.slice(-DANMU_POOL_MAX);
+    renderDanmu();
+  }
+  /* 核心调度：有空位就取一条，分到空闲轨道；达到密度上限就等 */
+  function renderDanmu() {
+    if (!danmuOn()) { danmuPool.length = 0; return; }
+    var cap = danmuDensity();
+    while (danmuActive < cap) {
+      var item = pickDanmu();
+      if (!item) return;
+      if (!shotDanmu(item)) { danmuPool.unshift(item); return; }   /* 没空轨道：塞回去等下一轮 */
+    }
+  }
+  /* 发射一条：占一条轨道，动画结束自动回收并继续调度 */
+  function shotDanmu(item) {
+    var layer = danmuLayer();
+    var track = freeTrack();
+    if (!layer || track < 0) return false;
+    var animMs = danmuDurationMs();
     var node = document.createElement('div');
-    node.className = 'hornBanner';
+    node.className = 'danmuItem';
     node.setAttribute('aria-live', 'polite');
-    var inner = document.createElement('div');
-    inner.className = 'hornInner';
-    inner.textContent = hornLine(item);
-    node.appendChild(inner);
-    document.body.appendChild(node);      /* 挂 body，任何页面都能看到 */
-    triggerVibrate('heavy');
+    var pill = document.createElement('div');
+    pill.className = 'danmuPill';
+    pill.textContent = hornLine(item);
+    node.appendChild(pill);
+    var base = (window.innerHeight || 800) * DANMU_TOP_RATIO;
+    node.style.top = Math.round(base + track * DANMU_TRACK_H) + 'px';
+    node.style.animationDuration = (animMs / 1000) + 's';   /* 按速度动态设置 */
+    layer.appendChild(node);
+    danmuTracks[track] = node;
+    danmuActive++;
+    triggerVibrate('medium');
 
-    var killed = false, guard = null;
-    function kill() {
-      if (killed) return;
-      killed = true;
+    var done = false, guard = null;
+    function finish() {
+      if (done) return;
+      done = true;
       if (guard) { clearTimeout(guard); guard = null; }
-      try { node.removeEventListener('animationend', kill, false); } catch (e) {}
-      /* 必须物理删除，否则挂机一天堆几百个横幅会卡死手机 */
+      try { node.removeEventListener('animationend', finish, false); } catch (e) {}
+      /* 必须物理删除，否则挂机一天会堆成百上千个节点 */
       if (node.remove) node.remove();
       else if (node.parentNode) node.parentNode.removeChild(node);
-      hornBusy = false;
-      pumpHornQueue();
+      if (danmuTracks[track] === node) danmuTracks[track] = null;
+      if (danmuActive > 0) danmuActive--;
+      renderDanmu();   /* 空出位置，递归补下一条 */
     }
-    node.addEventListener('animationend', kill, false);
-    guard = setTimeout(kill, HORN_ANIM_MS + 400);   /* 动画被系统禁用时的兜底 */
+    node.addEventListener('animationend', finish, false);
+    guard = setTimeout(finish, animMs + 400);   /* 动画被系统禁用时的兜底 */
+    return true;
   }
-
-  function pumpHornQueue() {
-    if (hornBusy) return;
-    if (!hornQueue.length) return;
-    hornBusy = true;
-    showHornBanner(hornQueue.shift());
-  }
-  function enqueueHorn(item) {
-    if (!item) return;
-    if (hornQueue.length >= HORN_QUEUE_MAX) return;   /* 满了就丢，宁可少飘不卡机 */
-    hornQueue.push(item);
-    pumpHornQueue();
-  }
+  /* 兼容旧接口：单条直接入池 */
+  function showHornBanner(item) { pushDanmu(item); }
 
   /* 拿到列表后的入库逻辑：首轮只飘最新一条，不退历史 */
   function handleShoutList(data) {
+    if (!danmuOn()) return;
     var arr = normalizeShoutList(data);
     if (!arr.length) return;
     var i, id, fresh = [], firstRun = hornSeen.length === 0;
@@ -5331,10 +5620,11 @@ function renderUpdates(){
       if (hornSeenHas(id)) continue;
       fresh.push(arr[i]);
     }
+    /* v0.55：旧 → 新依次入池；首轮只播最新一条，避免进游戏就被历史刷屏 */
     if (firstRun) {
-      if (fresh.length) enqueueHorn(fresh[fresh.length - 1]);
+      if (fresh.length) pushDanmu(fresh[fresh.length - 1]);
     } else {
-      for (i = 0; i < fresh.length && i < HORN_QUEUE_MAX; i++) enqueueHorn(fresh[i]);
+      for (i = 0; i < fresh.length; i++) pushDanmu(fresh[i]);
     }
     for (i = 0; i < arr.length; i++) hornSeenPush(String(arr[i].id));
     lastShoutId = String(arr[arr.length - 1].id);
@@ -5342,6 +5632,7 @@ function renderUpdates(){
   }
 
   function pollShouts() {
+    if (!danmuOn()) return;   /* v0.54 关闭弹幕：直接跳过拉取，省流量也不渲染 */
     if (typeof fetch !== 'function') return;
     fetchTimeout(HORN_API + '?t=' + Date.now(), { cache: 'no-store' }, HORN_TIMEOUT_MS)
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
@@ -5362,16 +5653,17 @@ function renderUpdates(){
     el.textContent = msg || '';
     el.style.color = bad ? '#e86a6a' : '#a9714c';
   }
-  function hornSendLabel(n) {
-    var p = hornMoney(hornTotalPrice(n));
-    return L('发送 ' + p, 'Send ' + p);
-  }
-  /* 刷新档位高亮、限购提示、总价、发送按钮文案（所有文案走 JS，避免 applyLang 覆写） */
+  /* 刷新库存、档位高亮、限购提示、价格与两个按钮文案（所有文案走 JS，避免 applyLang 覆写） */
   function refreshHornUI() {
     var left = hornQuotaLeft();
     if (hornQtySel > HORN_LIMIT) hornQtySel = HORN_LIMIT;
     if (hornQtySel < 1) hornQtySel = 1;
-    if (left > 0 && hornQtySel > left) hornQtySel = left;   /* 自动降到我还能发的档位 */
+
+    var stk = $('hornStock');
+    if (stk) {
+      stk.innerHTML = L('📦 我的喇叭：<b>' + hornStock + '</b> 条（买了可以存着，想发再发）',
+                        '📦 My horns: <b>' + hornStock + '</b> (stocked — send anytime)');
+    }
 
     var row = $('hornQtyRow');
     if (row) {
@@ -5380,7 +5672,7 @@ function renderUpdates(){
         n = parseInt(btns[i].getAttribute('data-n'), 10) || 1;
         on = (n === hornQtySel);
         btns[i].className = 'hornQty' + (on ? ' on' : '');
-        btns[i].disabled = hornSending || (n > left);
+        btns[i].disabled = hornSending;   /* 购买不受每小时限发影响 */
         btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
       }
     }
@@ -5389,18 +5681,29 @@ function renderUpdates(){
       sum.textContent = left > 0
         ? L('* 每位玩家 1 小时内最多发送 5 条，当前剩余可发：' + left + ' 条',
             '* Max 5 shouts per player per hour. Remaining: ' + left)
-        : L('* 每位玩家 1 小时内最多发送 5 条，当前剩余可发：0 条',
-            '* Max 5 shouts per player per hour. Remaining: 0');
+        : L('* 每位玩家 1 小时内最多发送 5 条，当前剩余可发：0 条（可先买着存起来）',
+            '* Max 5 shouts per player per hour. Remaining: 0 (you can stock up first)');
     }
     var cost = $('hornCost');
     if (cost) {
-      cost.textContent = L('本次共 ' + hornQtySel + ' 条，需 ' + hornMoney(hornTotalPrice(hornQtySel)) + ' 金币',
-                           hornQtySel + ' shout(s) · ' + hornMoney(hornTotalPrice(hornQtySel)) + ' coins');
+      cost.textContent = L('购买 ' + hornQtySel + ' 条共 ' + hornMoney(hornTotalPrice(hornQtySel)) + ' 金币',
+                           'Buy ' + hornQtySel + ' for ' + hornMoney(hornTotalPrice(hornQtySel)) + ' coins');
+    }
+    var buy = $('hornBuy');
+    if (buy) {
+      buy.disabled = hornSending || hornStock >= HORN_STOCK_MAX;
+      buy.textContent = hornStock >= HORN_STOCK_MAX
+        ? L('库存已满 ' + HORN_STOCK_MAX + ' 条', 'Stock full (' + HORN_STOCK_MAX + ')')
+        : L('购买 ' + hornMoney(hornTotalPrice(hornQtySel)), 'Buy ' + hornMoney(hornTotalPrice(hornQtySel)));
     }
     var btn = $('hornSend');
     if (btn) {
-      btn.disabled = hornSending;
-      btn.textContent = hornSending ? L('发送中…', 'Sending…') : hornSendLabel(hornQtySel);
+      btn.disabled = hornSending || hornStock < 1;
+      btn.textContent = hornSending
+        ? L('发送中…', 'Sending…')
+        : (hornStock < 1
+            ? L('库存 0 条，先买一条', 'No horns — buy one first')
+            : L('发送 1 条（库存 ' + hornStock + '）', 'Send 1 (' + hornStock + ' left)'));
     }
   }
   function openHornModal() {
@@ -5409,9 +5712,12 @@ function renderUpdates(){
     var inp = $('hornInput');
     if (inp) inp.value = '';
     hornQtySel = 1;
+    hornStock = readHornStock();          /* v0.53 每次打开都读真实库存 */
+    hornHistory = readHornHistory();
     var left = hornQuotaLeft();
     if (hornSending) hornHintText(L('上一条还在发送中…', 'Still sending…'));
-    else if (left <= 0) hornHintText(L('一小时内最多只能发 5 条，您当前还可发 0 条。', 'Max 5 per hour. You can still send 0.'), true);
+    else if (hornStock < 1) hornHintText(L('背包里还没有喇叭，先买几条存着吧。', 'No horns yet — buy some first.'));
+    else if (left <= 0) hornHintText(L('一小时内最多只能发 5 条，您当前还可发 0 条；喇叭会留在库存里。', 'Max 5 per hour. You can still send 0 — horns stay in stock.'), true);
     else hornHintText(L('当前金币：' + fmtCoin(st.coins), 'Coins: ' + fmtCoin(st.coins)));
     refreshHornUI();
     var m = $('hornMask'); if (m) m.classList.add('show');
@@ -5421,32 +5727,58 @@ function renderUpdates(){
     var m = $('hornMask'); if (m) m.classList.remove('show');
   }
 
+  /* v0.53 购买：只进库存，不立刻发。连点型按钮不震动 */
+  function buyHorn() {
+    if (hornSending) return;
+    if (blockedAction()) return;   /* v0.52 封禁禁止买喇叭 */
+    var st = ensureState();
+    hornStock = readHornStock();
+    var count = hornQtySel;
+    if (count < 1) count = 1;
+    if (count > HORN_LIMIT) count = HORN_LIMIT;
+    if (hornStock >= HORN_STOCK_MAX) {
+      hornHintText(L('库存已满（' + HORN_STOCK_MAX + ' 条），先发几条吧。', 'Stock full (' + HORN_STOCK_MAX + '). Send some first.'), true);
+      refreshHornUI();
+      return;
+    }
+    if (hornStock + count > HORN_STOCK_MAX) count = HORN_STOCK_MAX - hornStock;
+
+    var total = hornTotalPrice(count);
+    if (st.coins < total) {
+      hornHintText(L('金币不足：需要 ' + hornMoney(total) + '，当前 ' + fmtCoin(st.coins),
+                     'Not enough coins: need ' + hornMoney(total) + ', have ' + fmtCoin(st.coins)), true);
+      return;
+    }
+    st.coins -= total;             /* 先扣款落盘，防刷新白嫖 */
+    writeSave();
+    addHornStock(count);
+    hornHintText('');
+    refreshHomeInfo();
+    refreshHornUI();
+    toast(L('已买 ' + count + ' 条存入背包，库存 ' + hornStock + ' 条',
+            'Bought ' + count + ' · stock ' + hornStock), 'good', 2000);
+  }
+
+  /* v0.53 发送：从库存里取 1 条，失败自动退回库存 */
   function sendHorn() {
     if (hornSending) return;
     if (blockedAction()) return;   /* v0.52 封禁禁止发喇叭 */
-    var st = ensureState();
     var inp = $('hornInput');
     var text = inp ? String(inp.value || '').replace(/\s+/g, ' ').trim() : '';
     if (!text) { hornHintText(L('请输入喇叭内容', 'Enter some text'), true); return; }
     if (text.length > 20) text = text.slice(0, 20);
 
-    /* ① 限购拦截：1 小时内已发 + 本次条数 > 5 直接打回 */
-    var left = hornQuotaLeft();
-    var count = hornQtySel;
-    if (count < 1) count = 1;
-    if (count > HORN_LIMIT) count = HORN_LIMIT;
-    if (count > left) {
-      hornHintText(L('一小时内最多只能发 5 条，您当前还可发 ' + left + ' 条。',
-                     'Max 5 shouts per hour. You can still send ' + left + '.'), true);
+    hornStock = readHornStock();
+    if (hornStock < 1) {
+      hornHintText(L('背包里没有喇叭了，先买一条。', 'No horns left — buy one first.'), true);
       refreshHornUI();
       return;
     }
-
-    /* ② 金币拦截 */
-    var total = hornTotalPrice(count);
-    if (st.coins < total) {
-      hornHintText(L('金币不足：需要 ' + hornMoney(total) + '，当前 ' + fmtCoin(st.coins),
-                     'Not enough coins: need ' + hornMoney(total) + ', have ' + fmtCoin(st.coins)), true);
+    var left = hornQuotaLeft();
+    if (left < 1) {
+      hornHintText(L('一小时内最多只能发 5 条，您当前还可发 0 条；喇叭会留在库存里。',
+                     'Max 5 per hour. Horns stay in stock.'), true);
+      refreshHornUI();
       return;
     }
     if (typeof fetch !== 'function') {
@@ -5455,68 +5787,41 @@ function renderUpdates(){
     }
 
     var name = playerName || readName() || L('神秘玩家', 'Mystery Player');
-    var refunds = hornRefundSplit(total, count);   /* 失败一条退一份，全失败正好退全额 */
 
     hornSending = true;
-    st.coins -= total;              /* 先扣款落盘，防刷新白嫖 */
-    writeSave();
-    var now = Date.now(), q;
-    for (q = 0; q < count; q++) hornHistory.push(now);   /* 记账：本次 count 条 */
+    hornStock -= 1;                    /* 先扣库存落盘，防刷新白嫖 */
+    saveHornStock();
+    hornHistory.push(Date.now());      /* 记账：本次 1 条 */
     saveHornHistory();
     if (inp) inp.value = '';
-    hornHintText(L('发送中 1/' + count + '…', 'Sending 1/' + count + '…'));
+    hornHintText(L('发送中…', 'Sending…'));
     refreshHornUI();
 
-    var sent = 0, refunded = 0;
-
-    function finishAll() {
+    function done(okSend) {
       hornSending = false;
-      closeHornModal();
+      if (okSend) {
+        triggerVibrate('heavy');
+        closeHornModal();
+        toast(L('喇叭发送成功，库存剩 ' + hornStock + ' 条', 'Horn sent · ' + hornStock + ' left'), 'good', 2200);
+      } else {
+        addHornStock(1);               /* 失败退回库存，绝不白扣 */
+        hornHistory.pop();             /* 限购记录同步退掉 */
+        saveHornHistory();
+        toast(L('发送失败，喇叭已退回库存', 'Send failed — horn returned to stock'), '', 2600);
+      }
       refreshHomeInfo();
       refreshHornUI();
-      if (sent === count) {
-        triggerVibrate('heavy');                       /* 全部发完才震动一次 */
-        toast(L('喇叭发送成功', 'Horn sent'), 'good', 2200);
-      } else if (sent === 0) {
-        toast(L('发送失败，金币已退回', 'Send failed — coins refunded'), '', 2600);
-      } else {
-        toast(L('部分发送失败，已退回 ' + hornMoney(refunded) + ' 金币',
-                'Some failed — ' + hornMoney(refunded) + ' refunded'), '', 2600);
-      }
     }
 
-    function afterOne(i) {
-      var next = i + 1;
-      if (next < count) {
-        hornHintText(L('发送中 ' + next + '/' + count + '…', 'Sending ' + next + '/' + count + '…'));
-        setTimeout(function () { sendOne(next); }, HORN_GAP_MS);   /* 每条间隔 3 秒，串行不并发 */
-      } else {
-        finishAll();
-      }
-    }
-
-    function sendOne(i) {
-      fetchTimeout(HORN_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, text: text })
-      }, HORN_SEND_TIMEOUT_MS).then(function (r) {
-        if (!r.ok) throw new Error('http ' + r.status);
-        if (r.json) return r.json().catch(function () { return true; });
-        return true;
-      }).then(function () {
-        sent++;
-        afterOne(i);
-      }, function () {
-        refunded += refunds[i];   /* 失败的那条按均摊价退回，绝不白扣 */
-        st.coins += refunds[i];
-        noteLegitGain(refunds[i]);
-        writeSave();
-        afterOne(i);
-      });
-    }
-
-    sendOne(0);
+    fetchTimeout(HORN_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, text: text })
+    }, HORN_SEND_TIMEOUT_MS).then(function (r) {
+      if (!r.ok) throw new Error('http ' + r.status);
+      if (r.json) return r.json().catch(function () { return true; });
+      return true;
+    }).then(function () { done(true); }, function () { done(false); });
   }
 
   /* =========================================================
@@ -5524,6 +5829,7 @@ function renderUpdates(){
      ========================================================= */
   var CLOUD_API = 'https://broadcast.us.ci';       /* 统一云服务地址 */
   var REG_KEY = 'mpt_registered_uid';
+  var REG_NAME_KEY = 'mpt_registered_name';   /* 已上报的昵称，改名后重传 */
   var CHEAT_REPORT_GAP = 5000;                     /* 同会话最短上报间隔，防刷请求 */
   var banAcked = false;                            /* 本次会话是否已确认封禁弹窗 */
   var banShownOnce = false;
@@ -5618,20 +5924,62 @@ function renderUpdates(){
   }
 
   /* ---- 名册注册：本机 UID 变了才上报一次 ---- */
-  function registerUid() {
+  /* 名册上报：UID 或昵称任一变化就传一次；force=true 用于刚改完昵称，立即上传 */
+  function pushRegister(force) {
     if (typeof fetch !== 'function') return;
     var s = activeSave();
     if (!s || !s.uid || s.devMode || s.isCheater) return;
-    try { if (localStorage.getItem(REG_KEY) === s.uid) return; } catch (e) {}
-    var uid = s.uid;
+    var uid = s.uid, nm = String(playerName || '').slice(0, 20);
+    if (!force) {
+      try {
+        if (localStorage.getItem(REG_KEY) === uid && localStorage.getItem(REG_NAME_KEY) === nm) return;
+      } catch (e) {}
+    }
     try {
       fetchTimeout(CLOUD_API + '/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: uid, name: String(playerName || '').slice(0, 20), ts: Date.now() })
+        body: JSON.stringify({ uid: uid, name: nm, ts: Date.now() })
       }, 5000).then(function (r) {
-        if (r && r.ok) { try { localStorage.setItem(REG_KEY, uid); } catch (e) {} }
+        if (r && r.ok) {
+          try {
+            localStorage.setItem(REG_KEY, uid);
+            localStorage.setItem(REG_NAME_KEY, nm);
+          } catch (e) {}
+        }
       }, function () {});
+    } catch (e) {}
+  }
+  function registerUid() { pushRegister(false); }
+
+  /* ---- v0.54 管理员强制改名：进游戏拉一次指令，读到即覆盖本地昵称 ---- */
+  /* 云端约定：GET /read-rename?uid=xxx 返回 {newName:'XXX'}，读取后由服务端自动清空 */
+  function checkForcedRename() {
+    if (typeof fetch !== 'function') return;
+    var uid = identityUid();
+    if (!uid) return;
+    try {
+      fetchTimeout(CLOUD_API + '/read-rename?uid=' + encodeURIComponent(uid), { cache: 'no-store' }, HORN_TIMEOUT_MS)
+        .then(function (r) { if (!r || !r.ok) throw new Error('http'); return r.json(); })
+        .then(function (d) {
+          var nn = d && (d.newName != null ? d.newName : d.name);
+          if (typeof nn !== 'string') return;
+          nn = nn.trim().slice(0, 12);
+          if (!nn) return;
+          var st = ensureState();
+          if (!st) return;
+          if (nn === playerName) {          /* 名字已经一致：顺手清掉冷却 */
+            if (st.lastNameChange) { st.lastNameChange = 0; saveSoon(); }
+            return;
+          }
+          playerName = nn; writeName(nn);
+          st.lastNameChange = 0;            /* 管理员改名不计入玩家冷却 */
+          writeSave();
+          refreshHomeInfo();
+          if ($('settingsScreen') && $('settingsScreen').classList.contains('active')) renderSettings();
+          pushRegister(true);               /* 名册同步成管理员给的名字 */
+          toast(L('管理员修改了您的昵称', 'An admin changed your nickname'));
+        }, function () {});
     } catch (e) {}
   }
 
@@ -5730,6 +6078,7 @@ function renderUpdates(){
     loadBlacklist();
     loadWallets();                        /* v0.43 后台发钱 */
     registerUid();                        /* v0.52 名册注册（UID 变化才报一次） */
+    checkForcedRename();                  /* v0.54 拉一次管理员强制改名指令 */
     startCoinWatch();                     /* v0.52 每 3 秒金币异常监控 */
     refreshBanUI();
     setTimeout(checkCloudConfig, 1000);   /* 等 DOM 渲染完再拉公告 */
@@ -5771,7 +6120,8 @@ function renderUpdates(){
 /* =========================================================
    语言按钮
    ========================================================= */
-document.getElementById('langBtn').addEventListener('click', function(){
+var _langBtn = document.getElementById('langBtn');   /* v0.56 已去掉悬浮按钮，仅保留兼容判空 */
+if (_langBtn) _langBtn.addEventListener('click', function(){
   LANG = LANG === 'zh' ? 'en' : 'zh';
   applyLang();
 });
