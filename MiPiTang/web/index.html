@@ -404,7 +404,7 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.good { background: #4a9a2aee; }
   /* v0.47 全服喇叭飘屏：全局穿透，pointer-events:none 是灵魂（否则挡住熬糖锅） */
-  .hornBanner { position: fixed; top: 10%; left: 0; width: 100%; z-index: 999999; pointer-events: none; box-sizing: border-box; padding: 0 10px; animation: hornRun 10s linear forwards; will-change: transform, opacity; }
+  .hornBanner { position: fixed; top: 10%; left: 0; width: 100%; z-index: 999999; pointer-events: none; box-sizing: border-box; padding: 0 10px; animation: hornRun 8s linear forwards; will-change: transform, opacity; }
   .hornBanner .hornInner { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #fff; font-weight: 900; font-size: clamp(13px, 3.8vw, 16px); line-height: 1.4; padding: 10px 14px; border-radius: 14px; text-align: center; box-shadow: 0 6px 20px rgba(255,140,0,.45), inset 0 1px 0 #fff8; text-shadow: 0 2px 0 rgba(160,80,0,.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
   @keyframes hornRun {
     0%   { transform: translate3d(100%, 0, 0); opacity: 0; }
@@ -439,7 +439,16 @@
   #closeShopMask.manual .fromBtn { display: block; }
   .closeShopPanel button { flex: 1; padding: 12px; font-size: 15px; border-radius: 14px; }
   .feedbackCircle { position: fixed; top: calc(env(safe-area-inset-top, 0) + 10px); left: 10px; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ffb347, #ff9f43); color: #fff; font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; text-decoration: none; z-index: 100; cursor: pointer; }
-  .feedbackCircle.hide { opacity: 0; pointer-events: none; }
+  .feedbackCircle.hide { opacity: 0; pointer-events: none; }  /* ===== v0.52 封禁标记 / 封禁弹窗 / 警示 toast ===== */
+  .toast.bad { background: #c62828ee; }
+  .banTag { display: none; margin-top: 6px; background: linear-gradient(180deg, #ff6b6b, #c62828); color: #fff; font-weight: 900; font-size: 11px; letter-spacing: 1px; padding: 4px 11px; border-radius: 999px; box-shadow: 0 2px 0 #8e1b1b, inset 0 1px 0 #fff6; }
+  .banTag.show { display: inline-block; }
+  #banMask { z-index: 900; background: #2a0505cc; }
+  #banMask .modal.banModal { background: linear-gradient(180deg, #4a0d0d, #280404); border: 2px solid #ff5252; box-shadow: 0 0 0 3px #00000055, 0 18px 40px #00000088; color: #ffe3e3; }
+  #banMask .banTitle { font-size: 19px; font-weight: 900; color: #ff8a8a; letter-spacing: 1px; margin: 0 0 10px; text-shadow: 0 2px 0 #00000066; }
+  #banMask .banBody { font-size: 13px; line-height: 1.7; color: #ffd9d9; font-weight: 700; white-space: pre-wrap; word-break: break-word; margin: 0 0 14px; }
+  #banMask .banHint { font-size: 11px; line-height: 1.6; color: #ff9c9c; opacity: .85; margin: 0 0 14px; }
+  #banMask .modalBtns button.primary { background: linear-gradient(180deg, #ff6b6b, #b71c1c); box-shadow: 0 3px 0 #7f1010, inset 0 1px 0 #fff5; }
 </style>
 <style id="floatUpStyle">@keyframes floatUp {0% { transform: translateY(20vh) rotate(0deg); opacity: 0; }10% { opacity: .5; }90% { opacity: .5; }100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }}</style></head>
 <body>
@@ -455,6 +464,7 @@
     <div class="sub" data-zh="熬糖 · 擀皮 · 切块 · 卖钱" data-en="Boil · Roll · Cut · Sell">熬糖 · 擀皮 · 切块 · 卖钱</div>
     <div class="studio" data-zh="全家桶工作室" data-en="FAMILY BUCKET STUDIO">全家桶工作室</div>
     <div class="welcome" id="welcome" data-zh="欢迎，店主！" data-en="Welcome, shopkeeper!">欢迎回来，1！</div>
+    <div class="banTag" id="banTag" data-zh="🚫 账号已被封禁" data-en="🚫 Account Banned">🚫 账号已被封禁</div>
   </div>
   <div class="menu">
     <button class="primary" id="btnStart" data-zh="开始游戏" data-en="Start Game">继续经营</button>
@@ -493,6 +503,17 @@
     <div class="modalBtns">
       <button class="ghost" id="hornCancel" data-zh="取消" data-en="Cancel">取消</button>
       <button class="primary" id="hornSend">发送 100,000</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalMask" id="banMask">
+  <div class="modal banModal">
+    <div class="banTitle" id="banTitle" data-zh="⚠️ 账号已被封禁" data-en="⚠️ Account Banned">⚠️ 账号已被封禁</div>
+    <div class="banBody" id="banReason"></div>
+    <div class="banHint" data-zh="受限操作：交易码发送 / 领取、全服喇叭、官方补偿、VIP 升级" data-en="Restricted: gift codes, Global Horn, official grants, VIP upgrade">受限操作：交易码发送 / 领取、全服喇叭、官方补偿、VIP 升级</div>
+    <div class="modalBtns">
+      <button class="primary" id="banOk" data-zh="我知道了" data-en="I understand">我知道了</button>
     </div>
   </div>
 </div>
@@ -751,6 +772,7 @@
           <div class="step"><div class="stepNum">2</div><div class="stepBody" data-zh="可以 &lt;b&gt;复制密文&lt;/b&gt;，也可以 &lt;b&gt;保存为文件&lt;/b&gt; 或直接 &lt;b&gt;截屏&lt;/b&gt;。" data-en="Either &lt;b&gt;copy the cipher&lt;/b&gt;, &lt;b&gt;save it as a file&lt;/b&gt;, or just take a &lt;b&gt;screenshot&lt;/b&gt;.">可以 <b>复制密文</b>，也可以 <b>保存为文件</b> 或直接 <b>截屏</b>。</div></div>
           <div class="step"><div class="stepNum">3</div><div class="stepBody" data-zh="新设备上打开游戏，点 &lt;b&gt;导入存档&lt;/b&gt;，把密文粘进去确认即可（会覆盖当前存档）。" data-en="On the new device tap &lt;b&gt;Import Save&lt;/b&gt;, paste the cipher and confirm (it overwrites the current save).">新设备上打开游戏，点 <b>导入存档</b>，把密文粘进去确认即可（会覆盖当前存档）。</div></div>
           <div class="step"><div class="stepNum">4</div><div class="stepBody" data-zh="登录时请注意查看 &lt;b&gt;官方公告&lt;/b&gt;。若账号违规，可能会被限制交易或封禁。" data-en="Check the &lt;b&gt;official notices&lt;/b&gt; on login. Rule-breaking accounts may be restricted or banned.">登录时请注意查看 <b>官方公告</b>。若账号违规，可能会被限制交易或封禁。</div></div>
+          <div class="step"><div class="stepNum">5</div><div class="stepBody" data-zh="&lt;b&gt;防篡改与封禁&lt;/b&gt;：启动时校验玩家 ID 与 VIP 凭证，篡改存档会被静默重置，并失去交易、喇叭、补偿与 VIP 权限；被封禁时首页会显示红色标记。" data-en="&lt;b&gt;Anti-tamper &amp; bans&lt;/b&gt;: your ID and VIP receipt are verified at launch. Tampered saves are silently reset and lose trading, horn, grants and VIP; banned accounts show a red badge on the home screen."><b>防篡改与封禁</b>：启动时校验玩家 ID 与 VIP 凭证，篡改存档会被静默重置，并失去交易、喇叭、补偿与 VIP 权限；被封禁时首页会显示红色标记。</div></div>
         </div>
       </div>
       <div class="rulesFooter">
@@ -769,7 +791,7 @@
       <div class="creditCard"><div class="creditEmoji e1" data-zh="主" data-en="P">主</div><div class="creditLabel" data-zh="主制作" data-en="Lead Creator">主制作</div><div class="creditName egg" id="creditEgg" data-zh="臭鸡条" data-en="Chou Ji Tiao">臭鸡条</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
       <div class="creditCard"><div class="creditEmoji e2" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName" data-zh="臭鸡块" data-en="Chou Ji Kuai">臭鸡块</div></div>
       <div class="creditCard"><div class="creditEmoji e3" data-zh="谢" data-en="T">谢</div><div class="creditLabel" data-zh="特别鸣谢" data-en="Special Thanks">特别鸣谢</div><div class="creditName ds" id="creditDeepSeek">DeepSeek · 千问</div><div class="creditHint" data-zh="轻点试试" data-en="Tap it too">轻点试试</div></div>
-      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.51 · 感谢游玩" data-en="v0.51 · Thanks for playing">v0.51 · 感谢游玩</div></div>
+      <div class="creditsFooter"><span data-zh="由 全家桶工作室 出品" data-en="Presented by Family Bucket Studio">由 全家桶工作室 出品</span><br><span class="studio" data-zh="★ 全家桶工作室" data-en="★ FAMILY BUCKET STUDIO">★ 全家桶工作室</span><div class="creditVersion" data-zh="v0.52 · 感谢游玩" data-en="v0.52 · Thanks for playing">v0.52 · 感谢游玩</div></div>
     </div>
   </div>
   <button class="backBtn ghost" data-back="" data-zh="返回首页" data-en="Back to Home">返回首页</button>
@@ -1088,7 +1110,26 @@ function fmtTime(sec){
    更新日志数据
    ========================================================= */
 var UPDATES = [
-  { ver:'v0.51', latest:true,
+  { ver:'v0.52', latest:true,
+    titleZh:'安全中心：防篡改 · 全方位封禁 · 店铺托管', titleEn:'Security Center: Anti-Tamper · Bans · Autopilot',
+    itemsZh:[
+      '防篡改系统：启动即校验玩家 ID 格式与 VIP 购买凭证，篡改缓存越权变 VIP 会被静默重置为普通账号',
+      '全方位封禁：黑名单兼容 bannedUsers 理由字段，进游戏先弹红黑警告窗；被封禁期间禁止交易码、全服喇叭、官方补偿与 VIP 购买',
+      '金币异常监控：每 3 秒比对余额，绕过合法渠道的瞬间暴涨会静默上报后台并标记作弊',
+      '名册注册：本机 UID 变化时自动上报注册，方便封禁名单与后台发钱对账',
+      '店铺托管数值透明：效率 1% 起、每级托管 +2%（封顶 50%），时限 1 小时起、每级 +0.5（封顶 8 小时），雇售货员再乘 1.5',
+      '修复领取离线金币后立刻打烊的计时 bug；喇叭飘屏改为 8 秒必删；震动分轻 / 中 / 重三级并加 80ms 防抖；规则页补充封禁与防篡改说明'
+    ],
+    itemsEn:[
+      'Anti-tamper: the player ID format and VIP receipt are verified at launch. A tampered cache that fakes VIP is silently reset to a normal account',
+      'Full bans: the blacklist now reads bannedUsers with reasons, and a red-black warning appears before anything else. Banned accounts lose gift codes, Global Horn, official grants and VIP purchase',
+      'Coin watch: balances are compared every 3 seconds; suspicious jumps outside legit channels are silently reported and flagged',
+      'Roster registration: a changed local UID is reported once, keeping bans and admin grants in sync',
+      'Autopilot numbers made transparent: 1% base efficiency, +2% per autopilot level (cap 50%), 1 hour base, +0.5 hour per level (cap 8), x1.5 with a Seller',
+      'Fixed the timing bug that closed the shop right after claiming offline coins; horn banners now delete after 8 seconds; light / medium / heavy haptics with 80ms debounce; rules now explain bans and anti-tamper'
+    ]
+  },
+  { ver:'v0.51', latest:false,
     titleZh:'规则页重写：新手引导 + 商业版图', titleEn:'Rules Rewritten: Starter Guide + Empire',
     itemsZh:[
       '规则页整页重写为 7 张卡片：核心循环 → 基础升级 → 员工 → 店铺托管 → 财富交易 → VIP/喇叭 → 存档公告',
@@ -1750,6 +1791,7 @@ function renderUpdates(){
       decos: {}, devMode: false,
       dayStart: 0, dayEarned: 0, daySold: 0, dayClosedFrom: 0, daySettledDay: 1, day: 1,
       uid: '', friends: [], tradeClaims: [], claimedWallets: [],
+      isVipPurchased: false, vipReceipt: '', isCheater: false, cheatReason: '',
       payPassword: '', tradeHistory: [],
       pendingTrades: [], readNotices: [],
       lastTime: Date.now(), version: 17
@@ -1773,6 +1815,7 @@ function renderUpdates(){
   }
   function migrate(s) {
     if (!s || typeof s !== 'object') return null;
+    var rawVer = Number(s.version) || 0;   /* v0.52 迁移前版本，用于老 VIP 补凭证 */
     var d = defaultState();
     /* 旧存档没金币时保留 6，新存档如果已有更高金币就尊重它 */
     s.coins = Number(s.coins);
@@ -1831,7 +1874,14 @@ function renderUpdates(){
     s.pendingTrades = normalizePendingTrades(s.pendingTrades);
     /* v17：已读定向公告 id（v0.46 防重复弹窗） */
     s.readNotices = normalizeReadNotices(s.readNotices);
-    s.version = 17;
+    /* v0.52（存档 v18）：VIP 购买凭证 + 作弊标记 */
+    s.isVipPurchased = s.isVipPurchased === true;
+    s.vipReceipt = typeof s.vipReceipt === 'string' ? s.vipReceipt : '';
+    s.isCheater = s.isCheater === true;
+    s.cheatReason = typeof s.cheatReason === 'string' ? s.cheatReason : '';
+    s.version = 18;
+    ensureUid(s);
+    verifyUidIntegrity(s, rawVer < 18);   /* 防篡改：迁移末尾统一校验 UID / VIP 凭证 */
     ensureTimeline(s);
     return s;
   }
@@ -1858,7 +1908,7 @@ function renderUpdates(){
     if (!state) return;
     ensureUid(state);
     state.lastTime = Date.now();
-    state.version = 17;
+    state.version = 18;
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
     cachedSave = state;
     cachedSaveLoaded = true;
@@ -2330,6 +2380,8 @@ function renderUpdates(){
     var coins = Math.floor(Number(t.give && t.give.coins) || 0);
     if (coins <= 0) return { ok: false, code: 'badcode' };
     state.coins = roundCoins(state.coins + coins);
+    noteLegitGain(coins);   /* v0.52 领取交易码 = 合法收入 */
+    triggerVibrate('medium');   /* 领取到账 = 中震 */
     state.tradeClaims.push(t.id);
     if (state.tradeClaims.length > 200) state.tradeClaims = state.tradeClaims.slice(-200);
     dropPending(t.id);   /* v0.45：已被领取，不再参与封号退回 */
@@ -2352,11 +2404,16 @@ function renderUpdates(){
   function upgradeVip() {
     ensureState();
     if (state.devMode) return { ok: false, code: 'devmode' };   /* v0.41 测试模式隔离 */
+    if (selfBlacklisted()) return { ok: false, code: 'ban' };   /* v0.52 封禁禁止购买 VIP */
     if (vipActive()) return { ok: false, code: 'isvip' };
     if (state.coins < VIP_COST) return { ok: false, code: 'poor' };
     state.coins = roundCoins(state.coins - VIP_COST);
     state.uid = uidToVip(state.uid);
+    /* v0.52 发放购买凭证：改缓存偷改前缀的号没有凭证，启动即被重置 */
+    state.isVipPurchased = true;
+    state.vipReceipt = vipSign(state.uid);
     writeSave();
+    triggerVibrate('heavy');   /* 升级 VIP = 重震 */
     return { ok: true, uid: state.uid };
   }
 
@@ -2420,6 +2477,7 @@ function renderUpdates(){
       return;
     }
     if (payCheckPwd(v)) { payClose(true); return; }
+    triggerVibrate('heavy');   /* v0.52 密码错误 = 重震 */
     hint.innerHTML = '<span class="bad">' + L('密码错误，请重试', 'Wrong password — try again') + '</span>';
     $('payInput').value = '';
     try { $('payInput').focus(); } catch (e) {}
@@ -2544,21 +2602,27 @@ function renderUpdates(){
   var BLACKLIST_URL = 'https://ghproxy.net/https://raw.githubusercontent.com/htpxfcqkgm-hub/mipitang-assets/main/blacklist.json';
   var BLACKLIST_KEY = 'mpt_blacklist_cache';
   var BLACKLIST_TTL = 24 * 3600 * 1000;
-  var blacklist = { map: {}, count: 0, updatedAt: '', fromCache: false, failed: false, ready: false };
+  var blacklist = { map: {}, reason: {}, count: 0, updatedAt: '', fromCache: false, failed: false, ready: false };
 
   function parseBlacklistData(data) {
     var list = [];
     if (Array.isArray(data)) list = data;
     else if (data && typeof data === 'object') {
-      var arr = data.list || data.uids || data.ids || data.blacklist || data.players || null;
+      var arr = data.list || data.uids || data.ids || data.blacklist || data.players || data.bannedUsers || null;
       if (Array.isArray(arr)) list = arr;
     }
-    var map = {}, n = 0;
+    var map = {}, reason = {}, n = 0;
     for (var i = 0; i < list.length; i++) {
       var it = list[i];
       var uid = normalizeUid(typeof it === 'string' ? it : ((it && (it.uid || it.id)) || ''));
       if (!isValidUid(uid) || map[uid]) continue;
-      map[uid] = 1; n++;
+      map[uid] = 1;
+      /* v0.52 兼容 bannedUsers: [{ uid, reason }]，理由直接进封禁弹窗 */
+      if (it && typeof it === 'object') {
+        var why = String(it.reason == null ? '' : it.reason).replace(/\s+/g, ' ').trim();
+        if (why) reason[uid] = why.slice(0, 100);
+      }
+      n++;
     }
     /* 兼容 { data: { uids: [...] } } 这类多包一层的写法 */
     if (!list.length && data && typeof data === 'object' && data.data && typeof data.data === 'object') {
@@ -2569,7 +2633,7 @@ function renderUpdates(){
       updated = data.updatedAt || data.updated_at || data.updated || data.date || '';
       if (typeof updated === 'number' && updated > 1e11) updated = new Date(updated).toISOString().slice(0, 10);
     }
-    return { map: map, count: n, updatedAt: String(updated || '') };
+    return { map: map, reason: reason, count: n, updatedAt: String(updated || '') };
   }
   function readBlacklistCache() {
     try {
@@ -2582,6 +2646,7 @@ function renderUpdates(){
   }
   function applyBlacklist(parsed, fromCache, failed) {
     blacklist.map = parsed.map;
+    blacklist.reason = parsed.reason || {};
     blacklist.count = parsed.count;
     blacklist.updatedAt = parsed.updatedAt;
     blacklist.fromCache = !!fromCache;
@@ -2591,6 +2656,11 @@ function renderUpdates(){
     if (state && $('tradeScreen') && $('tradeScreen').classList.contains('active')) renderTrade();
     /* v0.45 封号联动：退回发给被封禁玩家的未领取赠与码 */
     sweepBannedTrades(true);
+    /* v0.52 本机被封禁：刷红标，并抢在离线收益 / 公告之前弹红黑警告 */
+    refreshBanUI();
+    if (isBannedNow() && !banAcked && !banShownOnce) {
+      setTimeout(function () { if (isBannedNow() && !banAcked) openBanModal(); }, 400);
+    }
   }
   function loadBlacklist() {
     var cache = readBlacklistCache();
@@ -2629,6 +2699,7 @@ function renderUpdates(){
   /* v0.43 本人是否被限制交易 */
   function selfBlacklisted() {
     if (!state || !state.uid) return false;
+    if (state.isCheater === true) return true;   /* v0.52 篡改存档按封禁处理 */
     return isBlacklisted(state.uid);
   }
   /* v0.45 封号联动清理：拿到黑名单后，把发给被封禁玩家的未领取赠与码原路退回 */
@@ -2652,7 +2723,7 @@ function renderUpdates(){
     for (i = 0; i < hit.length; i++) {
       p = hit[i];
       back = Math.floor(Number(p.coins) || 0) + Math.floor(Number(p.tax) || 0);
-      if (back > 0) { s.coins = roundCoins((Number(s.coins) || 0) + back); refund += back; }
+      if (back > 0) { s.coins = roundCoins((Number(s.coins) || 0) + back); refund += back; noteLegitGain(back); }
       pushTrade('in', back, p.to, peerName(p.to), 'refund', s);   /* 账单记一笔，备注封禁退回 */
     }
     s.pendingTrades = keep.slice(-PENDING_KEEP);
@@ -2735,6 +2806,7 @@ function renderUpdates(){
     var delta = after - before;
     state.coins = after;
     if (delta > 0) state.totalEarned = (Number(state.totalEarned) || 0) + delta;
+    if (delta > 0) noteLegitGain(delta);   /* v0.52 官方补偿 = 合法收入 */
     state.claimedWallets.push(String(item.id));
     wallets.queue.push({
       reason: String(item.reason == null ? '' : item.reason).trim(),
@@ -2746,6 +2818,7 @@ function renderUpdates(){
   function claimWallets() {
     if (!wallets.ready || wallets.busy || !state) return;
     if (state.devMode) return;                    /* 开发者模式：不领、不记、不弹 */
+    if (selfBlacklisted()) return;                /* v0.52 封禁不领官方补偿 */
     var uid = normalizeUid(state.uid || '');
     if (!uid) return;
     if (!Array.isArray(state.claimedWallets)) state.claimedWallets = [];
@@ -2789,6 +2862,7 @@ function renderUpdates(){
     if (body) body.textContent = walletText(wallets.current);
     var mask = $('walletMask');
     if (mask) mask.classList.add('show');
+    triggerVibrate('medium');   /* v0.52 官方发放到账 = 中震 */
   }
   function closeWallet() {
     var mask = $('walletMask');
@@ -3098,8 +3172,8 @@ function renderUpdates(){
   var OFFLINE_NO_STAFF_MULT = 0.2, OFFLINE_NO_STAFF_HOURS = 0.5;
   /* 基础效率：Lv.1 摊位 1%，每级 +1%，封顶 30% */
   function offlineBaseEff() {
-    var e = 0.01 + (state.sell.lv - 1) * 0.01;
-    return e > 0.3 ? 0.3 : e;
+    /* v0.52：0.01 + (摊位-1)*0.01，总上限 50% 交给 offlineEffRaw */
+    return 0.01 + (state.sell.lv - 1) * 0.01;
   }
   /* 含托管加成的效率（不含售货员 ×1.5），最高 50% */
   function offlineEffRaw(up) {
@@ -3115,8 +3189,8 @@ function renderUpdates(){
   function offlineEfficiency() { return offlineEffAt(state.offlineUp); }
   /* 基础时限（小时）：1 小时起，每 10 级摊位 +1，最高 6 */
   function offlineBaseHours() {
-    var h = 1 + Math.floor(state.sell.lv / 10);
-    return h > 6 ? 6 : h;
+    /* v0.52：1 + floor(摊位/10)，总上限 8 小时交给 offlineCapHoursAt */
+    return 1 + Math.floor(state.sell.lv / 10);
   }
   /* 实际时限（小时）：基础 + 托管每级 0.5，最高 8 */
   function offlineCapHoursAt(up) {
@@ -3159,6 +3233,7 @@ function renderUpdates(){
     if (off.gain > 0) {
       state.coins += off.gain;
       state.totalEarned += off.gain;
+      noteLegitGain(off.gain);   /* v0.52 合法渠道报备，避免误判作弊 */
       state.lastTime = Date.now();
       writeSave();
       toast(L('离线收益 +' + fmt(off.gain) + ' 金币', 'Offline earnings +' + fmt(off.gain) + ' coins'), 'good');
@@ -3287,6 +3362,8 @@ function renderUpdates(){
       state.totalEarned += gain;
       state.dayEarned += gain;
       state.daySold += actual;
+      noteLegitGain(gain);          /* v0.52 顾客付款 = 合法收入报备 */
+      triggerVibrate('medium');     /* 顾客付钱 = 中震 */
 
       var speech = speechForAmount(actual, rushMode);
       payEl.textContent = '+' + (gain >= 10 ? fmt(gain) : Math.round(gain * 10) / 10) + '💰';
@@ -3375,6 +3452,7 @@ function renderUpdates(){
     if (state.coins < d.price) { toast(L('金币不够', 'Not enough coins')); return; }
     state.coins -= d.price;
     dd.bought = true; dd.shown = true;
+    triggerVibrate('light');   /* v0.52 购买装饰 = 轻震 */
     toast(L('买了 ' + L(d.nameZh, d.nameEn), 'Bought ' + L(d.nameZh, d.nameEn)), 'good');
     saveSoon(); render(); renderDeco(); renderDecoStore();
   }
@@ -3514,6 +3592,7 @@ function renderUpdates(){
         late = latePortions * effectiveUnitPrice();
         state.stock -= latePortions;
         state.coins += late;
+        noteLegitGain(late);   /* v0.52 提前收摊折算 = 合法收入 */
         state.totalEarned += late;
         state.dayEarned += late;
         state.daySold += latePortions;
@@ -3767,6 +3846,7 @@ function renderUpdates(){
       cachedSaveLoaded = true;
     }
     var s = cachedSave;
+    refreshBanUI();   /* v0.52 首页封禁红标 */
 
     if (s) {
       $('saveInfo').textContent = L(
@@ -3842,14 +3922,14 @@ function renderUpdates(){
   function collectPot(silent) {
     if (state.pot.progress < 1) { if (!silent) toast(L('糖浆还没熬好', 'Syrup is not ready yet')); return false; }
     state.pot.progress = 0; state.board.pending += 1;
-    if (!silent) toast(L('收了一锅糖浆', 'Collected a pot of syrup'));
+    if (!silent) { toast(L('收了一锅糖浆', 'Collected a pot of syrup')); triggerVibrate('light'); }
     saveSoon(); render(); return true;
   }
   function rollBoard(silent) {
     if (state.board.pending <= 0) { if (!silent) toast(L('没有糖浆，先去熬糖', 'No syrup — boil some first')); return false; }
     var n = Math.min(state.board.pending, boardOut());
     state.board.pending -= n; state.stock += n;
-    if (!silent) toast(L('擀出 ' + n + ' 份米皮糖', 'Rolled ' + n + ' portion' + (n>1?'s':'')));
+    if (!silent) { toast(L('擀出 ' + n + ' 份米皮糖', 'Rolled ' + n + ' portion' + (n>1?'s':''))); triggerVibrate('light'); }
     saveSoon(); render(); return true;
   }
   function upgradePot() {
@@ -3918,6 +3998,7 @@ function renderUpdates(){
     var c = FLAVOR_COST[i];
     if (state.coins < c) { toast(L('金币不够', 'Not enough coins')); return; }
     state.coins -= c; state.flavors[i] = true;
+    triggerVibrate('light');   /* v0.52 解锁口味 = 轻震 */
     toast(L('解锁口味：', 'Unlocked flavor: ') + flavorName(i));
     saveSoon(); render();
   }
@@ -4329,6 +4410,7 @@ function renderUpdates(){
         cachedSave = state;
       }
       state.coins += delta;
+      noteLegitGain(delta);   /* v0.52 互通镜像金币 = 合法收入 */
       state.totalEarned = (state.totalEarned || 0) + delta;
       cachedSave = state;
       writeSave();
@@ -4445,7 +4527,7 @@ function renderUpdates(){
       refreshHomeInfo();
       claimWallets();                     /* v0.43 进游戏后领一次后台发放 */
     }
-    $('btnStart').onclick = function () {
+    function startGameFlow() {
       if (!cachedSaveLoaded) {
         cachedSave = readSave();
         cachedSaveLoaded = true;
@@ -4457,19 +4539,45 @@ function renderUpdates(){
       if (off.gain > 0) { openOfflineModal(off); return; }
       decayRush(off.away);
       enterGame(off.away);
+    }
+    $('btnStart').onclick = function () {
+      /* v0.52 封禁最高优先级：先弹红黑警告，确认后才走离线收益 / 公告流程 */
+      if (isBannedNow() && !banAcked) { banPendingPlay = true; openBanModal(); return; }
+      startGameFlow();
+    };
+    $('banOk').onclick = function () {
+      closeBanModal();
+      banAcked = true;
+      triggerVibrate('medium');
+      if (banPendingNotice) {
+        var nm2 = banPendingNotice; banPendingNotice = '';
+        setTimeout(function () { openNoticeModal(nm2); }, 350);
+        return;
+      }
+      if (banPendingPlay) { banPendingPlay = false; startGameFlow(); }
     };
     /* 离线弹窗：收下金币 → 入账保存 → 正常开局 */
     $('offlineOk').onclick = function () {
       $('offlineMask').classList.remove('show');
+      triggerVibrate('medium');   /* v0.52 关闭离线弹窗 = 中震 */
       if (state && pendingOffline > 0) {
         state.coins += pendingOffline;
         state.totalEarned += pendingOffline;
+        noteLegitGain(pendingOffline);
       }
       var awaySec = pendingOfflineAway;
       decayRush(awaySec);
       pendingOffline = 0; pendingOfflineAway = 0;
-      if (state) { state.lastTime = Date.now(); writeSave(); }
-      enterGame(awaySec);   /* 领完离线收益 = 重新开张，营业时钟从现在开始 */
+      if (state) {
+        state.lastTime = Date.now();
+        /* v0.52 Bug 修复：领金币即重新开张，强制重置营业时钟，防止一进店就弹打烊 */
+        state.dayStart = Date.now();
+        state.dayClosedFrom = 0;
+        state.sell.timer = 0;
+        lastTick = 0;
+        writeSave();
+      }
+      enterGame(awaySec);
     };
     $('btnRules').onclick = function () { showScreen('rulesScreen'); };
     $('btnUpdates').onclick = function () { showScreen('updatesScreen'); };
@@ -4648,6 +4756,7 @@ function renderUpdates(){
     $('btnVipUp').onclick = function () {
       ensureState();
       if (state.devMode) { toast(L('开发者模式下无法购买 VIP', 'Cannot buy VIP in Dev Mode')); return; }
+      if (blockedAction()) return;   /* v0.52 封禁拦截 */
       if (vipActive()) { toast(tradeErr('isvip')); return; }
       if (state.coins < VIP_COST) {
         toast(L('金币不足，还差 ' + fmt(VIP_COST - Math.floor(state.coins)) + ' 枚', 'Not enough coins — ' + fmt(VIP_COST - Math.floor(state.coins)) + ' short'));
@@ -4739,6 +4848,7 @@ function renderUpdates(){
       var oxyGoldExchanged = parseInt(localStorage.getItem('oxy_gold_exchanged') || '0');
       var canEx = Math.floor(oxyBalance / 50);
       if (canEx <= 0) { toast(L('暂无可兑换', 'Nothing to redeem')); return; }
+      noteLegitGain(canEx);
       oxyBalance -= canEx * 50;
       oxyGoldExchanged += canEx;
       localStorage.setItem('oxy_saved_balance', String(oxyBalance));
@@ -4761,6 +4871,7 @@ function renderUpdates(){
       var canEx = Math.floor((jwdbTotal - jwdbRed) / 1000);
       if (canEx <= 0) { toast(L('暂无可兑换', 'Nothing to redeem')); return; }
       /* 只记录已兑换分数，不削总总分，避免与「酱味大鸡」重复兑换 */
+      noteLegitGain(canEx);
       jwdbRed += canEx * 1000;
       localStorage.setItem('jwdb_redeemed', String(jwdbRed));
       jwdbGold += canEx;
@@ -4795,6 +4906,7 @@ function renderUpdates(){
       localStorage.setItem('mitang_eggduck_total_score', String(newEggTotal));
 
       var oldMpt = parseInt(state.coins) || 0;
+      noteLegitGain(eggCanEx);
       state.coins = oldMpt + eggCanEx;
       state.totalEarned = (state.totalEarned || 0) + eggCanEx;
       cachedSave = state;
@@ -4861,6 +4973,8 @@ function renderUpdates(){
     var mask = document.getElementById('noticeMask');
     var body = document.getElementById('noticeBody');
     if (!mask || !body) { console.warn('公告弹窗节点缺失'); return; }
+    if (banHolding()) { banPendingNotice = mode || ''; return; }   /* v0.52 封禁警告优先 */
+    triggerVibrate('heavy');   /* 官方公告 = 重震 */
     var m = (mode === 'directed' || mode === 'all') ? mode : (cloudNotice.mode || 'all');
     cloudNotice.mode = m;
     var t = document.getElementById('noticeTitle');
@@ -5018,7 +5132,7 @@ function renderUpdates(){
   var HORN_POLL_MS = 15000;        /* 每 15 秒拉一次 */
   var HORN_TIMEOUT_MS = 3000;      /* 拉取超时：超时直接放弃，绝不卡游戏 */
   var HORN_SEND_TIMEOUT_MS = 8000;
-  var HORN_ANIM_MS = 10000;        /* 与 CSS 动画时长一致，到点必删节点 */
+  var HORN_ANIM_MS = 8000;         /* v0.52 与 CSS 动画一致：8 秒播完必删节点 */
   var HORN_QUEUE_MAX = 3;          /* 队列上限，防止一次性刷满屏 */
   var HORN_ID_KEY = 'mpt_last_shout_id';
   var HORN_SEEN_KEY = 'mpt_seen_shouts';
@@ -5104,9 +5218,13 @@ function renderUpdates(){
     return out;
   }
 
-  /* 震动：老浏览器 / 桌面无震动即静默 */
+  /* v0.52 震动分级：light 15ms / medium 40ms / heavy 60-50-80；80ms 防抖，老浏览器与桌面静默 */
+  var vibrateLastAt = 0;
   function triggerVibrate(kind) {
-    var ms = kind === 'heavy' ? 40 : (kind === 'medium' ? 20 : 12);
+    var ms = kind === 'heavy' ? [60, 50, 80] : (kind === 'medium' ? 40 : 15);
+    var now = Date.now();
+    if (now - vibrateLastAt < 80) return;
+    vibrateLastAt = now;
     try { if (navigator && typeof navigator.vibrate === 'function') navigator.vibrate(ms); } catch (e) {}
   }
 
@@ -5287,6 +5405,7 @@ function renderUpdates(){
   }
   function openHornModal() {
     var st = ensureState();
+    if (blockedAction()) return;   /* v0.52 封禁禁止发喇叭 */
     var inp = $('hornInput');
     if (inp) inp.value = '';
     hornQtySel = 1;
@@ -5304,6 +5423,7 @@ function renderUpdates(){
 
   function sendHorn() {
     if (hornSending) return;
+    if (blockedAction()) return;   /* v0.52 封禁禁止发喇叭 */
     var st = ensureState();
     var inp = $('hornInput');
     var text = inp ? String(inp.value || '').replace(/\s+/g, ' ').trim() : '';
@@ -5390,12 +5510,209 @@ function renderUpdates(){
       }, function () {
         refunded += refunds[i];   /* 失败的那条按均摊价退回，绝不白扣 */
         st.coins += refunds[i];
+        noteLegitGain(refunds[i]);
         writeSave();
         afterOne(i);
       });
     }
 
     sendOne(0);
+  }
+
+  /* =========================================================
+     v0.52 安全中心：UID 防篡改 / 封禁 / 名册注册 / 金币监控
+     ========================================================= */
+  var CLOUD_API = 'https://broadcast.us.ci';       /* 统一云服务地址 */
+  var REG_KEY = 'mpt_registered_uid';
+  var CHEAT_REPORT_GAP = 5000;                     /* 同会话最短上报间隔，防刷请求 */
+  var banAcked = false;                            /* 本次会话是否已确认封禁弹窗 */
+  var banShownOnce = false;
+  var banPendingPlay = false;
+  var banPendingNotice = '';
+  var lastCheatReportAt = 0;
+
+  function activeSave() {
+    if (state) return state;
+    if (!cachedSaveLoaded) { cachedSave = readSave(); cachedSaveLoaded = true; }
+    return cachedSave;
+  }
+
+  /* ---- VIP 购买凭证：盐值双哈希。只改缓存 UID 没有凭证 → 判定越权 ---- */
+  function vipSign(uid) {
+    var raw = 'mpt.vip|' + String(uid || '').toUpperCase() + '|7c1f9a3e';
+    var h1 = 0x811c9dc5, h2 = 0x1000193, i, c;
+    for (i = 0; i < raw.length; i++) {
+      c = raw.charCodeAt(i);
+      h1 = ((h1 ^ c) * 16777619) >>> 0;
+      h2 = ((h2 + c * (i + 7)) * 31) >>> 0;
+    }
+    return ('0000000' + h1.toString(16)).slice(-8) + ('0000000' + h2.toString(16)).slice(-8);
+  }
+  function vipReceiptValid(s) {
+    if (!s || s.isVipPurchased !== true) return false;
+    var r = String(s.vipReceipt || '');
+    return r !== '' && r === vipSign(s.uid);
+  }
+
+  function flagCheater(s, reason) {
+    if (!s || s.devMode) return;                   /* 测试模式不动正式数据 */
+    s.isCheater = true;
+    s.cheatReason = String(reason || '').slice(0, 60);
+  }
+
+  /* 静默上报：不弹窗、不打断游戏，网络失败就算了 */
+  function reportCheat(reason) {
+    if (typeof fetch !== 'function') return;
+    var s = activeSave();
+    if (s && s.devMode) return;
+    var now = Date.now();
+    if (now - lastCheatReportAt < CHEAT_REPORT_GAP) return;
+    lastCheatReportAt = now;
+    try {
+      fetchTimeout(CLOUD_API + '/report-cheat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: (s && s.uid) || '',
+          name: String(playerName || '').slice(0, 20),
+          reason: String(reason || '').slice(0, 60),
+          ts: now
+        })
+      }, 5000).then(function () {}, function () {});
+    } catch (e) {}
+  }
+
+  /* 启动校验：格式 → VIP 凭证 → 越权则静默重置为普通 ID 并标记作弊 */
+  var UID_PLAIN_RE = /^MPT-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+  var UID_VIP_RE = /^VIP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
+  function verifyUidIntegrity(save, legacy) {
+    if (!save) return false;
+    var raw = String(save.uid == null ? '' : save.uid).trim().toUpperCase();
+    var plainOk = UID_PLAIN_RE.test(raw);
+    var vipOk = UID_VIP_RE.test(raw);
+    if (!plainOk && !vipOk) {
+      save.uid = genUid();
+      save.isVipPurchased = false;
+      save.vipReceipt = '';
+      flagCheater(save, 'UID 格式非法');
+      reportCheat('恶意篡改缓存/越权变VIP');
+      return false;
+    }
+    if (!vipOk) return true;
+    var legit = vipReceiptValid(save);
+    /* v0.51 及更早的存档没有凭证字段：真实升级过的老玩家自动补发，避免误封 */
+    if (!legit && legacy) {
+      save.isVipPurchased = true;
+      save.vipReceipt = vipSign(raw);
+      legit = true;
+    }
+    if (!legit) {
+      save.uid = genUid();
+      save.isVipPurchased = false;
+      save.vipReceipt = '';
+      flagCheater(save, '越权 VIP');
+      reportCheat('恶意篡改缓存/越权变VIP');
+      return false;
+    }
+    return true;
+  }
+
+  /* ---- 名册注册：本机 UID 变了才上报一次 ---- */
+  function registerUid() {
+    if (typeof fetch !== 'function') return;
+    var s = activeSave();
+    if (!s || !s.uid || s.devMode || s.isCheater) return;
+    try { if (localStorage.getItem(REG_KEY) === s.uid) return; } catch (e) {}
+    var uid = s.uid;
+    try {
+      fetchTimeout(CLOUD_API + '/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: uid, name: String(playerName || '').slice(0, 20), ts: Date.now() })
+      }, 5000).then(function (r) {
+        if (r && r.ok) { try { localStorage.setItem(REG_KEY, uid); } catch (e) {} }
+      }, function () {});
+    } catch (e) {}
+  }
+
+  /* ---- 封禁：黑名单 ∪ 篡改标记 ---- */
+  function banReasonOf(s) {
+    if (!s) return '';
+    if (s.isCheater === true) {
+      return L('检测到存档被篡改（身份或金币异常），账号已按封禁处理。',
+               'Save tampering detected (identity or coins). This account is treated as banned.');
+    }
+    var u = normalizeUid(s.uid || '');
+    if (blacklist.map && blacklist.map[u]) {
+      return (blacklist.reason && blacklist.reason[u]) || L('违反游戏规则', 'Rule violation');
+    }
+    return '';
+  }
+  function isBannedNow() {
+    var s = activeSave();
+    if (!s) return false;
+    if (s.isCheater === true) return true;
+    return !!(blacklist.map && blacklist.map[normalizeUid(s.uid || '')]);
+  }
+  function banHolding() {
+    var m = $('banMask');
+    if (m && m.classList.contains('show')) return true;
+    return isBannedNow() && !banAcked;
+  }
+  function openBanModal() {
+    var m = $('banMask');
+    if (!m) return;
+    var r = $('banReason');
+    if (r) r.textContent = banReasonOf(activeSave()) || L('违反游戏规则', 'Rule violation');
+    var t = $('banTitle');
+    if (t) t.textContent = L('⚠️ 账号已被封禁', '⚠️ Account Banned');
+    m.classList.add('show');
+    banShownOnce = true;
+    triggerVibrate('heavy');   /* 封禁警告 = 重震 */
+  }
+  function closeBanModal() {
+    var m = $('banMask');
+    if (m) m.classList.remove('show');
+  }
+  function refreshBanUI() {
+    var tag = $('banTag');
+    if (!tag) return;
+    if (isBannedNow()) tag.classList.add('show');
+    else tag.classList.remove('show');
+  }
+  /* 受限操作统一拦截：重震 + “账号受限” */
+  function blockedAction() {
+    if (!isBannedNow()) return false;
+    triggerVibrate('heavy');
+    toast(L('账号受限：该操作已被禁止', 'Account restricted — this action is blocked'), 'bad', 2600);
+    return true;
+  }
+
+  /* ---- 金币监控：每 3 秒比对；合法渠道先报备额度，避免误判 ---- */
+  var coinWatch = { prev: -1, allow: 0, timer: null };
+  function noteLegitGain(n) {
+    var v = Math.round(Number(n) || 0);
+    if (v > 0) coinWatch.allow += v;
+  }
+  function coinWatchTick() {
+    if (!state) return;
+    if (state.devMode) { coinWatch.prev = Number(state.coins) || 0; coinWatch.allow = 0; return; }
+    var c = Number(state.coins) || 0;
+    if (coinWatch.prev < 0) { coinWatch.prev = c; coinWatch.allow = 0; return; }
+    var d = c - coinWatch.prev;
+    coinWatch.prev = c;
+    var allow = coinWatch.allow;
+    coinWatch.allow = 0;
+    if (d > 100 && d > allow + 1) {
+      flagCheater(state, '金币异常瞬间增加');
+      reportCheat('金币异常瞬间增加');
+      writeSave();
+      refreshBanUI();
+    }
+  }
+  function startCoinWatch() {
+    if (coinWatch.timer) return;
+    coinWatch.timer = setInterval(coinWatchTick, 3000);
   }
 
   function init() {
@@ -5412,6 +5729,9 @@ function renderUpdates(){
     showScreen('home');
     loadBlacklist();
     loadWallets();                        /* v0.43 后台发钱 */
+    registerUid();                        /* v0.52 名册注册（UID 变化才报一次） */
+    startCoinWatch();                     /* v0.52 每 3 秒金币异常监控 */
+    refreshBanUI();
     setTimeout(checkCloudConfig, 1000);   /* 等 DOM 渲染完再拉公告 */
     startHornPoll();                      /* v0.47 全服喇叭：先 2.5s 后拉一次，再每 15s 一次 */
     if (!playerName) setTimeout(function () { openNameModal('first'); }, 400);
