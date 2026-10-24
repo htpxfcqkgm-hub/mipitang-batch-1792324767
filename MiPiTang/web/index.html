@@ -1,1486 +1,2329 @@
 <!DOCTYPE html>
-<!-- saved from url=(0038)https://eggy-duckie-balloon.pages.dev/ -->
-<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- saved from url=(0048)https://oxygen-afraid-youre-too-tired.pages.dev/ -->
+<html lang="zh"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>蛋仔鸭鸭气球</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>氧气 · 怕你太累了</title>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{width:100%;height:100%;overflow:hidden;
-    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
-    background:#79c9ff;}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none;}
+  canvas{display:block;width:100vw;height:100vh;}
 
-  #game{position:fixed;top:0;left:0;width:100%;height:100%;display:block;touch-action:none;z-index:1;}
-
-  #ui{position:fixed;top:0;left:0;width:100%;height:100%;
-      display:flex;align-items:center;justify-content:center;
-      pointer-events:none;z-index:10;}
-
-  .screen{
-    background:rgba(255,255,255,.95);
-    border-radius:28px;
-    padding:28px 30px 24px;
-    text-align:center;
-    box-shadow:0 22px 60px rgba(80,50,110,.32), inset 0 0 0 1px rgba(255,255,255,.85);
-    pointer-events:auto;
-    width:min(88vw,420px);
-    animation:pop .32s cubic-bezier(.2,1.5,.5,1);
-    position:relative;
-  }
-  @keyframes pop{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
-  .hidden{display:none !important;}
-
-  h1{font-size:24px;color:#3d2b4f;letter-spacing:.5px;margin-bottom:6px;line-height:1.35;}
-  h2{font-size:30px;color:#3d2b4f;margin-bottom:10px;}
-  .sub{color:#9a8aaa;font-size:13px;margin-bottom:14px;letter-spacing:1px;}
-
-
-  .score-line{font-size:16px;color:#7a6a8a;margin:6px 0;}
-  .score-line span{font-size:33px;font-weight:800;color:#ff5f8f;vertical-align:-3px;margin-left:6px;}
-  .best-line{font-size:14px;color:#a89ab8;margin-top:6px;}
-  .best-line span{color:#ffb03a;font-weight:700;}
-
-  button{
-    padding:14px 48px;font-size:18px;font-weight:800;letter-spacing:1px;
-    color:#fff;background:linear-gradient(135deg,#ff9dc0,#ff5f8f 60%,#ff4a7d);
-    border:none;border-radius:999px;cursor:pointer;font-family:inherit;
-    box-shadow:0 10px 24px rgba(255,95,143,.42), inset 0 -3px 0 rgba(0,0,0,.08);
-    transition:transform .14s ease;
-    margin-top:20px;
-  }
-  button:hover{transform:translateY(-2px) scale(1.03);}
-  button:active{transform:scale(.96);}
-  button.gold{background:linear-gradient(135deg,#ffd76b,#ffb03a 60%,#ff9500);
-    box-shadow:0 10px 24px rgba(255,176,58,.45), inset 0 -3px 0 rgba(0,0,0,.08);}
-
-  /* 语言切换按钮 */
+  /* ====== 语言切换按钮 ====== */
   #langBtn{
-    position: absolute;
-    top: 12px;
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
     right: 12px;
-    width: 44px;
-    height: 44px;
+    z-index: 600;
+    width: 48px; height: 48px;
     border-radius: 50%;
-    border: 2px solid #ff9dc0;
-    background: linear-gradient(135deg, #ff9dc0, #ff5f8f);
-    color: #fff;
-    font-size: 20px;
+    border: 2px solid rgba(120,240,255,0.65);
+    background: rgba(5,30,50,0.85);
+    color: #a0f0ff;
+    font-size: 23px;
     line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     padding: 0;
-    z-index: 15;
-    box-shadow: 0 4px 14px rgba(255,95,143,.4);
+    box-shadow: 0 0 24px rgba(120,240,255,0.45), 0 0 0 4px rgba(120,240,255,0.08);
     -webkit-tap-highlight-color: transparent;
     transition: transform .12s ease, box-shadow .15s;
-    font-family: inherit;
-    letter-spacing: 0;
-    margin: 0;
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   }
-  #langBtn:hover {
-    transform: scale(1.08);
-    box-shadow: 0 6px 20px rgba(255,95,143,.55);
-  }
-  #langBtn:active {
-    transform: scale(.92);
-  }
+  #langBtn:hover{ box-shadow: 0 0 30px rgba(120,240,255,0.75), 0 0 0 4px rgba(120,240,255,0.14); }
+  #langBtn:active{ transform: scale(.9); }
 
-  /* 模式选择 */
-  .mode-row{display:flex;gap:12px;margin-top:22px;}
-  .mode-btn{
-    flex:1;padding:18px 10px 16px;border-radius:20px;border:none;cursor:pointer;
-    font-family:inherit;text-align:center;color:#fff;position:relative;
-    transition:transform .15s ease;
-    margin:0;
-  }
-  .mode-btn:hover{transform:translateY(-3px) scale(1.03);}
-  .mode-btn:active{transform:scale(.96);}
-  .mode-btn .emoji{font-size:30px;display:block;line-height:1;margin-bottom:6px;}
-  .mode-btn .mname{font-size:17px;font-weight:800;letter-spacing:1px;display:block;}
-  .mode-btn .mdesc{font-size:11px;opacity:.9;display:block;margin-top:5px;line-height:1.45;}
-
-  .easy{background:linear-gradient(160deg,#7ee0a3,#3fc47c 65%,#2ea566);
-    box-shadow:0 10px 24px rgba(63,196,124,.42), inset 0 -3px 0 rgba(0,0,0,.08);}
-  .hard{background:linear-gradient(160deg,#ff9b8a,#ff5f6d 60%,#ee3b58);
-    box-shadow:0 10px 24px rgba(255,95,109,.45), inset 0 -3px 0 rgba(0,0,0,.08);}
-
-  .btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px;}
-  .btn-row button{margin-top:0;padding:12px 26px;font-size:15px;}
-
-
-  .ui-icon {
-    display: inline-block;
-    vertical-align: middle;
-    margin: -3px 5px;
-    flex-shrink: 0;
-  }
-  .mode-icon {
-    display: block;
-    margin: 0 auto 5px auto;
-  }
-  .mode-tag{
-    position:absolute;top:14px;right:16px;
-    font-size:11px;font-weight:800;letter-spacing:1px;
-    padding:5px 12px;border-radius:999px;
-    background:rgba(255,255,255,.7);
-    color:#5f4d72;
-  }
-
-  /* 弹窗遮罩 */
-  .eggModalMask {
+  /* ====== 弹窗（氧气风格）====== */
+  .oxyModalMask {
     position: fixed; inset: 0;
-    background: rgba(80,50,110,.65);
-    display: none; align-items: center; justify-content: center;
-    z-index: 50; padding: 20px;
+    background: rgba(0,10,25,0.78);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 20px;
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
-  .eggModalMask.show { display: flex; }
-  .eggModal {
-    position: relative;
-    background: rgba(255,255,255,.97);
-    border-radius: 22px; padding: 22px 20px 18px;
-    text-align: center; box-shadow: 0 22px 60px rgba(80,50,110,.35);
-    width: min(90vw, 420px); max-height: 90vh; overflow-y: auto;
+  .oxyModalMask.show { display: flex; }
+
+  .oxyModal {
+    width: 100%;
+    max-width: 440px;
+    background: linear-gradient(180deg, #0a2a45 0%, #06172a 100%);
+    border: 2px solid rgba(120,240,255,0.45);
+    border-radius: 20px;
+    padding: 22px 20px 18px;
+    color: #dffaff;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 50px rgba(120,240,255,0.18);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
-  .eggModal h2 { font-size: 22px; color: #3d2b4f; margin: 0 0 4px; }
-  .eggModal .sub { font-size: 13px; color: #9a8aaa; margin: 0 0 10px; }
-  .eggModal .dataBox {
-    background: rgba(255,190,210,.12); border-radius: 14px;
-    padding: 10px 14px; margin-bottom: 8px; text-align: left;
-    font-size: 13px; line-height: 1.7; color: #5f4d72;
+  .oxyModal::-webkit-scrollbar { width: 6px; }
+  .oxyModal::-webkit-scrollbar-thumb { background: rgba(120,240,255,0.3); border-radius: 3px; }
+
+  .oxyModal h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    color: #a0f0ff;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(120,240,255,0.5);
   }
-  .eggModal .dataBox b { color: #ff5f8f; font-weight: 800; }
-  .eggModal .dataBox .val { font-weight: 800; color: #ff5f8f; }
-  .eggModal .hint { font-size: 12px; color: #a89ab8; margin: 6px 0; }
-  .eggModal .btnRow { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
-  .eggModal button {
-    padding: 10px 16px; font-size: 13px; font-weight: 800;
-    border: none; border-radius: 999px; cursor: pointer;
-    font-family: inherit; transition: transform .08s;
+  .oxyModal p {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: rgba(160,220,255,0.7);
+    font-weight: 600;
   }
-  .eggModal button:active { transform: scale(.96); }
-  .eggModal button.pink {
-    background: linear-gradient(135deg,#ff9dc0,#ff5f8f);
-    color: #fff; box-shadow: 0 4px 12px rgba(255,95,143,.35);
+
+  .oxyModal textarea {
+    width: 100%;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(120,240,255,0.35);
+    background: rgba(5,25,45,0.7);
+    color: #a0f0ff;
+    outline: none;
+    resize: none;
+    word-break: break-all;
+    height: 120px;
+    box-sizing: border-box;
   }
-  .eggModal button.purple {
-    background: linear-gradient(135deg,#c9b6e4,#a48ec7);
-    color: #fff; box-shadow: 0 4px 12px rgba(164,142,199,.35);
+
+  .oxyModal .codeBox {
+    width: 100%;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(120,240,255,0.35);
+    background: rgba(5,25,45,0.7);
+    color: #a0f0ff;
+    text-align: left;
+    max-height: 130px;
+    overflow-y: auto;
+    word-break: break-all;
+    user-select: text;
+    -webkit-user-select: text;
+    box-sizing: border-box;
   }
-  .eggModal button.gray {
-    background: rgba(180,170,190,.2); color: #7a6a8a;
+
+  .oxyModal .modalBtns {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
   }
-  .eggModal button:disabled { opacity: .45; cursor: not-allowed; }
+
+  .oxyModal button {
+    flex: 1 1 auto;
+    min-width: 88px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 14px;
+    border: 1.5px solid rgba(120,240,255,0.45);
+    border-radius: 10px;
+    padding: 11px 14px;
+    background: rgba(120,240,255,0.1);
+    color: #a0f0ff;
+    cursor: pointer;
+    transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .oxyModal button:hover {
+    background: rgba(120,240,255,0.22);
+    border-color: #a0f0ff;
+  }
+  .oxyModal button:active {
+    transform: scale(0.97);
+  }
+  .oxyModal button.primary {
+    background: linear-gradient(180deg, rgba(120,240,255,0.42), rgba(80,180,255,0.28));
+    border-color: #a0f0ff;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(120,240,255,0.3);
+  }
+  .oxyModal button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .oxyModal .linkRow {
+    display: flex;
+    justify-content: space-between;
+    padding: 11px 14px;
+    background: rgba(5,25,45,0.55);
+    border: 1px solid rgba(120,240,255,0.15);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .oxyModal .linkRow span {
+    color: #a0f0ff;
+    font-weight: 900;
+  }
+
+  .oxyModal .hint {
+    font-size: 12px;
+    color: rgba(160,220,255,0.6);
+    margin-top: 8px;
+    line-height: 1.6;
+    text-align: left;
+  }
+  .oxyModal .ok { color: #7fffd0; font-weight: 800; }
+  .oxyModal .bad { color: #ff8a8a; font-weight: 800; }
+
+  #oxyToast {
+    position: fixed;
+    left: 50%;
+    top: calc(env(safe-area-inset-top, 0) + 80px);
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(5,25,45,0.92);
+    border: 1.5px solid rgba(120,240,255,0.5);
+    color: #a0f0ff;
+    font-family: system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 300;
+    max-width: 90vw;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(120,240,255,0.3);
+  }
+  #oxyToast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 </style>
 </head>
 <body>
+<canvas id="game" width="1358" height="684"></canvas>
 
-<canvas id="game" width="1358" height="684" style="width: 1358px; height: 684px;"></canvas>
+<button id="langBtn" title="Switch to English">🇨🇳</button>
 
-<div id="ui">
-  <!-- 开始 -->
-  <div id="startScreen" class="screen">
-    <button id="langBtn" title="Switch to English">🇨🇳</button>
-    <h1>
-      <svg class="ui-icon" viewBox="0 0 28 28" width="26" height="26"><ellipse cx="14" cy="15" rx="10" ry="12" fill="#FFD93D" stroke="#F0A500" stroke-width="1.2"></ellipse><ellipse cx="11" cy="12" rx="3.5" ry="4.5" fill="rgba(255,255,255,0.55)"></ellipse></svg>
-      <span data-zh="蛋仔鸭鸭气球" data-en="Eggy Duckie Balloon">蛋仔鸭鸭气球</span>
-      <svg class="ui-icon" viewBox="0 0 28 28" width="26" height="26"><circle cx="14" cy="14" r="10" fill="#FFB03A"></circle><circle cx="11" cy="12" r="2.8" fill="#2a2233"></circle><circle cx="17" cy="12" r="2.8" fill="#2a2233"></circle><circle cx="10" cy="11" r="1.1" fill="#fff"></circle><circle cx="16" cy="11" r="1.1" fill="#fff"></circle><ellipse cx="14" cy="17" rx="4.5" ry="2.8" fill="#FF6B9D"></ellipse></svg>
-    </h1>
-    <p class="sub" data-zh="— 充气 · 漂移 · 集星 —" data-en="— Inflate · Drift · Collect —">— 充气 · 漂移 · 集星 —</p>
-    <button id="startBtn" data-zh="开始游戏" data-en="Start Game">开始游戏</button>
-    <div class="btn-row" style="margin-top:12px">
-      <button id="rulesBtn" style="background:linear-gradient(135deg,#6BCB77,#4CAF50 60%,#388E3C);box-shadow:0 8px 20px rgba(76,175,80,.35);font-size:15px;padding:12px 32px;color:#fff;font-weight:800;letter-spacing:1px;border:none;border-radius:999px;cursor:pointer;font-family:inherit;" data-zh="规则" data-en="Rules">规则</button>
-      <button id="updateLogBtn" style="background:linear-gradient(135deg,#ffd76b,#ffb03a 60%,#ff9500);box-shadow:0 8px 20px rgba(255,176,58,.35);font-size:15px;padding:12px 32px;color:#fff;font-weight:800;letter-spacing:1px;border:none;border-radius:999px;cursor:pointer;font-family:inherit;" data-zh="更新日志" data-en="Changelog">更新日志</button>
+<!-- ===== 存档迁移弹窗 ===== -->
+<div class="oxyModalMask" id="transferMask">
+  <div class="oxyModal">
+    <h2 data-zh="存档迁移" data-en="Save Transfer">存档迁移</h2>
+    <p id="transferDesc" data-zh="把存档变成一段密文，在另一台设备导入" data-en="Turn your save into a cipher, then import it on another device">把存档变成一段密文，在另一台设备导入</p>
+
+    <div id="transferChoice">
+      <div class="hint" data-zh="&lt;b style=&#39;color:#a0f0ff&#39;&gt;导出&lt;/b&gt;：生成一段密文，复制到另一台设备。&lt;br&gt;&lt;b style=&#39;color:#a0f0ff&#39;&gt;导入&lt;/b&gt;：粘贴另一台设备的密文，覆盖本机进度。" data-en="&lt;b style=&#39;color:#a0f0ff&#39;&gt;Export&lt;/b&gt;: generate a cipher and copy it to another device.&lt;br&gt;&lt;b style=&#39;color:#a0f0ff&#39;&gt;Import&lt;/b&gt;: paste a cipher from another device to overwrite this one."><b style="color:#a0f0ff">导出</b>：生成一段密文，复制到另一台设备。<br><b style="color:#a0f0ff">导入</b>：粘贴另一台设备的密文，覆盖本机进度。</div>
     </div>
 
-  </div>
-
-  <!-- 模式选择 -->
-  <div id="modeScreen" class="screen hidden" style="position:relative;">
-    <button id="modeBackBtn" style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.75);border:none;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:800;color:#5f4d72;cursor:pointer;font-family:inherit;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,0.1);" data-zh="← 返回" data-en="← Back">← 返回</button>
-    <h2 data-zh="选择模式" data-en="Select Mode">选择模式</h2>
-    <p class="sub" data-zh="手感不一样哦～" data-en="Different feel, your call~">手感不一样哦～</p>
-    <div class="mode-row">
-      <button class="mode-btn easy" data-mode="easy">
-        <span class="mode-icon"><svg viewBox="0 0 30 30" width="30" height="30"><circle cx="15" cy="17" r="8" fill="#7EE0A3" stroke="#3FC47C" stroke-width="1"></circle><line x1="15" y1="25" x2="15" y2="29" stroke="#3FC47C" stroke-width="1.5"></line><circle cx="12" cy="14" r="2.2" fill="#FFF"></circle><circle cx="18" cy="14" r="2.2" fill="#FFF"></circle><circle cx="12" cy="14" r="1" fill="#3FC47C"></circle><circle cx="18" cy="14" r="1" fill="#3FC47C"></circle></svg></span>
-        <span class="mname" data-zh="简单模式" data-en="Easy Mode">简单模式</span>
-        <span class="mdesc" data-zh="障碍更慢更少&lt;br&gt;集 8 颗星获胜" data-en="Slower, fewer obstacles&lt;br&gt;Collect 8 stars to win">障碍更慢更少<br>集 8 颗星获胜</span>
-      </button>
-      <button class="mode-btn hard" data-mode="hard">
-        <span class="mode-icon"><svg viewBox="0 0 30 30" width="30" height="30"><path d="M15 1.5 C15 1.5 7.5 11 7.5 17.5 C7.5 22.2 11.3 26 15 26 C18.7 26 22.5 22.2 22.5 17.5 C22.5 11 15 1.5 15 1.5Z" fill="#FF9B8A" stroke="#EE3B58" stroke-width="1"></path><path d="M15 9 C15 9 12 14 12 17.5 C12 19.7 13.3 21.5 15 21.5 C16.7 21.5 18 19.7 18 17.5 C18 14 15 9 15 9Z" fill="#FFD93D" opacity="0.8"></path></svg></span>
-        <span class="mname" data-zh="困难模式" data-en="Hard Mode">困难模式</span>
-        <span class="mdesc" data-zh="原版难度，气球持续漏气&lt;br&gt;必须不断充气才不掉下去&lt;br&gt;掉出屏幕底部即死亡！&lt;br&gt;集 12 颗星获胜" data-en="Original difficulty — balloon keeps leaking&lt;br&gt;Keep inflating or you&#39;ll fall&lt;br&gt;Fall off the bottom = death!&lt;br&gt;Collect 12 stars to win">原版难度，气球持续漏气<br>必须不断充气才不掉下去<br>掉出屏幕底部即死亡！<br>集 12 颗星获胜</span>
-      </button>
+    <div id="transferExport" style="display:none">
+      <div class="codeBox" id="exportCode"></div>
+      <div class="hint" id="exportMeta" style="margin-top:8px"></div>
     </div>
-  </div>
 
-  <!-- 胜利 -->
-  <div id="winScreen" class="screen hidden">
-    <span class="mode-tag" id="winModeTag">简单</span>
-    <h2 data-zh="✦ 胜利！" data-en="✦ Victory!">✦ 胜利！</h2>
-    <p class="sub" data-zh="蛋仔鸭鸭安全抵达啦" data-en="Eggy Duckie arrived safely!">蛋仔鸭鸭安全抵达啦</p>
-    <p class="score-line"><span data-zh="本局得分" data-en="Score">本局得分</span><span id="winScore">0</span></p>
-    <p class="best-line" data-zh="最高分 &lt;span id=&#39;winBest&#39;&gt;0&lt;/span&gt;" data-en="Best &lt;span id=&#39;winBest&#39;&gt;0&lt;/span&gt;">最高分 <span id="winBest">0</span></p>
-    <div class="btn-row">
-      <button id="winRetryBtn" class="gold" data-zh="再来一次" data-en="Play Again">再来一次</button>
-      <button id="winMenuBtn" style="background:linear-gradient(135deg,#c9b6e4,#a48ec7);box-shadow:0 10px 24px rgba(164,142,199,.4), inset 0 -3px 0 rgba(0,0,0,.08);" data-zh="换个模式" data-en="Change Mode">换个模式</button>
+    <div id="transferImport" style="display:none">
+      <textarea id="importCode" placeholder="把密文粘贴到这里…" spellcheck="false"></textarea>
+      <div class="hint" id="importStatus" style="margin-top:8px">等待粘贴…</div>
     </div>
-  </div>
 
-  <!-- 失败 -->
-  <div id="overScreen" class="screen hidden">
-    <span class="mode-tag" id="overModeTag">简单</span>
-    <h2 data-zh="✧ 砰！" data-en="✧ Pop!">✧ 砰！</h2>
-    <p class="score-line"><span data-zh="本局得分" data-en="Score">本局得分</span><span id="finalScore">0</span></p>
-    <p class="best-line" data-zh="最高分 &lt;span id=&#39;bestScore&#39;&gt;0&lt;/span&gt;" data-en="Best &lt;span id=&#39;bestScore&#39;&gt;0&lt;/span&gt;">最高分 <span id="bestScore">0</span></p>
-    <div class="btn-row">
-      <button id="retryBtn" data-zh="再来一次" data-en="Play Again">再来一次</button>
-      <button id="overMenuBtn" style="background:linear-gradient(135deg,#c9b6e4,#a48ec7);box-shadow:0 10px 24px rgba(164,142,199,.4), inset 0 -3px 0 rgba(0,0,0,.08);" data-zh="换个模式" data-en="Change Mode">换个模式</button>
+    <div class="modalBtns" id="transferBtnsChoice">
+      <button class="primary" id="btnExport" data-zh="导出存档" data-en="Export">导出存档</button>
+      <button id="btnImport" data-zh="导入存档" data-en="Import">导入存档</button>
+      <button id="btnTransferClose" data-zh="关闭" data-en="Close">关闭</button>
+    </div>
+
+    <div class="modalBtns" id="transferBtnsExport" style="display:none">
+      <button class="primary" id="btnCopyCode" data-zh="复制密文" data-en="Copy">复制密文</button>
+      <button id="btnDownloadFile" data-zh="保存文件" data-en="Save File">保存文件</button>
+      <button id="btnScreenshot" data-zh="截屏" data-en="Screenshot">截屏</button>
+      <button id="btnExportBack" data-zh="返回" data-en="Back">返回</button>
+    </div>
+
+    <div class="modalBtns" id="transferBtnsImport" style="display:none">
+      <button class="primary" id="btnConfirmImport" data-zh="确认导入" data-en="Confirm Import">确认导入</button>
+      <button id="btnImportBack" data-zh="返回" data-en="Back">返回</button>
     </div>
   </div>
 </div>
 
-
-<!-- 更新日志弹窗 -->
-<div class="eggModalMask" id="updateLogMask">
-  <div class="eggModal">
-    <button id="updateLogBackBtn" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.85);border:none;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;color:#5f4d72;cursor:pointer;font-family:inherit;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,0.1);" data-zh="← 返回" data-en="← Back">← 返回</button>
-    <h2 data-zh="更新日志" data-en="Changelog">更新日志</h2>
-    <p class="sub" data-zh="蛋仔鸭鸭气球" data-en="Eggy Duckie Balloon">蛋仔鸭鸭气球</p>
-    <div class="dataBox" id="updateLogContent" style="text-align:left;font-size:13px;line-height:1.8;color:#5f4d72;"><b style="color:#ff5f8f;">v0.1</b><br>· 互联互通弹窗：蛋仔鸭鸭气球 × 米皮糖小摊<br>· 蛋仔累计总分按 100:1 兑换为米皮糖金币<br>· 兑换后从蛋仔累计总分中扣减，防止无限兑换<br>· 游戏结束/胜利自动累计总分到存档<br><br><b style="color:#ff5f8f;">v0.2</b><br>· 兑换后回写米皮糖总金币数到蛋仔存档<br>· 弹窗实时显示米皮糖当前金币数<br><br><b style="color:#ff5f8f;">v0.3</b><br>· 修复互联互通按钮无法点击的问题<br>· 修复开始游戏功能<br>· 新增更新日志功能<br><br><b style="color:#ff5f8f;">v0.4</b><br>· 新增游戏内返回按钮（左上角 ← 返回），所有模式下可用<br>· 兑换后回写蛋仔数据到米皮糖存档（总分、已兑换数、金币）<br><br><b style="color:#ff5f8f;">v0.5</b><br>· 兑换比例调整：1000分=1金币 → 100分=1金币，兑换更划算<br><br><b style="color:#ff5f8f;">v0.6</b><br>· 模式选择界面新增「返回」按钮，可返回开始界面<br>· 修复游戏内返回按钮与星星分数显示重叠的问题<br><br><b style="color:#ff5f8f;">v0.7</b><br>· 修复返回按钮点击区域与实际绘制位置不一致的问题<br>· 开始游戏/切换模式时自动关闭互联互通和更新日志弹窗<br>· 返回模式选择时同步重置指针方向变量<br><br><b style="color:#ff5f8f;">v0.8</b><br>· 更新日志弹窗新增「← 返回」按钮，点击可关闭弹窗<br><br><b style="color:#ff5f8f;">v0.8.1</b><br>· 新增「规则」按钮，规则内容独立弹窗展示<br>· 规则弹窗内新增「← 返回」按钮<br>· 修复文件缺失JavaScript导致无法打开的问题<br><br><b style="color:#ff5f8f;">v0.8.2</b><br>· 主页面上只保留一个「规则」按钮，删除多余的操作说明区域<br>· 规则内容全部迁移到规则弹窗内展示<br><br><b style="color:#ff5f8f;">v0.8.3</b><br>· 修复规则弹窗在切换界面时不关闭的显示问题<br>· 修复互联互通/更新日志弹窗在切换界面时不关闭的问题<br><br><b style="color:#ff5f8f;">v0.8.4</b><br>· 互联互通弹窗新增右上角 × 关闭按钮<br><br><b style="color:#ff5f8f;">v0.8.5</b><br>· 困难模式：气球掉出屏幕底部会死亡（不再有无敌底部边界）<br>· 规则说明更新，明确标注困难模式掉出界面即死亡<br><br><b style="color:#ff5f8f;">v0.8.6</b><br>· 气球重力调整：充到约60%时气球即可开始上升，不会一开始就往下掉了</div>
-    <div class="btnRow">
-      <button id="updateLogCloseBtn" class="gray" data-zh="关闭" data-en="Close">关闭</button>
-    </div>
-  </div>
-</div>
-
-<!-- 规则弹窗 -->
-<div class="eggModalMask" id="rulesMask">
-  <div class="eggModal">
-    <button id="rulesBackBtn" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.85);border:none;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;color:#5f4d72;cursor:pointer;font-family:inherit;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,0.1);" data-zh="← 返回" data-en="← Back">← 返回</button>
-    <h2 data-zh="游戏规则" data-en="How to Play">游戏规则</h2>
-    <p class="sub" data-zh="蛋仔鸭鸭气球" data-en="Eggy Duckie Balloon">蛋仔鸭鸭气球</p>
-    <div class="dataBox" id="rulesContent" style="text-align:left;font-size:13px;line-height:1.8;color:#5f4d72;"><b style="color:#ff5f8f;">基本操作</b><br>· 按住 <b>空格键</b> 或 <b>点击屏幕</b> 充气上升<br>· 松开后气球漏气下降<br>· 充得太满（条满）气球会爆炸！<br><br><b style="color:#ff5f8f;">移动方式</b><br>· 电脑：<b>← → 方向键</b> 或 <b>A D 键</b> 左右漂移（带惯性）<br>· 手机：按住 <b>屏幕左半部分</b> 左移，按住 <b>右半部分</b> 右移<br><br><b style="color:#ff5f8f;">获胜条件</b><br>· 接住金色星星得分（每颗 +10 分）<br>· 简单模式：集满 8 颗星（80分）获胜<br>· 困难模式：集满 12 颗星（120分）获胜<br><br><b style="color:#ff5f8f;">注意事项</b><br>· 躲避紫色带刺坏气球，碰到会爆炸！<br>· 气球充气条变红说明快爆了，赶紧松开！<br>· 困难模式：气球会持续漏气，必须不断充气才不会掉下去！掉出屏幕底部就会死亡！<br>· 游戏内左上角有「← 返回」按钮可随时退出</div>
-    <div class="btnRow">
-      <button id="rulesCloseBtn" class="gray" data-zh="关闭" data-en="Close">关闭</button>
-    </div>
-  </div>
-</div>
+<div id="oxyToast"></div>
 
 <script>
-/* ============ 语言系统 ============ */
-var LANG = 'zh';
+/* ============ 语言 ============ */
+let LANG = 'zh';
 function L(zh, en){ return LANG === 'zh' ? zh : en; }
 
-/* ============ 更新日志内容 ============ */
-var UPDATE_LOG_ZH = '' +
-  '<b style="color:#ff5f8f;">v0.9</b><br>· 下线跨游戏互通功能，移除相关入口与弹窗<br>· 删除米皮糖相关的本地数据写入<br><br>' +
-  '<b style="color:#ff5f8f;">v0.1</b><br>· 互联互通弹窗：蛋仔鸭鸭气球 × 米皮糖小摊<br>· 蛋仔累计总分按 100:1 兑换为米皮糖金币<br>· 兑换后从蛋仔累计总分中扣减，防止无限兑换<br>· 游戏结束/胜利自动累计总分到存档<br><br>' +
-  '<b style="color:#ff5f8f;">v0.2</b><br>· 兑换后回写米皮糖总金币数到蛋仔存档<br>· 弹窗实时显示米皮糖当前金币数<br><br>' +
-  '<b style="color:#ff5f8f;">v0.3</b><br>· 修复互联互通按钮无法点击的问题<br>· 修复开始游戏功能<br>· 新增更新日志功能<br><br>' +
-  '<b style="color:#ff5f8f;">v0.4</b><br>· 新增游戏内返回按钮（左上角 ← 返回），所有模式下可用<br>· 兑换后回写蛋仔数据到米皮糖存档（总分、已兑换数、金币）<br><br>' +
-  '<b style="color:#ff5f8f;">v0.5</b><br>· 兑换比例调整：1000分=1金币 → 100分=1金币，兑换更划算<br><br>' +
-  '<b style="color:#ff5f8f;">v0.6</b><br>· 模式选择界面新增「返回」按钮，可返回开始界面<br>· 修复游戏内返回按钮与星星分数显示重叠的问题<br><br>' +
-  '<b style="color:#ff5f8f;">v0.7</b><br>· 修复返回按钮点击区域与实际绘制位置不一致的问题<br>· 开始游戏/切换模式时自动关闭互联互通和更新日志弹窗<br>· 返回模式选择时同步重置指针方向变量<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8</b><br>· 更新日志弹窗新增「← 返回」按钮，点击可关闭弹窗<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.1</b><br>· 新增「规则」按钮，规则内容独立弹窗展示<br>· 规则弹窗内新增「← 返回」按钮<br>· 修复文件缺失JavaScript导致无法打开的问题<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.2</b><br>· 主页面上只保留一个「规则」按钮，删除多余的操作说明区域<br>· 规则内容全部迁移到规则弹窗内展示<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.3</b><br>· 修复规则弹窗在切换界面时不关闭的显示问题<br>· 修复互联互通/更新日志弹窗在切换界面时不关闭的问题<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.4</b><br>· 互联互通弹窗新增右上角 × 关闭按钮<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.5</b><br>· 困难模式：气球掉出屏幕底部会死亡（不再有无敌底部边界）<br>· 规则说明更新，明确标注困难模式掉出界面即死亡<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.6</b><br>· 气球重力调整：充到约60%时气球即可开始上升，不会一开始就往下掉了' +
-  '<br><br><b style="color:#ff5f8f;">v0.8.7</b><br>· 兑换金币时同步写入签名（mpt_coins_sig），手改数字会被米皮糖拒绝并上报' +
-  '<br><br><b style="color:#ff5f8f;">v0.8.8</b><br>· 蛋仔总分也写入签名（mpt_sig_egg），米皮糖兑换前会校验';
-
-var UPDATE_LOG_EN = '' +
-  '<b style="color:#ff5f8f;">v0.9</b><br>· Removed the cross-game link feature and its entry / popup<br>· Removed all MipiTang-related localStorage writes<br><br>' +
-  '<b style="color:#ff5f8f;">v0.1</b><br>· Cross-game link popup: Eggy Duckie Balloon × MipiTang Stall<br>· Eggy all-time score converts to MipiTang coins at 100:1<br>· Points are deducted after redeeming to prevent infinite farming<br>· Score is auto-added on game over / victory<br><br>' +
-  '<b style="color:#ff5f8f;">v0.2</b><br>· MipiTang total coins are written back to Eggy save after redeeming<br>· Popup shows MipiTang\'s current coins in real time<br><br>' +
-  '<b style="color:#ff5f8f;">v0.3</b><br>· Fixed the cross-game link button not being clickable<br>· Fixed the Start Game button<br>· Added changelog<br><br>' +
-  '<b style="color:#ff5f8f;">v0.4</b><br>· Added in-game Back button (top-left ← Back), available in all modes<br>· Eggy data (score, redeemed count, coins) is written back to MipiTang save after redeeming<br><br>' +
-  '<b style="color:#ff5f8f;">v0.5</b><br>· Exchange rate changed: 1000 pts = 1 coin → 100 pts = 1 coin (better value)<br><br>' +
-  '<b style="color:#ff5f8f;">v0.6</b><br>· Added a Back button on the mode select screen to return to the start screen<br>· Fixed the in-game Back button overlapping the star score display<br><br>' +
-  '<b style="color:#ff5f8f;">v0.7</b><br>· Fixed Back button hit area not matching where it was actually drawn<br>· Auto-close link and changelog popups when starting a game / switching modes<br>· Reset pointer direction when returning to mode select<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8</b><br>· Added a ← Back button to the changelog popup<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.1</b><br>· Added a Rules button — rules now shown in a dedicated popup<br>· Added a ← Back button inside the rules popup<br>· Fixed the game failing to open due to missing JavaScript<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.2</b><br>· Kept only one Rules button on the main page — removed extra how-to-play area<br>· Moved all rules content into the rules popup<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.3</b><br>· Fixed rules popup not closing when switching screens<br>· Fixed the link / changelog popups not closing when switching screens<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.4</b><br>· Added an × close button to the top-right of the cross-game link popup<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.5</b><br>· Hard mode: balloon dies if it falls off the bottom of the screen (no more invincible bottom edge)<br>· Rules updated to clearly note that falling off in hard mode is lethal<br><br>' +
-  '<b style="color:#ff5f8f;">v0.8.6</b><br>· Balloon gravity tweaked: it starts rising once inflated to ~60%, so it won\'t immediately sink' +
-  '<br><br><b style="color:#ff5f8f;">v0.8.7</b><br>· Redemption now signs the MipiTang coin total (mpt_coins_sig) so edited figures are refused' +
-  '<br><br><b style="color:#ff5f8f;">v0.8.8</b><br>· Eggy all-time score is signed too (mpt_sig_egg) — MipiTang checks it before redeeming';
-
-var RULES_ZH = '' +
-  '<b style="color:#ff5f8f;">基本操作</b><br>· 按住 <b>空格键</b> 或 <b>点击屏幕</b> 充气上升<br>· 松开后气球漏气下降<br>· 充得太满（条满）气球会爆炸！<br><br>' +
-  '<b style="color:#ff5f8f;">移动方式</b><br>· 电脑：<b>← → 方向键</b> 或 <b>A D 键</b> 左右漂移（带惯性）<br>· 手机：按住 <b>屏幕左半部分</b> 左移，按住 <b>右半部分</b> 右移<br><br>' +
-  '<b style="color:#ff5f8f;">获胜条件</b><br>· 接住金色星星得分（每颗 +10 分）<br>· 简单模式：集满 8 颗星（80分）获胜<br>· 困难模式：集满 12 颗星（120分）获胜<br><br>' +
-  '<b style="color:#ff5f8f;">注意事项</b><br>· 躲避紫色带刺坏气球，碰到会爆炸！<br>· 气球充气条变红说明快爆了，赶紧松开！<br>· 困难模式：气球会持续漏气，必须不断充气才不会掉下去！掉出屏幕底部就会死亡！<br>· 游戏内左上角有「← 返回」按钮可随时退出';
-
-var RULES_EN = '' +
-  '<b style="color:#ff5f8f;">Controls</b><br>· Hold <b>Space</b> or <b>tap the screen</b> to inflate and rise<br>· Release to leak air and sink<br>· Over-inflate (full bar) and the balloon pops!<br><br>' +
-  '<b style="color:#ff5f8f;">Movement</b><br>· Desktop: <b>← →</b> arrows or <b>A D</b> to drift left/right (with inertia)<br>· Mobile: hold <b>left half</b> of the screen to go left, <b>right half</b> to go right<br><br>' +
-  '<b style="color:#ff5f8f;">Win Conditions</b><br>· Catch gold stars for points (+10 each)<br>· Easy mode: collect 8 stars (80 pts) to win<br>· Hard mode: collect 12 stars (120 pts) to win<br><br>' +
-  '<b style="color:#ff5f8f;">Notes</b><br>· Dodge the purple spiky balloons — touching one pops you!<br>· When the inflation bar turns red, you\'re about to pop — let go!<br>· Hard mode: the balloon keeps leaking; keep inflating or you\'ll fall! Fall off the bottom and you die!<br>· A ← Back button is available in-game at the top-left';
-
-/* ============ 应用语言 ============ */
-function applyLang(){
-  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en';
-  document.title = L('蛋仔鸭鸭气球', 'Eggy Duckie Balloon');
-
-  var lb = document.getElementById('langBtn');
-  if (lb) {
-    lb.textContent = LANG === 'zh' ? '🇨🇳' : '🇺🇸';
-    lb.title = LANG === 'zh' ? 'Switch to English' : '切换到中文';
-  }
-
-  var nodes = document.querySelectorAll('[data-zh]');
-  for (var i = 0; i < nodes.length; i++) {
-    var el = nodes[i];
-    var v = LANG === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
-    if (v !== null) el.innerHTML = v;
-  }
-
-  var ul = document.getElementById('updateLogContent');
-  if (ul) ul.innerHTML = LANG === 'zh' ? UPDATE_LOG_ZH : UPDATE_LOG_EN;
-
-  var rl = document.getElementById('rulesContent');
-  if (rl) rl.innerHTML = LANG === 'zh' ? RULES_ZH : RULES_EN;
-}
-
-/* ============ 游戏主体 ============ */
-(function(){
-'use strict';
-
-var canvas = document.getElementById('game');
-var ctx = canvas.getContext('2d');
-var W = 0, H = 0, dpr = 1;
-
-function clamp(v,a,b){ return v < a ? a : (v > b ? b : v); }
-function rand(a,b){ return a + Math.random()*(b-a); }
-
-/* ============ 模式配置 ============ */
-var MODE_CFG = {
-  easy: {
-    labelZh: '简单', labelEn: 'Easy',
-    winScore: 80,
-    obSpeedMul: 0.60,
-    obSpawnMul: 1.70,
-    obSizeMul: 0.84,
-    colSpawnMul: 0.70,
-    moveAccel: 1500,
-    moveDrag: 5.4,
-    overloadTime: 1.7,
-    inflateRate: 1.0,
-    deflateRate: 1.35,
-    maxVx: 620
-  },
-  hard: {
-    labelZh: '困难', labelEn: 'Hard',
-    winScore: 120,
-    obSpeedMul: 1.0,
-    obSpawnMul: 1.0,
-    obSizeMul: 1.0,
-    colSpawnMul: 1.0,
-    moveAccel: 1250,
-    moveDrag: 3.6,
-    overloadTime: 1.0,
-    inflateRate: 1.2,
-    deflateRate: 1.5,
-    maxVx: 640
-  }
-};
-
-var mode = 'easy';
-function CFG(){ return MODE_CFG[mode]; }
-function modeLabel(){
-  var c = CFG();
-  return L(c.labelZh, c.labelEn);
-}
-
-/* ============ 状态 ============ */
-var state = 'start';
-var T = 0;
-var score = 0;
-var best = 0;
-try { best = parseInt(localStorage.getItem('eggduck_best')||'0', 10) || 0; } catch(e){ best = 0; }
-
-var obstacles = [];
-var collectibles = [];
-var particles = [];
-var clouds = [];
-
-var spawnObTimer = 0;
-var spawnColTimer = 0;
-var shake = 0;
-var deathTimer = 0;
-
-var keys = { space:false, left:false, right:false };
-var pointerDown = false;
-var pointerDir = 0;
-
-function isHolding(){ return keys.space || pointerDown; }
-function getHDir(){
-  var d = 0;
-  if (keys.left)  d -= 1;
-  if (keys.right) d += 1;
-  if (pointerDown) d += pointerDir;
-  return clamp(d, -1, 1);
-}
-
-var player = {
-  x: 0, y: 0,
-  vx: 0, vy: 0,
-  tilt: 0,
-  inflate: 0, overload: 0,
-  r: 26,
-  blink: -1.5,
-  wing: 0,
-  ready: false
-};
-
-/* ============ 尺寸 ============ */
+const cvs = document.getElementById('game');
+const ctx = cvs.getContext('2d');
+let W, H;
 function resize(){
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
-  W = window.innerWidth;
-  H = window.innerHeight;
-  canvas.width  = Math.floor(W * dpr);
-  canvas.height = Math.floor(H * dpr);
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  W = cvs.width = window.innerWidth;
+  H = cvs.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', ()=>setTimeout(resize, 200));
 
-  if (!player.ready){
-    player.x = W / 2;
-    player.y = H * 0.58;
-    player.ready = true;
-  } else {
-    player.x = clamp(player.x, 40, W - 40);
-    player.y = clamp(player.y, 120, Math.max(160, H - 60));
-  }
+const STATE = { MENU:0, MODE:1, PLAY:2, OVER:3, PAUSE:4, LOG:5 };
+let state = STATE.MENU;
+
+let player, humans, particles, rings, bubbles, plants, motes;
+let scrollSpeed, spawnTimer, spawnInterval;
+let lives, score, missed, distance, shakeTime, redFlash;
+let lineY = 0;
+let lineInset = 60;
+
+let mode = 'normal';
+let totalHumans = 0;
+let spawnedCount = 0;
+let handledCount = 0;
+
+let modeSelection = 0;
+let overSelection = 0;
+let pauseSelection = 0;
+
+let logScroll = 0;
+let logMaxScroll = 0;
+let logTouchStartY = null;
+let logTouchStartScroll = 0;
+
+let mouseX = -1, mouseY = -1;
+let inputMode = 'keyboard';
+
+let btnLog = null;
+let btnTransfer = null;
+let btnMenuStart = null;
+let btnLogClose = null;
+let btnModeBack = null;
+let btnPauseTop = null;
+let btnMode = [];
+let btnPause = [];
+let btnOver = [];
+
+// ====== 存档数据 ======
+let totalSaved = 0;
+let savedBalance = 0;
+let goldExchanged = 0;   /* 本作历史字段，仅存档兼容，不再参与兑换 */
+const LS_TOTAL = 'oxy_total_saved';
+const LS_BALANCE = 'oxy_saved_balance';
+const LS_GOLD = 'oxy_gold_exchanged';
+
+function loadOxyStats(){
+  try {
+    totalSaved    = parseInt(localStorage.getItem(LS_TOTAL))   || 0;
+    savedBalance  = parseInt(localStorage.getItem(LS_BALANCE)) || 0;
+    goldExchanged = parseInt(localStorage.getItem(LS_GOLD))    || 0;
+  } catch(e){}
+}
+function saveOxyStats(){
+  try {
+    localStorage.setItem(LS_TOTAL,   String(totalSaved));
+    localStorage.setItem(LS_BALANCE, String(savedBalance));
+    localStorage.setItem(LS_GOLD,    String(goldExchanged));
+  } catch(e){}
 }
 
-function initClouds(){
-  clouds = [];
-  for (var i = 0; i < 9; i++){
-    clouds.push({
-      x: rand(-60, W + 60),
-      y: rand(-H, H),
-      s: rand(0.55, 1.5),
-      sp: rand(10, 34),
-      a: rand(0.35, 0.8)
+// ====== Toast ======
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById('oxyToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+/* ====== 更新日志 ====== */
+const CHANGELOG = {
+  zh: [
+    { ver: 'v1.3', date: '精简版', items: [
+      '下线跨游戏互通与兑换入口',
+      '移除所有米皮糖相关的本地数据写入',
+    ]},
+    { ver: 'v1.1', date: '互通版', items: [
+      '存档迁移（导出/导入密文）',
+      '互联互通：拯救换米皮糖金币',
+      '主页新增两个入口',
+    ]},
+    { ver: 'v1.0', date: '累计版', items: [
+      '无尽模式累计拯救数',
+      '数据本地保存，关掉再开还在',
+      '主页显示历史总拯救',
+    ]},
+    { ver: 'v0.9', date: '暖心版', items: [
+      '结束文案重写',
+      '失败：你辜负了他们',
+      '成功：谢谢你，没有放弃',
+    ]},
+    { ver: 'v0.8', date: '暖心版', items: [
+      '下落速度微调（初始 1.6）',
+      '溺水者台词更温柔',
+      '救援成功有暖光扩散',
+    ]},
+    { ver: 'v0.7', date: '触屏版', items: [
+      '游戏中右上角加暂停按钮',
+      '手机点一下即可暂停',
+    ]},
+    { ver: 'v0.6', date: '纵版版', items: [
+      '改为纵版下落救援',
+      '模式选择：普通 / 无尽',
+      '判定线静止在底部',
+    ]},
+    { ver: 'v0.5', date: '兼容版', items: [
+      '竖屏模式适配',
+      '更新日志独立页可滚动',
+    ]},
+    { ver: 'v0.4', date: '海洋版', items: [
+      '场景改为海洋',
+      '氧气球与溺水者吐泡',
+    ]},
+    { ver: 'v0.1', date: '初版', items: [
+      '横板滚轴 · 上下移动',
+      '触碰得分 · 漏掉扣血',
+    ]},
+  ],
+  en: [
+    { ver: 'v1.3', date: 'Lean', items: [
+      'Removed the cross-game link and redemption entry',
+      'Removed all MipiTang-related localStorage writes',
+    ]},
+    { ver: 'v1.1', date: 'Link Update', items: [
+      'Save transfer (export / import cipher)',
+      'Cross-game link: rescues → MipiTang coins',
+      'Two new entries on the main menu',
+    ]},
+    { ver: 'v1.0', date: 'Cumulative', items: [
+      'Endless mode tracks total rescues',
+      'Saved locally — still there when you come back',
+      'Main menu shows your all-time rescues',
+    ]},
+    { ver: 'v0.9', date: 'Heartfelt', items: [
+      'Rewritten ending lines',
+      'Fail: you let them down',
+      "Win: thank you for not giving up",
+    ]},
+    { ver: 'v0.8', date: 'Heartfelt', items: [
+      'Sink speed tweaked (starts at 1.6)',
+      'Gentler lines from the drowning',
+      'Warm light burst on a successful rescue',
+    ]},
+    { ver: 'v0.7', date: 'Touch', items: [
+      'Pause button added at the top-right in game',
+      'One tap on mobile to pause',
+    ]},
+    { ver: 'v0.6', date: 'Vertical', items: [
+      'Switched to vertical falling rescue',
+      'Mode select: Normal / Endless',
+      'The line stays still at the bottom',
+    ]},
+    { ver: 'v0.5', date: 'Compatible', items: [
+      'Portrait mode support',
+      'Changelog is its own scrollable page',
+    ]},
+    { ver: 'v0.4', date: 'Ocean', items: [
+      'Scene changed to the ocean',
+      'Oxygen ball and the drowning blow bubbles',
+    ]},
+    { ver: 'v0.1', date: 'First build', items: [
+      'Side-scrolling · move up and down',
+      'Touch to score · miss to lose a life',
+    ]},
+  ]
+};
+
+const CRIES = {
+  zh: ['救我…', 'Help…', '拉我一把…', '别放手…', 'SOS',
+       '救命…', '我在这…', '快到了吗…', '咕噜…', '谢谢你…'],
+  en: ['Help me…', 'Help…', 'Pull me up…', "Don't let go…", 'SOS',
+       'Save me…', "I'm here…", 'Almost there?…', 'Blub…', 'Thank you…']
+};
+
+function initPlants(){
+  plants = [];
+  const n = Math.floor(W / 80);
+  for(let i=0;i<n;i++){
+    plants.push({
+      x: Math.random()*W,
+      baseY: H - Math.random()*10,
+      h: 40 + Math.random()*100,
+      sway: Math.random()*Math.PI*2,
+      swaySp: 0.01 + Math.random()*0.02,
+      color: Math.random() < 0.5 ? '#0d4a3a' : '#0a5a45',
+      blades: 3 + Math.floor(Math.random()*3)
     });
   }
 }
 
-/* ============ 重开 ============ */
-function resetGame(){
-  T = 0;
-  score = 0;
-  player.x = W / 2;
-  player.y = H * 0.58;
-  player.vx = 0;
-  player.vy = 0;
-  player.tilt = 0;
-  player.inflate = 0;
-  player.overload = 0;
-  player.blink = -1.5;
-  player.wing = 0;
+function initMotes(){
+  motes = [];
+  const n = Math.floor((W*H) / 15000);
+  for(let i=0;i<n;i++){
+    motes.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      r: 0.5 + Math.random()*1.8,
+      sp: 0.2 + Math.random()*0.6,
+      drift: (Math.random()-0.5)*0.3,
+      a: 0.1 + Math.random()*0.3
+    });
+  }
+}
 
-  obstacles = [];
-  collectibles = [];
+function initGame(selectedMode){
+  mode = selectedMode;
+  const baseY = H - lineInset;
+
+  player = {
+    x: W / 2,
+    y: baseY - 50,
+    r: 20,
+    vx: 0,
+    accel: 1.4,
+    maxSpeed: 12,
+    friction: 0.86,
+    trail: [],
+    pulse: 0,
+    bubbleTimer: 0
+  };
+  lineY = baseY;
+
+  humans = [];
   particles = [];
+  rings = [];
+  bubbles = [];
+  scrollSpeed = 1.6;
+  spawnInterval = 90;
+  spawnTimer = 0;
+  lives = 3;
+  score = 0;
+  missed = 0;
+  distance = 0;
+  shakeTime = 0;
+  redFlash = 0;
+  pauseSelection = 0;
 
-  spawnObTimer = 0.9;
-  spawnColTimer = 1.0;
-  shake = 0;
-  deathTimer = 0;
-  state = 'play';
+  totalHumans = (mode === 'normal') ? 50 : Infinity;
+  spawnedCount = 0;
+  handledCount = 0;
+
+  initPlants();
+  initMotes();
+  spawnHuman();
 }
 
-/* ============ 生成 ============ */
-function spawnObstacle(diff){
-  var cfg = CFG();
-  var spread = Math.min(W * 0.36, 190);
-  var x = W / 2 + rand(-spread, spread);
-  var r = rand(15, 27) * cfg.obSizeMul;
-  obstacles.push({
-    x: x, y: -70, r: r,
-    vy: (170 + rand(0, 110) + 240 * diff) * cfg.obSpeedMul,
-    vx: rand(-45, 45) * cfg.obSpeedMul,
-    angle: rand(0, 6.28),
-    spin: rand(-3.2, 3.2),
-    hue: rand(250, 285)
-  });
+const keys = {};
+let pointerX = null;
+let usingPointer = false;
+
+function anyModalOpen(){
+  return document.getElementById('transferMask').classList.contains('show');
 }
 
-function spawnCollectible(){
-  var x = W * 0.14 + Math.random() * W * 0.72;
-  collectibles.push({
-    baseX: x, x: x, y: -40,
-    r: 15,
-    vy: rand(75, 135) * (mode === 'easy' ? 0.85 : 1),
-    wobAmp: rand(14, 46),
-    t: rand(0, 6)
-  });
-}
+window.addEventListener('keydown', e=>{
+  if(anyModalOpen()) return;
+  keys[e.key] = true;
 
-function burst(x, y, color, n){
-  for (var i = 0; i < n; i++){
-    var a = Math.random() * Math.PI * 2;
-    var sp = rand(40, 230);
-    particles.push({
-      x: x, y: y,
-      vx: Math.cos(a) * sp,
-      vy: Math.sin(a) * sp,
-      life: rand(0.3, 0.75), maxLife: 0.75,
-      r: rand(1.8, 4.2),
-      color: color
-    });
+  if(state===STATE.MENU){
+    if(e.key===' '||e.key==='Enter'){ state = STATE.MODE; modeSelection = 0; return; }
   }
-}
-
-/* ============ 爆炸 / 结算 ============ */
-function explode(){
-  if (state !== 'play') return;
-  state = 'dying';
-  deathTimer = 0.95;
-  shake = 26;
-
-  var bx = player.x;
-  var by = player.y - player.r - 46;
-  var palette = ['#FF6B9D','#FFD93D','#6BCB77','#4D96FF','#FF9F45','#FF5F8F','#C77DFF'];
-
-  for (var i = 0; i < 90; i++){
-    var a = Math.random() * Math.PI * 2;
-    var sp = rand(60, 560);
-    particles.push({
-      x: bx + rand(-12, 12),
-      y: by + rand(-12, 12),
-      vx: Math.cos(a) * sp,
-      vy: Math.sin(a) * sp - 110,
-      life: rand(0.7, 1.6), maxLife: 1.6,
-      r: rand(2, 8),
-      color: palette[(Math.random() * palette.length) | 0]
-    });
+  if(state===STATE.LOG){
+    if(e.key==='Escape' || e.key===' ' || e.key==='Enter'){
+      state = STATE.MENU; return;
+    }
+    if(e.key==='ArrowDown') logScroll = Math.min(logMaxScroll, logScroll + 40);
+    if(e.key==='ArrowUp') logScroll = Math.max(0, logScroll - 40);
+    return;
   }
-}
-
-function saveBest(){
-  if (score > best){
-    best = score;
-    try { localStorage.setItem('eggduck_best', String(best)); } catch(e){}
+  if(state===STATE.MODE){
+    if(e.key==='ArrowLeft' || e.key==='a' || e.key==='A') modeSelection = 0;
+    else if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') modeSelection = 1;
+    else if(e.key==='Escape') state = STATE.MENU;
+    else if(e.key===' '||e.key==='Enter'){
+      startGame(modeSelection === 0 ? 'normal' : 'endless');
+    }
+    return;
   }
-}
-
-function gameOver(){
-  state = 'over';
-  saveBest();
-  document.getElementById('finalScore').textContent = score;
-  document.getElementById('bestScore').textContent  = best;
-  document.getElementById('overModeTag').textContent = modeLabel();
-  document.getElementById('overScreen').classList.remove('hidden');
-  if (typeof window.__eggOnGameEnd === 'function') {
-    try { window.__eggOnGameEnd(score); } catch(e){}
+  if(state===STATE.PLAY && (e.key==='p' || e.key==='P' || e.key==='Tab' || e.key==='Escape')){
+    e.preventDefault();
+    pauseGame(); return;
   }
-}
-
-function winGame(){
-  if (state !== 'play') return;
-  state = 'win';
-  shake = 10;
-  saveBest();
-
-  var palette = ['#FF6B9D','#FFD93D','#6BCB77','#4D96FF','#FF9F45','#C77DFF','#FF9DC0'];
-
-  for (var i = 0; i < 150; i++){
-    particles.push({
-      x: rand(-40, W + 40),
-      y: rand(-H * 0.9, -10),
-      vx: rand(-70, 70),
-      vy: rand(60, 260),
-      life: rand(2.0, 3.6), maxLife: 3.6,
-      r: rand(2.5, 6),
-      color: palette[(Math.random() * palette.length) | 0]
-    });
+  if(state===STATE.PAUSE){
+    if(e.key==='ArrowUp' || e.key==='w' || e.key==='W') pauseSelection = 0;
+    else if(e.key==='ArrowDown' || e.key==='s' || e.key==='S') pauseSelection = 1;
+    else if(e.key==='p' || e.key==='P') resumeGame();
+    else if(e.key===' '||e.key==='Enter'){
+      if(pauseSelection === 0) resumeGame();
+      else backToMenu();
+    }
+    return;
   }
-  for (var j = 0; j < 70; j++){
-    var a = Math.random() * Math.PI * 2;
-    var sp = rand(80, 460);
-    particles.push({
-      x: player.x, y: player.y - 40,
-      vx: Math.cos(a) * sp,
-      vy: Math.sin(a) * sp - 120,
-      life: rand(0.9, 1.8), maxLife: 1.8,
-      r: rand(2.5, 7),
-      color: palette[(Math.random() * palette.length) | 0]
-    });
-  }
-
-  document.getElementById('winScore').textContent = score;
-  document.getElementById('winBest').textContent  = best;
-  document.getElementById('winModeTag').textContent = modeLabel();
-  document.getElementById('winScreen').classList.remove('hidden');
-  if (typeof window.__eggOnGameEnd === 'function') {
-    try { window.__eggOnGameEnd(score); } catch(e){}
-  }
-}
-
-/* ============ 更新 ============ */
-function update(dt){
-  var cfg = CFG();
-
-  for (var i = 0; i < clouds.length; i++){
-    var c = clouds[i];
-    c.y += c.sp * dt;
-    if (c.y > H + 130){ c.y = -130; c.x = rand(-60, W + 60); c.s = rand(0.55, 1.5); }
-  }
-
-  for (var p = particles.length - 1; p >= 0; p--){
-    var pt = particles[p];
-    pt.vy += 620 * dt;
-    pt.x += pt.vx * dt;
-    pt.y += pt.vy * dt;
-    pt.vx *= Math.pow(0.25, dt);
-    pt.life -= dt * 1.5;
-    if (pt.life <= 0) particles.splice(p, 1);
-  }
-
-  if (shake > 0) shake = Math.max(0, shake - dt * 70);
-
-  if (state === 'dying'){
-    deathTimer -= dt;
-    if (deathTimer <= 0) gameOver();
+  if(state===STATE.OVER){
+    if(e.key==='ArrowLeft' || e.key==='a' || e.key==='A') overSelection = 0;
+    else if(e.key==='ArrowRight' || e.key==='d' || e.key==='D') overSelection = 1;
+    else if(e.key===' '||e.key==='Enter'){
+      if(overSelection === 0) startGame(mode);
+      else backToMenu();
+    }
     return;
   }
 
-  if (state === 'start'){
-    player.y = H * 0.58 + Math.sin(Date.now() / 700) * 12;
-    player.inflate = 0.5 + Math.sin(Date.now() / 900) * 0.08;
-    player.tilt *= 0.9;
-    player.wing += dt * 4;
-    return;
+  if(['ArrowLeft','ArrowRight','a','A','d','D'].includes(e.key)){
+    usingPointer = false;
+    pointerX = null;
+    inputMode = 'keyboard';
   }
+});
+window.addEventListener('keyup', e=>{ keys[e.key] = false; });
 
-  if (state !== 'play') return;
+function getPos(e){
+  const r = cvs.getBoundingClientRect();
+  if(e.touches && e.touches[0]){
+    return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+  }
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
 
-  T += dt;
-  var diff = Math.min(1, T / 80);
-
-  if (isHolding()){
-    player.inflate = Math.min(1, player.inflate + cfg.inflateRate * dt);
+cvs.addEventListener('mousemove', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  mouseX = p.x; mouseY = p.y;
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)) return;
+    pointerX = p.x;
+    usingPointer = true;
+    inputMode = 'mouse';
   } else {
-    player.inflate = Math.max(0, player.inflate - cfg.deflateRate * dt);
+    inputMode = 'mouse';
   }
+});
 
-  if (mode === 'hard' && !isHolding()){
-    player.inflate = Math.max(0, player.inflate - 0.35 * dt);
+cvs.addEventListener('wheel', e=>{
+  if(state===STATE.LOG){
+    logScroll = Math.max(0, Math.min(logMaxScroll, logScroll + e.deltaY));
+    e.preventDefault();
   }
+}, {passive:false});
 
-  if (player.inflate >= 0.99){
-    player.overload += dt;
-    if (player.overload > cfg.overloadTime){ explode(); return; }
+cvs.addEventListener('touchstart', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  mouseX = p.x; mouseY = p.y;
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)) return;
+    pointerX = p.x;
+    usingPointer = true;
+    inputMode = 'mouse';
+  }
+  if(state===STATE.LOG){
+    logTouchStartY = p.y;
+    logTouchStartScroll = logScroll;
+  }
+  e.preventDefault();
+}, {passive:false});
+
+cvs.addEventListener('touchmove', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  mouseX = p.x; mouseY = p.y;
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)) return;
+    pointerX = p.x;
+    usingPointer = true;
+  }
+  if(state===STATE.LOG && logTouchStartY !== null){
+    const dy = logTouchStartY - p.y;
+    logScroll = Math.max(0, Math.min(logMaxScroll, logTouchStartScroll + dy));
+  }
+  e.preventDefault();
+}, {passive:false});
+
+cvs.addEventListener('touchend', e=>{
+  if(anyModalOpen()) return;
+  if(state===STATE.LOG){
+    logTouchStartY = null;
+  }
+  if(state !== STATE.PLAY){
+    handleTap(mouseX, mouseY);
   } else {
-    player.overload = Math.max(0, player.overload - dt * 4);
-  }
-
-  var gravityFactor = mode === 'hard' ? 0.6 : 0.6;
-  var acc = (gravityFactor - player.inflate) * 2800;
-  player.vy += acc * dt;
-  player.vy -= player.vy * 3.5 * dt;
-  player.vy = clamp(player.vy, -650, 780);
-  player.y += player.vy * dt;
-
-  var minY = Math.min(122, H * 0.3);
-  if (player.y < minY){ player.y = minY; player.vy = Math.max(0, player.vy); }
-  if (mode === 'hard') {
-    if (player.y > H + 20) { explode(); return; }
-  } else {
-    var maxY = Math.max(minY + 40, H - 58);
-    if (player.y > maxY){ player.y = maxY; player.vy = Math.min(0, player.vy); }
-  }
-
-  var hdir = getHDir();
-  if (hdir !== 0){
-    player.vx += hdir * cfg.moveAccel * dt;
-  }
-  var drag = 1 - cfg.moveDrag * dt;
-  if (drag < 0) drag = 0;
-  player.vx *= drag;
-  player.vx = clamp(player.vx, -cfg.maxVx, cfg.maxVx);
-  player.x += player.vx * dt;
-
-  var padL = 38, padR = W - 38;
-  if (player.x < padL){ player.x = padL; player.vx = Math.abs(player.vx) * 0.3; }
-  if (player.x > padR){ player.x = padR; player.vx = -Math.abs(player.vx) * 0.3; }
-
-  var targetTilt = clamp(player.vx / 1150, -0.40, 0.40);
-  player.tilt += (targetTilt - player.tilt) * (1 - Math.pow(0.0008, dt));
-
-  var speedRatio = clamp(Math.abs(player.vx) / 420, 0, 1);
-  player.wing += dt * (6 + speedRatio * 22);
-
-  if (Math.abs(player.vx) > 170 && Math.random() < 0.75){
-    particles.push({
-      x: player.x - (player.vx > 0 ? 1 : -1) * rand(10, 26),
-      y: player.y + rand(-26, 26),
-      vx: -player.vx * 0.14 + rand(-24, 24),
-      vy: rand(-18, 18),
-      life: 0.34, maxLife: 0.34,
-      r: rand(2, 4.6),
-      color: 'rgba(255,255,255,0.9)'
-    });
-  }
-
-  player.blink -= dt;
-  if (player.blink < -3.2) player.blink = 0.14;
-
-  spawnObTimer -= dt;
-  if (spawnObTimer <= 0){
-    spawnObstacle(diff);
-    spawnObTimer = Math.max(0.22, rand(0.58, 0.98) - diff * 0.3) * cfg.obSpawnMul;
-  }
-  spawnColTimer -= dt;
-  if (spawnColTimer <= 0){
-    spawnCollectible();
-    spawnColTimer = rand(0.75, 1.5) * cfg.colSpawnMul;
-  }
-
-  for (var o = obstacles.length - 1; o >= 0; o--){
-    var ob = obstacles[o];
-    ob.y += ob.vy * dt;
-    ob.x += ob.vx * dt;
-    ob.angle += ob.spin * dt;
-    if (ob.x < ob.r){ ob.x = ob.r; ob.vx = Math.abs(ob.vx); }
-    if (ob.x > W - ob.r){ ob.x = W - ob.r; ob.vx = -Math.abs(ob.vx); }
-    if (ob.y > H + 90){ obstacles.splice(o, 1); continue; }
-
-    var dx = ob.x - player.x;
-    var dy = ob.y - player.y;
-    var rr = ob.r + player.r * 0.86;
-    if (dx * dx + dy * dy < rr * rr){ explode(); return; }
-  }
-
-  for (var c2 = collectibles.length - 1; c2 >= 0; c2--){
-    var co = collectibles[c2];
-    co.t += dt;
-    co.y += co.vy * dt;
-    co.x = co.baseX + Math.sin(co.t * 2.1) * co.wobAmp;
-    if (co.y > H + 60){ collectibles.splice(c2, 1); continue; }
-
-    var dx2 = co.x - player.x;
-    var dy2 = co.y - player.y;
-    var rr2 = co.r + player.r + 12;
-    if (dx2 * dx2 + dy2 * dy2 < rr2 * rr2){
-      score += 10;
-      burst(co.x, co.y, '#FFD93D', 16);
-      collectibles.splice(c2, 1);
-      if (score >= cfg.winScore){ winGame(); return; }
+    if(btnPauseTop && hitRect(mouseX, mouseY, btnPauseTop)){
+      pauseGame();
     }
   }
-}
+  e.preventDefault();
+}, {passive:false});
 
-/* ============ 绘制工具 ============ */
-function roundRect(x, y, w, h, r){
-  if (r > h / 2) r = h / 2;
-  if (r > w / 2) r = w / 2;
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-/* ============ 背景 ============ */
-function drawSky(){
-  var g = ctx.createLinearGradient(0, 0, 0, H);
-  if (mode === 'easy'){
-    g.addColorStop(0,    '#8fd8ff');
-    g.addColorStop(0.42, '#c7ecff');
-    g.addColorStop(0.75, '#eaf8ff');
-    g.addColorStop(1,    '#ffe0ee');
-  } else {
-    g.addColorStop(0,    '#6cbce8');
-    g.addColorStop(0.42, '#a9d9ee');
-    g.addColorStop(0.75, '#dbe9f2');
-    g.addColorStop(1,    '#f8c8dd');
+function handleTap(x, y){
+  if(state===STATE.MENU){
+    if(btnLog && hitRect(x, y, btnLog)){
+      state = STATE.LOG;
+      logScroll = 0;
+      return;
+    }
+    if(btnTransfer && hitRect(x, y, btnTransfer)){
+      openTransferModal();
+      return;
+    }
+    state = STATE.MODE;
+    modeSelection = 0;
+    return;
   }
+  if(state===STATE.LOG){
+    if(btnLogClose && hitRect(x, y, btnLogClose)){
+      state = STATE.MENU; return;
+    }
+    return;
+  }
+  if(state===STATE.MODE){
+    if(btnModeBack && hitRect(x, y, btnModeBack)){
+      state = STATE.MENU; return;
+    }
+    for(const b of btnMode){
+      if(hitRect(x, y, b)){
+        startGame(b.mode);
+        return;
+      }
+    }
+    return;
+  }
+  if(state===STATE.PAUSE){
+    for(const b of btnPause){
+      if(hitRect(x, y, b)){
+        if(b.action === 'resume') resumeGame();
+        else backToMenu();
+        return;
+      }
+    }
+    return;
+  }
+  if(state===STATE.OVER){
+    for(const b of btnOver){
+      if(hitRect(x, y, b)){
+        if(b.action === 'restart') startGame(mode);
+        else backToMenu();
+        return;
+      }
+    }
+    return;
+  }
+}
+
+cvs.addEventListener('click', e=>{
+  if(anyModalOpen()) return;
+  const p = getPos(e);
+  if(state===STATE.PLAY){
+    if(btnPauseTop && hitRect(p.x, p.y, btnPauseTop)){
+      pauseGame();
+    }
+    return;
+  }
+  handleTap(p.x, p.y);
+});
+
+function hitRect(x, y, r){
+  return r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+}
+
+function startGame(m){
+  loadOxyStats();
+  initGame(m);
+  pointerX = null;
+  usingPointer = false;
+  state = STATE.PLAY;
+}
+function backToMenu(){
+  state = STATE.MENU;
+}
+function pauseGame(){
+  pauseSelection = 0;
+  state = STATE.PAUSE;
+}
+function resumeGame(){
+  state = STATE.PLAY;
+}
+
+function spawnHuman(){
+  if(spawnedCount >= totalHumans) return;
+  const r = 15 + Math.random()*7;
+  humans.push({
+    x: r + 30 + Math.random() * (W - r*2 - 60),
+    y: -r - 20,
+    r: r,
+    vy: scrollSpeed,
+    wobble: Math.random()*Math.PI*2,
+    sink: Math.random() * Math.PI * 2,
+    bubbleTimer: Math.random()*40,
+    rescued: false,
+    cry: CRIES[LANG][Math.floor(Math.random()*CRIES[LANG].length)],
+    cryTimer: 0,
+    cryDuration: 120 + Math.random()*60,
+    cryVisible: true,
+    armPhase: Math.random()*Math.PI*2,
+    legPhase: Math.random()*Math.PI*2,
+    bodyTilt: (Math.random()-0.5)*0.3,
+    driftX: (Math.random()-0.5) * 0.3
+  });
+  spawnedCount++;
+}
+
+function spawnBubble(x, y, r, vx=0, vy=-0.5, life=1){
+  bubbles.push({
+    x, y, r,
+    vx: vx + (Math.random()-0.5)*0.3,
+    vy: vy - Math.random()*0.4,
+    life,
+    wob: Math.random()*Math.PI*2,
+    wobSp: 0.05 + Math.random()*0.08
+  });
+}
+
+function burst(x, y, color, count=14){
+  for(let i=0;i<count;i++){
+    const a = Math.random()*Math.PI*2;
+    const s = 1.5 + Math.random()*5;
+    particles.push({
+      x, y,
+      vx: Math.cos(a)*s,
+      vy: Math.sin(a)*s,
+      life: 1, color,
+      size: 2 + Math.random()*3
+    });
+  }
+}
+function shockwave(x, y, color){
+  rings.push({ x, y, r: 8, max: 70, life: 1, color });
+}
+
+function updateBubblesOnly(){
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b = bubbles[i];
+    b.wob += b.wobSp;
+    b.x += b.vx + Math.sin(b.wob)*0.3;
+    b.y += b.vy;
+    b.vy *= 0.99;
+    b.life -= 0.004;
+    if(b.y < -20 || b.life <= 0 || b.x < -20) bubbles.splice(i,1);
+  }
+}
+
+function update(){
+  if(shakeTime > 0) shakeTime *= 0.88;
+  if(redFlash > 0) redFlash *= 0.9;
+  if(state === STATE.OVER){ shakeTime = 0; redFlash = 0; }
+
+  if(state !== STATE.PLAY){
+    updateBubblesOnly();
+    return;
+  }
+
+  const keyLeft  = keys['ArrowLeft']  || keys['a'] || keys['A'];
+  const keyRight = keys['ArrowRight'] || keys['d'] || keys['D'];
+
+  if(keyLeft || keyRight){
+    if(keyLeft)  player.vx -= player.accel;
+    if(keyRight) player.vx += player.accel;
+    inputMode = 'keyboard';
+  } else if(usingPointer && pointerX !== null){
+    const diff = pointerX - player.x;
+    player.vx += diff * 0.014;
+  }
+
+  player.vx *= player.friction;
+  if(player.vx >  player.maxSpeed) player.vx =  player.maxSpeed;
+  if(player.vx < -player.maxSpeed) player.vx = -player.maxSpeed;
+  player.x += player.vx;
+
+  const margin = player.r + 10;
+  if(player.x < margin){ player.x = margin; player.vx = -player.vx * 0.3; }
+  if(player.x > W - margin){ player.x = W - margin; player.vx = -player.vx * 0.3; }
+
+  const baseY = H - lineInset;
+  player.y = baseY - 45 + Math.sin(Date.now()*0.002)*3;
+
+  player.pulse += 0.08;
+  player.trail.push({ x: player.x, y: player.y, life: 1 });
+  if(player.trail.length > 18) player.trail.shift();
+  for(const t of player.trail) t.life -= 0.06;
+
+  player.bubbleTimer++;
+  if(player.bubbleTimer > 6){
+    player.bubbleTimer = 0;
+    spawnBubble(
+      player.x + (Math.random()-0.5)*10,
+      player.y + (Math.random()-0.5)*10,
+      2 + Math.random()*3,
+      (Math.random()-0.5)*0.3, -0.3, 1
+    );
+  }
+
+  scrollSpeed += 0.0004;
+  if(scrollSpeed > 6.0) scrollSpeed = 6.0;
+
+  spawnTimer++;
+  if(humans.length === 0 && spawnTimer > spawnInterval){
+    spawnTimer = 0;
+    spawnHuman();
+  }
+  spawnInterval = Math.max(40, 90 - (handledCount * 0.6));
+
+  for(let i=humans.length-1; i>=0; i--){
+    const h = humans[i];
+    h.vy = Math.min(h.vy + 0.007, 6.0);
+    h.y += h.vy;
+    h.x += h.driftX;
+    if(h.x < h.r + 10) { h.x = h.r + 10; h.driftX *= -1; }
+    if(h.x > W - h.r - 10){ h.x = W - h.r - 10; h.driftX *= -1; }
+
+    h.wobble += 0.05;
+    h.sink += 0.04;
+    h.armPhase += 0.08;
+    h.legPhase += 0.05;
+
+    h.cryTimer++;
+    if(h.cryTimer < h.cryDuration) h.cryVisible = true;
+    else if(h.cryTimer < h.cryDuration + 40) h.cryVisible = false;
+    else {
+      h.cryTimer = 0;
+      h.cry = CRIES[LANG][Math.floor(Math.random()*CRIES[LANG].length)];
+    }
+
+    h.bubbleTimer++;
+    if(h.bubbleTimer > 25 + Math.random()*20){
+      h.bubbleTimer = 0;
+      spawnBubble(
+        h.x + (Math.random()-0.5)*8,
+        h.y - h.r*0.8,
+        1.5 + Math.random()*2.5,
+        (Math.random()-0.5)*0.3, -0.8, 1
+      );
+    }
+
+    const dx = h.x - player.x;
+    const dy = h.y - player.y;
+    const dist = Math.hypot(dx, dy);
+    if(!h.rescued && dist < h.r + player.r + 8){
+      h.rescued = true;
+      score++;
+      handledCount++;
+      if(mode === 'endless'){
+        totalSaved++;
+        savedBalance++;
+        saveOxyStats();
+      }
+      burst(h.x, h.y, '#aff5ff', 22);
+      burst(h.x, h.y, '#ffd9a0', 10);
+      shockwave(h.x, h.y, 'rgba(180,255,240,0.9)');
+      shockwave(h.x, h.y, 'rgba(255,220,160,0.5)');
+      for(let k=0;k<12;k++){
+        spawnBubble(h.x + (Math.random()-0.5)*30, h.y + (Math.random()-0.5)*30,
+          2 + Math.random()*4, 0, -1 - Math.random(), 1);
+      }
+      humans.splice(i,1);
+      continue;
+    }
+
+    if(h.y - h.r > lineY){
+      lives--;
+      missed++;
+      handledCount++;
+      burst(h.x, lineY, '#f44', 22);
+      shockwave(h.x, lineY, 'rgba(255,80,80,0.8)');
+      shakeTime = 14;
+      redFlash = 1;
+      humans.splice(i,1);
+      if(lives <= 0){
+        state = STATE.OVER;
+        overSelection = 0;
+        return;
+      }
+      continue;
+    }
+  }
+
+  if(mode === 'normal' && handledCount >= totalHumans && humans.length === 0){
+    state = STATE.OVER;
+    overSelection = 0;
+  }
+
+  for(let i=bubbles.length-1;i>=0;i--){
+    const b = bubbles[i];
+    b.wob += b.wobSp;
+    b.x += b.vx + Math.sin(b.wob)*0.3;
+    b.y += b.vy;
+    b.vy *= 0.99;
+    b.life -= 0.004;
+    if(b.y < -20 || b.life <= 0 || b.x < -20) bubbles.splice(i,1);
+  }
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.95; p.vy *= 0.95;
+    p.vy -= 0.05;
+    p.life -= 0.025;
+    if(p.life <= 0) particles.splice(i,1);
+  }
+  for(let i=rings.length-1;i>=0;i--){
+    const r = rings[i];
+    r.r += (r.max - r.r) * 0.15;
+    r.life -= 0.05;
+    if(r.life <= 0) rings.splice(i,1);
+  }
+
+  distance += scrollSpeed;
+
+  for(const m of motes){
+    m.x -= m.drift;
+    m.y -= m.sp;
+    if(m.x < -10) m.x = W + 10;
+    if(m.x > W + 10) m.x = -10;
+    if(m.y < -10) m.y = H + 10;
+  }
+}
+
+function drawWater(){
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,   '#1e7a98');
+  g.addColorStop(0.25,'#105870');
+  g.addColorStop(0.55,'#0a3250');
+  g.addColorStop(1,   '#04121f');
   ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  const sunX = W * 0.7;
+  const sun = ctx.createRadialGradient(sunX, -50, 20, sunX, -50, H*0.6);
+  sun.addColorStop(0, 'rgba(255,240,200,0.9)');
+  sun.addColorStop(1, 'rgba(255,240,200,0)');
+  ctx.fillStyle = sun;
   ctx.fillRect(0, 0, W, H);
+  ctx.restore();
 
-  var gg = ctx.createRadialGradient(W * 0.78, H * 0.12, 0, W * 0.78, H * 0.12, Math.max(W, H) * 0.6);
-  gg.addColorStop(0, 'rgba(255,250,220,0.5)');
-  gg.addColorStop(1, 'rgba(255,250,220,0)');
-  ctx.fillStyle = gg;
-  ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  const wave = ctx.createLinearGradient(0, 0, 0, 90);
+  wave.addColorStop(0, 'rgba(220,250,255,0.9)');
+  wave.addColorStop(1, 'rgba(220,250,255,0)');
+  ctx.fillStyle = wave;
+  ctx.fillRect(0, 0, W, 90);
+  ctx.restore();
 }
 
-function drawClouds(){
-  for (var i = 0; i < clouds.length; i++){
-    var c = clouds[i];
-    var s = c.s;
+function drawMotes(){
+  for(const m of motes){
+    ctx.globalAlpha = m.a;
+    ctx.fillStyle = '#a0e8ff';
     ctx.beginPath();
-    ctx.arc(c.x,          c.y,           30 * s, 0, Math.PI * 2);
-    ctx.arc(c.x + 34 * s, c.y + 9 * s,   22 * s, 0, Math.PI * 2);
-    ctx.arc(c.x - 33 * s, c.y + 11 * s,  19 * s, 0, Math.PI * 2);
-    ctx.arc(c.x + 8 * s,  c.y - 14 * s,  24 * s, 0, Math.PI * 2);
-    ctx.arc(c.x - 12 * s, c.y - 8 * s,   21 * s, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,' + c.a + ')';
-    ctx.fill();
-  }
-}
-
-/* ============ 星星 ============ */
-function drawCollectibles(){
-  for (var i = 0; i < collectibles.length; i++){
-    var c = collectibles[i];
-    ctx.save();
-    ctx.translate(c.x, c.y);
-    ctx.rotate(Math.sin(c.t * 3) * 0.28);
-
-    var glow = ctx.createRadialGradient(0, 0, 0, 0, 0, c.r * 2.6);
-    glow.addColorStop(0, 'rgba(255,222,90,0.55)');
-    glow.addColorStop(1, 'rgba(255,222,90,0)');
-    ctx.beginPath();
-    ctx.arc(0, 0, c.r * 2.6, 0, Math.PI * 2);
-    ctx.fillStyle = glow;
-    ctx.fill();
-
-    ctx.beginPath();
-    for (var k = 0; k < 10; k++){
-      var rr = (k % 2 === 0) ? c.r : c.r * 0.44;
-      var a = -Math.PI / 2 + k * Math.PI / 5;
-      var px = Math.cos(a) * rr;
-      var py = Math.sin(a) * rr;
-      if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fillStyle = '#FFD93D';
-    ctx.fill();
-    ctx.strokeStyle = '#F0A500';
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(-c.r * 0.22, -c.r * 0.3, c.r * 0.17, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.fill();
-
-    ctx.restore();
-  }
-}
-
-/* ============ 坏气球 ============ */
-function drawObstacles(){
-  for (var i = 0; i < obstacles.length; i++){
-    var o = obstacles[i];
-    ctx.save();
-    ctx.translate(o.x, o.y);
-
-    ctx.save();
-    ctx.rotate(o.angle);
-    var spikes = 9;
-    ctx.beginPath();
-    for (var k = 0; k < spikes; k++){
-      var a0 = k / spikes * Math.PI * 2;
-      var a1 = (k + 0.5) / spikes * Math.PI * 2;
-      var pad = 0.17;
-      ctx.moveTo(Math.cos(a0 - pad) * o.r * 0.94, Math.sin(a0 - pad) * o.r * 0.94);
-      ctx.lineTo(Math.cos(a1) * o.r * 1.52,       Math.sin(a1) * o.r * 1.52);
-      ctx.lineTo(Math.cos(a0 + pad) * o.r * 0.94, Math.sin(a0 + pad) * o.r * 0.94);
-    }
-    ctx.closePath();
-    ctx.fillStyle = 'hsl(' + o.hue + ',32%,38%)';
-    ctx.fill();
-    ctx.restore();
-
-    var g = ctx.createRadialGradient(-o.r * 0.32, -o.r * 0.34, o.r * 0.08, 0, 0, o.r);
-    g.addColorStop(0, 'hsl(' + o.hue + ',42%,72%)');
-    g.addColorStop(1, 'hsl(' + o.hue + ',36%,46%)');
-    ctx.beginPath();
-    ctx.arc(0, 0, o.r, 0, Math.PI * 2);
-    ctx.fillStyle = g;
-    ctx.fill();
-
-    ctx.fillStyle = '#241b2e';
-    ctx.beginPath();
-    ctx.arc(-o.r * 0.32, -o.r * 0.08, o.r * 0.15, 0, Math.PI * 2);
-    ctx.arc( o.r * 0.32, -o.r * 0.08, o.r * 0.15, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#241b2e';
-    ctx.lineWidth = Math.max(1.6, o.r * 0.11);
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-o.r * 0.55, -o.r * 0.44);
-    ctx.lineTo(-o.r * 0.14, -o.r * 0.30);
-    ctx.moveTo( o.r * 0.55, -o.r * 0.44);
-    ctx.lineTo( o.r * 0.14, -o.r * 0.30);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(0, o.r * 0.18, o.r * 0.34, Math.PI * 1.12, Math.PI * 1.88);
-    ctx.lineWidth = Math.max(1.6, o.r * 0.1);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-}
-
-/* ============ 粒子 ============ */
-function drawParticles(){
-  for (var i = 0; i < particles.length; i++){
-    var p = particles[i];
-    var a = Math.max(0, p.life / p.maxLife);
-    ctx.globalAlpha = a;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * (0.4 + a * 0.6), 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
+    ctx.arc(m.x, m.y, m.r, 0, Math.PI*2);
     ctx.fill();
   }
   ctx.globalAlpha = 1;
 }
 
-/* ============ 蛋仔鸭鸭 ============ */
-function drawPlayer(){
-  var p = player;
-  var inflate = p.inflate;
-  var bodyR = 28;
-  var balR = 20 + inflate * 18;
+function drawPlants(){
+  for(const p of plants){
+    ctx.save();
+    ctx.translate(p.x, p.baseY);
+    for(let b=0;b<p.blades;b++){
+      const sway = Math.sin(p.sway + b*0.7) * 12;
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2 + b*0.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(sway*0.5, -p.h*0.5, sway, -p.h);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawJudgeLine(){
+  if(state !== STATE.PLAY && state !== STATE.PAUSE) return;
+
+  const t = Date.now() * 0.003;
+  const pulse = 0.6 + Math.sin(t) * 0.4;
+
+  const dg = ctx.createLinearGradient(0, lineY, 0, H);
+  dg.addColorStop(0, 'rgba(255,40,40,0.05)');
+  dg.addColorStop(1, 'rgba(255,40,40,0.28)');
+  ctx.fillStyle = dg;
+  ctx.fillRect(0, lineY, W, H - lineY);
 
   ctx.save();
-  ctx.translate(p.x, p.y);
+  ctx.shadowColor = '#ff5050';
+  ctx.shadowBlur = 16 * pulse;
 
-  if (inflate > 0.88){
-    var sh = (inflate - 0.88) * 9 * (0.6 + p.overload * 0.8);
-    ctx.translate(rand(-sh, sh), rand(-sh, sh));
-  }
-
-  ctx.rotate(p.tilt);
-
-  var balX = -p.vx * 0.035;
-  var balY = -bodyR - 20 - balR;
-
+  ctx.strokeStyle = 'rgba(255,110,110,' + (0.7 + pulse*0.3) + ')';
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(0, -bodyR + 6);
-  ctx.quadraticCurveTo(balX * 0.5, balY * 0.55, balX, balY + balR - 1);
-  ctx.strokeStyle = 'rgba(130,118,150,0.75)';
-  ctx.lineWidth = 1.7;
+  ctx.moveTo(0, lineY);
+  ctx.lineTo(W, lineY);
   ctx.stroke();
 
-  var danger = inflate > 0.85;
-  var pulse = danger ? 0.5 + 0.5 * Math.sin(T * 26) : 0;
+  ctx.strokeStyle = 'rgba(255,200,200,' + (0.5 + pulse*0.4) + ')';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, lineY);
+  ctx.lineTo(W, lineY);
+  ctx.stroke();
 
-  var cr = 255;
-  var cg = Math.floor(186 + (58 - 186) * inflate);
-  var cb = Math.floor(212 + (96 - 212) * inflate);
-  var balloonColor = 'rgb(' + cr + ',' + cg + ',' + cb + ')';
+  ctx.restore();
 
-  if (danger){
+  ctx.fillStyle = 'rgba(255,140,140,0.55)';
+  ctx.font = 'bold 11px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(L('↓ 危险区', '↓ Danger Zone'), W/2, lineY + 10);
+}
+
+function drawBubbles(){
+  for(const b of bubbles){
+    ctx.globalAlpha = b.life * 0.7;
+    ctx.strokeStyle = 'rgba(180,240,255,0.8)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(balX, balY, balR + 8 + pulse * 8, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,45,80,' + (0.22 + pulse * 0.55) + ')';
-    ctx.lineWidth = 3.5;
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(200,250,255,0.25)';
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r*0.9, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath();
+    ctx.arc(b.x - b.r*0.3, b.y - b.r*0.3, Math.max(0.5, b.r*0.25), 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPlayer(){
+  for(let i=0;i<player.trail.length;i++){
+    const t = player.trail[i];
+    if(t.life <= 0) continue;
+    const r = player.r * (i/player.trail.length) * 0.9;
+    ctx.globalAlpha = t.life * 0.35;
+    ctx.fillStyle = '#7fe8ff';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.save();
+  ctx.translate(player.x, player.y);
+  const pulse = 1 + Math.sin(player.pulse)*0.08;
+
+  const glow = ctx.createRadialGradient(0,0,2,0,0,player.r*3.2);
+  glow.addColorStop(0,'rgba(200,255,255,0.95)');
+  glow.addColorStop(0.35,'rgba(120,230,255,0.5)');
+  glow.addColorStop(1,'rgba(80,200,255,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(0,0,player.r*3.2,0,Math.PI*2);
+  ctx.fill();
+
+  const core = ctx.createRadialGradient(-4,-4,2,0,0,player.r*pulse);
+  core.addColorStop(0,'#ffffff');
+  core.addColorStop(0.45,'#c8f5ff');
+  core.addColorStop(1,'#5fc8ff');
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.arc(0,0,player.r*pulse,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.arc(-6,-7,player.r*0.3,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawHumans(){
+  for(const h of humans){
+    const bob = Math.sin(h.wobble) * 4;
+    const tilt = Math.sin(h.sink) * 0.25 + h.bodyTilt;
+
+    ctx.save();
+    ctx.translate(h.x, h.y + bob);
+    ctx.rotate(tilt);
+
+    const r = h.r;
+    const armL = Math.sin(h.armPhase) * 0.6;
+    const armR = Math.sin(h.armPhase + Math.PI) * 0.6;
+    const legL = Math.sin(h.legPhase) * 0.4;
+    const legR = Math.sin(h.legPhase + 1.7) * 0.4;
+
+    ctx.strokeStyle = 'rgba(180,210,240,0.5)';
+    ctx.lineWidth = 1.5;
+    for(let i=0;i<5;i++){
+      const ang = -Math.PI/2 + (i-2)*0.35 + Math.sin(h.wobble*0.8 + i)*0.15;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ang)*r*0.35, -r*0.8 + Math.sin(ang)*r*0.2);
+      ctx.quadraticCurveTo(
+        Math.cos(ang)*r*0.6, -r*1.0,
+        Math.cos(ang)*r*0.75 + Math.sin(h.wobble+i)*3, -r*1.3
+      );
+      ctx.stroke();
+    }
+
+    const headY = -r*0.75;
+    ctx.fillStyle = 'rgba(245,250,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(0, headY, r*0.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(150,200,230,0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(180,210,230,0.35)';
+    ctx.beginPath();
+    ctx.arc(r*0.1, headY + r*0.15, r*0.22, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#3a5a7a';
+    ctx.beginPath();
+    ctx.arc(-r*0.15, headY - r*0.08, r*0.08, 0, Math.PI*2);
+    ctx.arc( r*0.15, headY - r*0.08, r*0.08, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(80,40,60,0.7)';
+    ctx.beginPath();
+    ctx.ellipse(0, headY + r*0.18, r*0.1, r*0.13, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(220,235,255,0.9)';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, -r*0.25);
+    ctx.quadraticCurveTo(Math.sin(h.wobble*1.2)*r*0.15, r*0.25, 0, r*0.7);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(120,170,220,0.6)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -r*0.15);
+    ctx.lineTo(0, r*0.6);
+    ctx.stroke();
+
+    const laX = -r*0.7, laY = -r*0.9 + armL*r*0.4;
+    ctx.strokeStyle = 'rgba(220,235,255,0.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.05);
+    ctx.quadraticCurveTo(-r*0.4, -r*0.2, laX, laY);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(245,250,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(laX, laY, r*0.15, 0, Math.PI*2);
+    ctx.fill();
+
+    const raX = r*0.7, raY = -r*0.9 + armR*r*0.4;
+    ctx.strokeStyle = 'rgba(220,235,255,0.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.05);
+    ctx.quadraticCurveTo(r*0.4, -r*0.2, raX, raY);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(245,250,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(raX, raY, r*0.15, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(200,225,245,0.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.7);
+    ctx.quadraticCurveTo(-r*0.25, r*0.95 + legL*r*0.2, -r*0.35, r*1.25 + legL*r*0.3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, r*0.7);
+    ctx.quadraticCurveTo(r*0.25, r*0.95 + legR*r*0.2, r*0.35, r*1.25 + legR*r*0.3);
+    ctx.stroke();
+
+    ctx.restore();
+
+    if(h.cryVisible){
+      drawCryBubble(h.x, h.y + bob - h.r*1.8, h.cry);
+    }
+  }
+}
+
+function drawCryBubble(cx, cy, text){
+  ctx.save();
+  ctx.font = 'bold 13px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const tw = ctx.measureText(text).width;
+  const padX = 10;
+  const bw = tw + padX*2;
+  const bh = 22;
+
+  const bx = cx - bw/2;
+  const by = cy - bh/2;
+
+  ctx.fillStyle = 'rgba(255,250,240,0.95)';
+  roundRect(bx, by, bw, bh, 10);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(180,220,240,0.7)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,250,240,0.95)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, by + bh);
+  ctx.lineTo(cx + 5, by + bh);
+  ctx.lineTo(cx + 1, by + bh + 6);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#3a5a7a';
+  ctx.fillText(text, cx, cy + 1);
+
+  ctx.restore();
+}
+
+function drawParticles(){
+  for(const p of particles){
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawRings(){
+  for(const r of rings){
+    ctx.globalAlpha = r.life * 0.8;
+    ctx.strokeStyle = r.color;
+    ctx.lineWidth = 3 * r.life;
+    ctx.beginPath();
+    ctx.arc(r.x, r.y, r.r, 0, Math.PI*2);
     ctx.stroke();
   }
+  ctx.globalAlpha = 1;
+}
 
+function roundRect(x, y, w, h, r){
   ctx.beginPath();
-  ctx.ellipse(balX, balY, balR * 0.93, balR, 0, 0, Math.PI * 2);
-  var bg = ctx.createRadialGradient(balX - balR * 0.32, balY - balR * 0.36, balR * 0.1, balX, balY, balR * 1.15);
-  bg.addColorStop(0, 'rgba(255,255,255,0.85)');
-  bg.addColorStop(0.35, balloonColor);
-  bg.addColorStop(1, 'rgb(' + Math.floor(cr*0.82) + ',' + Math.floor(cg*0.7) + ',' + Math.floor(cb*0.78) + ')');
-  ctx.fillStyle = bg;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(balX - 4.5, balY + balR - 2);
-  ctx.lineTo(balX + 4.5, balY + balR - 2);
-  ctx.lineTo(balX,       balY + balR + 7);
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
   ctx.closePath();
-  ctx.fillStyle = balloonColor;
+}
+
+function drawPauseButton(){
+  if(state !== STATE.PLAY) return;
+
+  const size = 52;
+  const margin = 16;
+  const bx = W - size - margin;
+  const by = 90;
+
+  btnPauseTop = { x: bx, y: by, w: size, h: size };
+
+  const hov = hitRect(mouseX, mouseY, btnPauseTop);
+
+  ctx.fillStyle = hov ? 'rgba(120,240,255,0.35)' : 'rgba(5,30,50,0.75)';
+  roundRect(bx, by, size, size, 12);
   ctx.fill();
-
-  ctx.beginPath();
-  ctx.ellipse(balX - balR * 0.34, balY - balR * 0.36, balR * 0.2, balR * 0.28, -0.5, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.72)';
-  ctx.fill();
-
-  if (Math.abs(p.vx) > 260){
-    ctx.globalAlpha = 0.16;
-    for (var t = 1; t <= 3; t++){
-      ctx.beginPath();
-      ctx.ellipse(-(p.vx > 0 ? 1 : -1) * t * 13, 0, bodyR * 0.9, bodyR * 1.0, 0, 0, Math.PI * 2);
-      ctx.fillStyle = '#FFFBF0';
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  var spdR = clamp(Math.abs(p.vx) / 420, 0, 1);
-  var flap = Math.sin(p.wing) * (0.18 + spdR * 0.55);
-  var wingY = 2;
-  var wingW = 11 + spdR * 5;
-  var wingH = 8 + spdR * 3;
-
-  ctx.save();
-  ctx.translate(-bodyR * 0.86, wingY);
-  ctx.rotate(-0.35 - flap);
-  ctx.beginPath();
-  ctx.ellipse(0, 0, wingW, wingH, 0, 0, Math.PI * 2);
-  ctx.fillStyle = '#FFF3DC';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(226,210,186,0.9)';
-  ctx.lineWidth = 1.6;
-  ctx.stroke();
-  ctx.restore();
-
-  ctx.save();
-  ctx.translate(bodyR * 0.86, wingY);
-  ctx.rotate(0.35 + flap);
-  ctx.beginPath();
-  ctx.ellipse(0, 0, wingW, wingH, 0, 0, Math.PI * 2);
-  ctx.fillStyle = '#FFF3DC';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(226,210,186,0.9)';
-  ctx.lineWidth = 1.6;
-  ctx.stroke();
-  ctx.restore();
-
-  ctx.beginPath();
-  ctx.ellipse(0, 0, bodyR * 0.93, bodyR * 1.02, 0, 0, Math.PI * 2);
-  ctx.fillStyle = '#FFFBF0';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(226,210,186,0.95)';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = hov ? '#a0f0ff' : 'rgba(120,240,255,0.55)';
+  ctx.lineWidth = hov ? 2.5 : 2;
   ctx.stroke();
 
-  ctx.beginPath();
-  ctx.ellipse(0, bodyR * 0.42, bodyR * 0.66, bodyR * 0.32, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(238,222,196,0.5)';
+  const iconW = 6, iconH = 20, gap = 8;
+  const cx = bx + size/2;
+  const cy = by + size/2;
+
+  ctx.fillStyle = hov ? '#ffffff' : '#a0f0ff';
+  roundRect(cx - gap/2 - iconW, cy - iconH/2, iconW, iconH, 2);
   ctx.fill();
-
-  ctx.beginPath();
-  ctx.ellipse(-16, 6, 6.8, 4.2, 0, 0, Math.PI * 2);
-  ctx.ellipse( 16, 6, 6.8, 4.2, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,145,168,0.55)';
+  roundRect(cx + gap/2, cy - iconH/2, iconW, iconH, 2);
   ctx.fill();
+}
 
-  var eyeOff = clamp(p.vx / 1000, -1, 1) * 3.6;
-  var blinking = p.blink > 0;
-
-  ctx.fillStyle = '#2a2233';
-  if (blinking){
-    roundRect(-13.5 + eyeOff, -7, 10, 3, 1.5); ctx.fill();
-    roundRect(  3.5 + eyeOff, -7, 10, 3, 1.5); ctx.fill();
-  } else {
-    ctx.beginPath();
-    ctx.ellipse(-8.6 + eyeOff, -6, 5.4, 6.4, 0, 0, Math.PI * 2);
-    ctx.ellipse( 8.6 + eyeOff, -6, 5.4, 6.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(-10.2 + eyeOff, -8.2, 2.0, 0, Math.PI * 2);
-    ctx.arc(  7.0 + eyeOff, -8.2, 2.0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.beginPath();
-  ctx.ellipse(eyeOff * 0.5, 8.5, 10.5, 6.2, 0, 0, Math.PI * 2);
-  ctx.fillStyle = '#FFB03A';
+function drawHUD(){
+  ctx.fillStyle = 'rgba(5,30,50,0.65)';
+  roundRect(16, 16, 150, 60, 10);
   ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-8.5 + eyeOff * 0.5, 9);
-  ctx.lineTo( 8.5 + eyeOff * 0.5, 9);
-  ctx.strokeStyle = 'rgba(214,124,16,0.72)';
+  ctx.strokeStyle = 'rgba(120,240,255,0.4)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  ctx.beginPath();
-  ctx.moveTo(-2, -bodyR * 1.0);
-  ctx.quadraticCurveTo(-9 + p.tilt * 24, -bodyR - 13, 2 + p.tilt * 30, -bodyR - 16);
-  ctx.strokeStyle = '#FFB03A';
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-
-/* ============ 自绘图标 ============ */
-function drawMiniStar(c, x, y, s, color){
-  c.save(); c.fillStyle = color; c.translate(x + s/2, y + s/2);
-  c.beginPath();
-  for(var i = 0; i < 10; i++){
-    var r = (i % 2 === 0) ? s/2 : s/4;
-    var a = -Math.PI/2 + i * Math.PI/5;
-    var px = Math.cos(a)*r, py = Math.sin(a)*r;
-    i === 0 ? c.moveTo(px,py) : c.lineTo(px,py);
-  }
-  c.closePath(); c.fill(); c.restore();
-}
-function drawWarnTri(c, x, y, s, color){
-  c.save(); c.fillStyle = color || '#FF5F6D'; c.translate(x + s/2, y + s/2);
-  c.beginPath();
-  c.moveTo(0, -s/2); c.lineTo(s/2, s/2); c.lineTo(-s/2, s/2); c.closePath(); c.fill();
-  c.fillStyle = '#FFF'; c.font = 'bold ' + Math.floor(s*0.5) + 'px sans-serif';
-  c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.fillText('!', 0, s*0.1); c.restore();
-}
-
-/* ============ HUD ============ */
-function drawHUD(){
-  if (state === 'start') return;
-  var cfg = CFG();
-
-  ctx.save();
-
-  // 返回按钮
-  var retX = 18, retY = 10, retW = 58, retH = 28, retR = 14;
-  ctx.save();
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.beginPath();
-  ctx.moveTo(retX + retR, retY);
-  ctx.arcTo(retX + retW, retY, retX + retW, retY + retH, retR);
-  ctx.arcTo(retX + retW, retY + retH, retX, retY + retH, retR);
-  ctx.arcTo(retX, retY + retH, retX, retY, retR);
-  ctx.arcTo(retX, retY, retX + retW, retY, retR);
-  ctx.closePath();
-  ctx.fill();
-  ctx.font = '800 14px -apple-system, "PingFang SC", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#5f4d72';
-  ctx.fillText(L('← 返回', '← Back'), retX + retW / 2, retY + retH / 2);
-  ctx.restore();
-
-  ctx.font = '800 26px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillStyle = '#7fd4ff';
+  ctx.font = '12px system-ui, sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = 'rgba(60,40,80,0.28)';
-  drawMiniStar(ctx, 24, 51, 16, 'rgba(255,217,61,0.35)'); ctx.fillText(String(score), 42, 55);
-  ctx.fillStyle = 'rgba(60,40,80,0.9)';
-  drawMiniStar(ctx, 23, 50, 16, '#FFD93D'); ctx.fillText(String(score), 41, 54);
+  ctx.fillText(L('已拯救', 'Saved'), 30, 34);
 
-  // 进度条
-  var pw = 100, ph = 6;
-  var prog = Math.min(1, score / cfg.winScore);
-  ctx.fillStyle = 'rgba(255,255,255,0.62)';
-  roundRect(24, 74, pw, ph, 3); ctx.fill();
-  ctx.fillStyle = mode === 'easy' ? '#6BD98B' : '#FFD93D';
-  roundRect(24, 74, Math.max(2, pw * prog), ph, 3); ctx.fill();
-  ctx.font = '700 11px -apple-system, "PingFang SC", sans-serif';
-  ctx.fillStyle = 'rgba(90,70,110,0.65)';
-  ctx.fillText(L('目标 ' + (cfg.winScore/10) + ' 颗', 'Target ' + (cfg.winScore/10) + ' ★'), 24, 92);
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 22px system-ui, sans-serif';
+  ctx.fillText(score, 30, 56);
 
-  // 模式标签
-  ctx.textAlign = 'right';
-  ctx.font = '800 12px -apple-system, "PingFang SC", sans-serif';
-  var tagColor = mode === 'easy' ? 'rgba(63,196,124,0.85)' : 'rgba(238,59,88,0.85)';
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  roundRect(W - 24 - 70, 16, 70, 24, 12); ctx.fill();
-  ctx.fillStyle = tagColor;
-  var tagTxt = L(cfg.labelZh + '模式', cfg.labelEn + ' Mode');
-  ctx.fillText(tagTxt, W - 24 - 12, 28);
-
-  // 充气条
-  var bw = Math.min(180, W * 0.40);
-  var bh = 14;
-  var bx = W / 2 - bw / 2;
-  var by = 30;
-
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  roundRect(bx - 4, by - 4, bw + 8, bh + 8, 12);
-  ctx.fill();
-
-  ctx.fillStyle = 'rgba(190,178,205,0.55)';
-  roundRect(bx, by, bw, bh, 7);
-  ctx.fill();
-
-  var fillW = bw * player.inflate;
-  var col;
-  if (player.inflate > 0.88){
-    var blinkA = 0.55 + 0.45 * Math.sin(T * 30);
-    col = 'rgba(255,' + Math.floor(50 + blinkA * 60) + ',85,1)';
-  } else if (player.inflate > 0.7){
-    col = 'rgb(255,150,90)';
-  } else {
-    col = 'rgb(255,127,168)';
+  if(mode === 'normal'){
+    ctx.fillStyle = 'rgba(120,240,255,0.5)';
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(handledCount + ' / ' + totalHumans, 152, 34);
   }
 
-  if (fillW > 1){
-    ctx.fillStyle = col;
-    roundRect(bx, by, fillW, bh, 7);
+  for(let i=0;i<3;i++){
+    const cx = W - 40 - i*44;
+    const cy = 40;
+    const alive = i < lives;
+    ctx.globalAlpha = alive ? 1 : 0.18;
+    if(alive){
+      const g = ctx.createRadialGradient(cx-4,cy-4,1,cx,cy,18);
+      g.addColorStop(0,'#ffffff');
+      g.addColorStop(0.5,'#a0e8ff');
+      g.addColorStop(1,'#3aa0ff');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = '#1a2a3a';
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, 13, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = alive ? 'rgba(200,245,255,0.8)' : 'rgba(80,100,120,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  const barX = 24, barY = H - 26, barW = Math.min(180, W*0.35), barH = 8;
+  ctx.fillStyle = 'rgba(120,240,255,0.6)';
+  ctx.font = '12px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(L('下沉速度', 'Sink Speed'), barX, barY - 8);
+
+  ctx.fillStyle = 'rgba(120,240,255,0.15)';
+  roundRect(barX, barY, barW, barH, 4);
+  ctx.fill();
+
+  const spd = Math.min(1, (scrollSpeed - 1.6) / 4.4);
+  if(spd > 0.01){
+    const g = ctx.createLinearGradient(barX,0,barX+barW,0);
+    g.addColorStop(0,'#5fc8ff');
+    g.addColorStop(1,'#a0f0ff');
+    ctx.fillStyle = g;
+    roundRect(barX, barY, barW*spd, barH, 4);
     ctx.fill();
   }
 
-  if (player.inflate > 0.9){
-    ctx.font = '800 12px -apple-system, "PingFang SC", sans-serif';
+  if(mode === 'endless'){
+    const text = L('累计拯救 ' + totalSaved, 'Total saved ' + totalSaved);
+    ctx.font = 'bold 14px system-ui, sans-serif';
+    const tw = ctx.measureText(text).width;
+    const padX = 14, boxH = 30;
+    const boxW = tw + padX*2;
+    const bx = W/2 - boxW/2;
+    const by = 16;
+
+    ctx.fillStyle = 'rgba(5,30,50,0.7)';
+    roundRect(bx, by, boxW, boxH, 10);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120,240,255,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#a0f0ff';
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(255,40,80,' + (0.6 + 0.4 * Math.sin(T * 22)) + ')';
-    drawWarnTri(ctx, W/2 - 50, by + bh + 7, 14);
-    ctx.fillText(L('快爆了！', 'About to pop!'), W/2 - 18, by + bh + 16);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, W/2, by + boxH/2);
+  }
+
+  drawPauseButton();
+}
+
+function drawMenu(){
+  ctx.fillStyle = 'rgba(0,10,25,0.5)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const g = ctx.createRadialGradient(W/2, H/2-80, 10, W/2, H/2-80, 300);
+  g.addColorStop(0,'rgba(160,240,255,0.35)');
+  g.addColorStop(1,'rgba(160,240,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  const zhTitle = LANG === 'zh';
+  const titleSize = zhTitle ? Math.min(96, W * 0.18) : Math.min(58, W * 0.115);
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold ' + titleSize + 'px system-ui, sans-serif';
+  ctx.shadowColor = '#5fc8ff';
+  ctx.shadowBlur = 50;
+  ctx.fillText(L('氧 气', 'O X Y G E N'), W/2, H/2 - 140);
+  ctx.shadowBlur = 0;
+
+  ctx.font = Math.min(20, W*0.045) + 'px system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(200,240,255,0.85)';
+  ctx.fillText(L('怕你太累了', "Afraid You're Too Tired"), W/2, H/2 - 60);
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+  ctx.fillText(L('他们在下沉 · 去接住他们', 'They are sinking · Go catch them'), W/2, H/2 - 15);
+
+  if(totalSaved > 0){
+    ctx.fillStyle = 'rgba(160,240,255,0.6)';
+    ctx.font = Math.min(14, W*0.032) + 'px system-ui, sans-serif';
+    ctx.fillText(L('累计拯救 ' + totalSaved + ' 人', 'Saved ' + totalSaved + ' in total'), W/2, H/2 + 15);
+  }
+
+  const btnW = Math.min(280, W * 0.65);
+  const btnH = 60;
+  const bx = W/2 - btnW/2;
+  const by = H/2 + 50;
+  btnMenuStart = { x: bx, y: by, w: btnW, h: btnH };
+
+  const hov = hitRect(mouseX, mouseY, btnMenuStart);
+  const blink = 0.6 + Math.sin(Date.now()*0.004)*0.4;
+
+  const bg = ctx.createLinearGradient(bx, by, bx, by+btnH);
+  if(hov){
+    bg.addColorStop(0,'rgba(120,240,255,0.55)');
+    bg.addColorStop(1,'rgba(80,180,255,0.35)');
+  } else {
+    bg.addColorStop(0,'rgba(120,240,255,0.25)');
+    bg.addColorStop(1,'rgba(80,180,255,0.12)');
+  }
+  ctx.fillStyle = bg;
+  roundRect(bx, by, btnW, btnH, 14);
+  ctx.fill();
+
+  ctx.strokeStyle = hov ? '#a0f0ff' : '#7fd4ff';
+  ctx.lineWidth = hov ? 3 : 2;
+  ctx.globalAlpha = hov ? 1 : blink;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = hov ? '#ffffff' : '#dffaff';
+  ctx.font = 'bold 24px system-ui, sans-serif';
+  ctx.fillText(L('开始游戏', 'Start Game'), W/2, by + btnH/2);
+
+  const sw = Math.min(200, W * 0.55);
+  const sh = 42;
+  const sx = W/2 - sw/2;
+  const sy = by + btnH + 18;
+  const sgap = 8;
+
+  btnLog      = { x: sx, y: sy,                     w: sw, h: sh };
+  btnTransfer = { x: sx, y: sy + sh + sgap,         w: sw, h: sh };
+
+  drawSmallBtn(btnLog,      L('更新日志', 'Changelog'));
+  drawSmallBtn(btnTransfer, L('存档迁移', 'Save Transfer'));
+}
+
+function drawSmallBtn(rect, label){
+  const hov = hitRect(mouseX, mouseY, rect);
+  ctx.fillStyle = hov ? 'rgba(120,240,255,0.22)' : 'rgba(120,240,255,0.08)';
+  roundRect(rect.x, rect.y, rect.w, rect.h, 10);
+  ctx.fill();
+  ctx.strokeStyle = hov ? '#7fd4ff' : 'rgba(120,240,255,0.35)';
+  ctx.lineWidth = hov ? 2 : 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = hov ? '#ffffff' : '#a0e0ff';
+  ctx.font = 'bold 16px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, rect.x + rect.w/2, rect.y + rect.h/2);
+}
+
+function drawLog(){
+  const LOGS = CHANGELOG[LANG];
+
+  ctx.fillStyle = 'rgba(0,10,25,0.92)';
+  ctx.fillRect(0,0,W,H);
+
+  const headerH = 70;
+  ctx.fillStyle = 'rgba(5,25,45,0.95)';
+  ctx.fillRect(0, 0, W, headerH);
+  ctx.strokeStyle = 'rgba(120,240,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, headerH);
+  ctx.lineTo(W, headerH);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 24px system-ui, sans-serif';
+  ctx.fillText(L('更新日志', 'Changelog'), W/2, headerH/2);
+
+  const cbW = 80, cbH = 36;
+  const cbx = W - cbW - 16;
+  const cby = (headerH - cbH) / 2;
+  btnLogClose = { x: cbx, y: cby, w: cbW, h: cbH };
+
+  const hovClose = hitRect(mouseX, mouseY, btnLogClose);
+  ctx.fillStyle = hovClose ? 'rgba(120,240,255,0.25)' : 'rgba(120,240,255,0.1)';
+  roundRect(cbx, cby, cbW, cbH, 8);
+  ctx.fill();
+  ctx.strokeStyle = hovClose ? '#7fd4ff' : 'rgba(120,240,255,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = hovClose ? '#ffffff' : '#7fd4ff';
+  ctx.font = 'bold 14px system-ui, sans-serif';
+  ctx.fillText(L('关闭', 'Close'), cbx + cbW/2, cby + cbH/2);
+
+  const contentY = headerH + 20;
+  const contentH = H - contentY - 20;
+  const pad = 24;
+  const boxW = Math.min(560, W - pad*2);
+  const boxX = (W - boxW) / 2;
+
+  const lineH = 22;
+  const verH = 30;
+  let totalH = 0;
+  for(const log of LOGS){
+    totalH += verH + log.items.length * lineH + 16;
+  }
+  logMaxScroll = Math.max(0, totalH - contentH + 20);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, contentY, W, contentH);
+  ctx.clip();
+
+  let cy = contentY - logScroll;
+
+  for(const log of LOGS){
+    ctx.fillStyle = 'rgba(10,35,60,0.7)';
+    roundRect(boxX, cy, boxW, verH + log.items.length * lineH + 16, 10);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120,240,255,0.25)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#a0f0ff';
+    ctx.font = 'bold 18px system-ui, sans-serif';
+    ctx.fillText(log.ver, boxX + 16, cy + 10);
+
+    ctx.fillStyle = 'rgba(160,220,255,0.5)';
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.fillText(log.date, boxX + 16 + 70, cy + 14);
+
+    let iy = cy + verH + 6;
+    for(const item of log.items){
+      ctx.fillStyle = 'rgba(200,235,255,0.85)';
+      ctx.font = '14px system-ui, sans-serif';
+      ctx.fillText('· ' + item, boxX + 24, iy);
+      iy += lineH;
+    }
+
+    cy += verH + log.items.length * lineH + 16;
   }
 
   ctx.restore();
+
+  if(logMaxScroll > 0){
+    const trackX = W - 8;
+    const trackY = contentY;
+    const trackH = contentH;
+    const thumbH = Math.max(30, trackH * (contentH / (totalH + 20)));
+    const thumbY = trackY + (trackH - thumbH) * (logScroll / logMaxScroll);
+
+    ctx.fillStyle = 'rgba(120,240,255,0.1)';
+    ctx.fillRect(trackX, trackY, 4, trackH);
+    ctx.fillStyle = 'rgba(120,240,255,0.5)';
+    roundRect(trackX, thumbY, 4, thumbH, 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.4)';
+  ctx.font = '12px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(L('滑动 / 滚轮 查看', 'Swipe / scroll to browse'), W/2, H - 6);
 }
 
-/* ============ 渲染 ============ */
-function render(){
+function drawModeSelect(){
+  ctx.fillStyle = 'rgba(0,10,25,0.75)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const bkX = 16, bkY = 16, bkW = 90, bkH = 40;
+  btnModeBack = { x: bkX, y: bkY, w: bkW, h: bkH };
+
+  const hovBk = hitRect(mouseX, mouseY, btnModeBack);
+  ctx.fillStyle = hovBk ? 'rgba(120,240,255,0.22)' : 'rgba(120,240,255,0.08)';
+  roundRect(bkX, bkY, bkW, bkH, 10);
+  ctx.fill();
+  ctx.strokeStyle = hovBk ? '#7fd4ff' : 'rgba(120,240,255,0.35)';
+  ctx.lineWidth = hovBk ? 2 : 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = hovBk ? '#ffffff' : '#a0e0ff';
+  ctx.font = 'bold 15px system-ui, sans-serif';
+  ctx.fillText(L('← 返回', '← Back'), bkX + bkW/2, bkY + bkH/2);
+
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 42px system-ui, sans-serif';
+  ctx.shadowColor = '#5fc8ff';
+  ctx.shadowBlur = 30;
+  ctx.fillText(L('选择模式', 'Select Mode'), W/2, H/2 - 180);
+  ctx.shadowBlur = 0;
+
+  if(totalSaved > 0){
+    ctx.fillStyle = 'rgba(160,240,255,0.6)';
+    ctx.font = '15px system-ui, sans-serif';
+    ctx.fillText(L('历史累计拯救 ' + totalSaved + ' 人', 'All-time saved: ' + totalSaved), W/2, H/2 - 130);
+  }
+
+  const isNarrow = W < 600;
+  const btnW = isNarrow ? Math.min(280, W*0.85) : Math.min(260, W*0.32);
+  const btnH = isNarrow ? 100 : 200;
+  const gap = isNarrow ? 24 : 40;
+  const totalW = isNarrow ? btnW : btnW*2 + gap;
+  const bx = W/2 - totalW/2;
+  const by = H/2 - (isNarrow ? 40 : btnH/2);
+
+  btnMode = [];
+  const opts = [
+    { key: 'normal', label: L('普通模式', 'Normal'), desc: L('50 位溺水者\n全部救完即胜利', '50 people in the water\nSave them all to win'), color: '#5fc8ff' },
+    { key: 'endless', label: L('无尽模式', 'Endless'), desc: L('持续下沉\n看你能救多少', 'They keep sinking\nSee how many you can save'), color: '#a0f0ff' }
+  ];
+
+  for(let i=0;i<2;i++){
+    const x = isNarrow ? bx : bx + i*(btnW + gap);
+    const y = isNarrow ? by + i*(btnH + gap) : by;
+    const rect = { x, y, w: btnW, h: btnH, mode: opts[i].key };
+    btnMode.push(rect);
+
+    const hov = hitRect(mouseX, mouseY, rect);
+    const selected = modeSelection === i || hov;
+
+    if(selected){
+      const g = ctx.createLinearGradient(x, y, x, y+btnH);
+      g.addColorStop(0,'rgba(120,240,255,0.35)');
+      g.addColorStop(1,'rgba(80,180,255,0.15)');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = 'rgba(10,30,50,0.7)';
+    }
+    roundRect(x, y, btnW, btnH, 14);
+    ctx.fill();
+    ctx.strokeStyle = selected ? opts[i].color : 'rgba(120,200,255,0.3)';
+    ctx.lineWidth = selected ? 3 : 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = selected ? '#ffffff' : 'rgba(200,230,255,0.8)';
+    ctx.font = 'bold ' + (isNarrow ? 24 : 28) + 'px system-ui, sans-serif';
+    ctx.fillText(opts[i].label, x + btnW/2, y + (isNarrow ? 36 : 70));
+
+    ctx.fillStyle = selected ? 'rgba(220,240,255,0.85)' : 'rgba(160,200,230,0.6)';
+    ctx.font = (isNarrow ? 14 : 15) + 'px system-ui, sans-serif';
+    const lines = opts[i].desc.split('\n');
+    for(let k=0;k<lines.length;k++){
+      ctx.fillText(lines[k], x + btnW/2, y + (isNarrow ? 68 : 120) + k*22);
+    }
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = '14px system-ui, sans-serif';
+  ctx.fillText(
+    isNarrow
+      ? L('点击选择   或点左上角返回', 'Tap to choose   or tap top-left to go back')
+      : L('← → 选择   空格 / 回车 确认   点左上角返回', '← → choose   Space / Enter confirm   Top-left to go back'),
+    W/2, by + (isNarrow ? 2*(btnH+gap) : btnH) + 50
+  );
+}
+
+function drawPause(){
+  ctx.fillStyle = 'rgba(0,10,25,0.75)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillStyle = '#dffaff';
+  ctx.font = 'bold 64px system-ui, sans-serif';
+  ctx.shadowColor = '#5fc8ff';
+  ctx.shadowBlur = 30;
+  ctx.fillText(L('暂 停', 'P A U S E'), W/2, H/2 - 130);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = 'rgba(200,240,255,0.7)';
+  ctx.font = '18px system-ui, sans-serif';
+  ctx.fillText(L('已拯救 ' + score + ' 人   剩余 ' + lives + ' 生命',
+                 'Saved ' + score + '   Lives ' + lives), W/2, H/2 - 50);
+
+  const btnW = Math.min(280, W*0.7), btnH = 64, gap = 20;
+  const bx = W/2 - btnW/2;
+  const by = H/2 + 20;
+
+  btnPause = [];
+  const opts = [
+    { label: L('继续游戏', 'Resume'), action: 'resume' },
+    { label: L('返回主页', 'Main Menu'), action: 'menu' }
+  ];
+
+  for(let i=0;i<2;i++){
+    const y = by + i*(btnH + gap);
+    const rect = { x: bx, y, w: btnW, h: btnH, action: opts[i].action };
+    btnPause.push(rect);
+
+    const hov = hitRect(mouseX, mouseY, rect);
+    const selected = pauseSelection === i || hov;
+
+    if(selected){
+      const g = ctx.createLinearGradient(bx, y, bx, y+btnH);
+      g.addColorStop(0,'rgba(120,240,255,0.35)');
+      g.addColorStop(1,'rgba(80,180,255,0.2)');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = 'rgba(10,30,50,0.6)';
+    }
+    roundRect(bx, y, btnW, btnH, 12);
+    ctx.fill();
+    ctx.strokeStyle = selected ? '#7fd4ff' : 'rgba(120,200,255,0.3)';
+    ctx.lineWidth = selected ? 2.5 : 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = selected ? '#ffffff' : 'rgba(200,230,255,0.7)';
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    ctx.fillText(opts[i].label, bx + btnW/2, y + btnH/2);
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = '14px system-ui, sans-serif';
+  ctx.fillText(L('点击按钮选择   或 P 继续', 'Tap a button   or press P to resume'), W/2, by + 2*btnH + gap + 40);
+}
+
+function drawOver(){
+  ctx.fillStyle = 'rgba(0,5,15,0.85)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const finished = (mode === 'normal' && handledCount >= totalHumans && lives > 0);
+
+  if(finished){
+    ctx.fillStyle = '#7fffd0';
+    ctx.font = 'bold ' + Math.min(68, W*0.12) + 'px system-ui, sans-serif';
+    ctx.shadowColor = '#30ffa0';
+    ctx.shadowBlur = 40;
+    ctx.fillText(L('都救上来了', 'Everyone Is Safe'), W/2, H/2 - 160);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(200,255,240,0.85)';
+    ctx.font = Math.min(22, W*0.05) + 'px system-ui, sans-serif';
+    ctx.fillText(L('谢谢你，没有放弃', 'Thank you for not giving up'), W/2, H/2 - 95);
+
+    ctx.fillStyle = 'rgba(160,240,220,0.55)';
+    ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+    ctx.fillText(L('这一口气，值得', 'That breath was worth it'), W/2, H/2 - 55);
+  } else {
+    ctx.fillStyle = '#ff6b6b';
+    ctx.font = 'bold ' + Math.min(68, W*0.12) + 'px system-ui, sans-serif';
+    ctx.shadowColor = '#ff3030';
+    ctx.shadowBlur = 40;
+    ctx.fillText(L('氧气耗尽', 'Out of Oxygen'), W/2, H/2 - 160);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(255,200,200,0.9)';
+    ctx.font = Math.min(22, W*0.05) + 'px system-ui, sans-serif';
+    ctx.fillText(L('你辜负了他们', 'You Let Them Down'), W/2, H/2 - 95);
+
+    ctx.fillStyle = 'rgba(255,180,180,0.55)';
+    ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+    ctx.fillText(L('他们还在等你……', "They're still waiting for you…"), W/2, H/2 - 55);
+  }
+
+  ctx.fillStyle = 'rgba(200,240,255,0.9)';
+  ctx.font = Math.min(18, W*0.04) + 'px system-ui, sans-serif';
+  ctx.fillText(L('已拯救人数', 'People Saved'), W/2, H/2 + 5);
+
+  ctx.fillStyle = '#7fd4ff';
+  ctx.font = 'bold 56px system-ui, sans-serif';
+  ctx.fillText(score, W/2, H/2 + 60);
+
+  ctx.fillStyle = 'rgba(160,220,255,0.7)';
+  ctx.font = Math.min(15, W*0.035) + 'px system-ui, sans-serif';
+  if(mode === 'normal'){
+    ctx.fillText(L('漏掉 ' + missed + ' 人   共 ' + totalHumans + ' 人',
+                   'Missed ' + missed + '   of ' + totalHumans), W/2, H/2 + 110);
+  } else {
+    ctx.fillText(L('漏掉 ' + missed + ' 人', 'Missed ' + missed), W/2, H/2 + 110);
+    if(totalSaved > 0){
+      ctx.fillStyle = 'rgba(160,240,255,0.6)';
+      ctx.fillText(L('累计拯救 ' + totalSaved + ' 人', 'Total saved ' + totalSaved), W/2, H/2 + 135);
+    }
+  }
+
+  const isNarrow = W < 500;
+  const btnW = isNarrow ? Math.min(260, W*0.7) : 200;
+  const btnH = 64;
+  const gap = isNarrow ? 16 : 40;
+  const totalW = isNarrow ? btnW : btnW*2 + gap;
+  const bx = W/2 - totalW/2;
+  const by = H/2 + 170;
+
+  btnOver = [];
+  const opts = [
+    { label: L('再来一次', 'Try Again'), action: 'restart' },
+    { label: L('返回主页', 'Main Menu'), action: 'menu' }
+  ];
+
+  for(let i=0;i<2;i++){
+    const x = isNarrow ? bx : bx + i*(btnW + gap);
+    const y = isNarrow ? by + i*(btnH + gap) : by;
+    const rect = { x, y, w: btnW, h: btnH, action: opts[i].action };
+    btnOver.push(rect);
+
+    const hov = hitRect(mouseX, mouseY, rect);
+    const selected = overSelection === i || hov;
+
+    if(selected){
+      const g = ctx.createLinearGradient(x, y, x, y+btnH);
+      g.addColorStop(0,'rgba(120,240,255,0.35)');
+      g.addColorStop(1,'rgba(80,180,255,0.2)');
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = 'rgba(10,30,50,0.6)';
+    }
+    roundRect(x, y, btnW, btnH, 12);
+    ctx.fill();
+    ctx.strokeStyle = selected ? '#7fd4ff' : 'rgba(120,200,255,0.3)';
+    ctx.lineWidth = selected ? 2.5 : 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = selected ? '#ffffff' : 'rgba(200,230,255,0.7)';
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    ctx.fillText(opts[i].label, x + btnW/2, y + btnH/2);
+  }
+
+  ctx.fillStyle = 'rgba(160,220,255,0.5)';
+  ctx.font = '14px system-ui, sans-serif';
+  ctx.fillText(
+    isNarrow
+      ? L('点击选择', 'Tap to choose')
+      : L('← → 选择   空格 / 回车 确认   也可直接点击', '← → choose   Space / Enter confirm   or just tap'),
+    W/2, (isNarrow ? by + 2*(btnH+gap) : by + btnH) + 40
+  );
+}
+
+function draw(){
   ctx.save();
 
-  if (shake > 0.5){
-    ctx.translate(rand(-shake, shake) * 0.45, rand(-shake, shake) * 0.45);
+  if(shakeTime > 0.5){
+    ctx.translate(
+      (Math.random()-0.5) * shakeTime,
+      (Math.random()-0.5) * shakeTime
+    );
   }
 
-  drawSky();
-  drawClouds();
-  drawCollectibles();
-  drawObstacles();
-  drawParticles();
+  drawWater();
+  drawMotes();
 
-  if (state === 'play' || state === 'start' || state === 'win'){
+  if(state === STATE.PLAY || state === STATE.OVER || state === STATE.PAUSE){
+    drawPlants();
+    drawJudgeLine();
+    drawHumans();
+    drawRings();
     drawPlayer();
+    drawBubbles();
+    drawParticles();
+  } else {
+    drawPlants();
+    if(Math.random() < 0.15){
+      spawnBubble(Math.random()*W, H+10, 2 + Math.random()*4, 0, -0.5, 1);
+    }
+    drawBubbles();
   }
 
   ctx.restore();
 
-  drawHUD();
+  if(redFlash > 0.01){
+    ctx.fillStyle = 'rgba(255,40,40,' + (redFlash*0.35) + ')';
+    ctx.fillRect(0,0,W,H);
+  }
+
+  if(state === STATE.PLAY) drawHUD();
+  if(state === STATE.MENU) drawMenu();
+  if(state === STATE.MODE) drawModeSelect();
+  if(state === STATE.PAUSE) drawPause();
+  if(state === STATE.OVER) drawOver();
+  if(state === STATE.LOG) drawLog();
 }
 
-/* ============ 主循环 ============ */
-var lastTime = 0;
-
-function loop(now){
-  if (!lastTime) lastTime = now;
-  var dt = (now - lastTime) / 1000;
-  lastTime = now;
-  if (dt > 0.05) dt = 0.05;
-  if (dt < 0) dt = 0;
-
-  update(dt);
-  render();
-
+function loop(){
+  update();
+  draw();
   requestAnimationFrame(loop);
 }
 
-/* ============ 输入 ============ */
-window.addEventListener('keydown', function(e){
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW'){
-    e.preventDefault(); keys.space = true;
+// =============================================================
+// 密文编码 / 解码
+// =============================================================
+const CODE_PREFIX = 'OXY1';
+
+function utf8Encode(str){
+  if(typeof TextEncoder !== 'undefined') return new TextEncoder().encode(str);
+  const utf8 = unescape(encodeURIComponent(str));
+  const arr = new Uint8Array(utf8.length);
+  for(let i=0;i<utf8.length;i++) arr[i] = utf8.charCodeAt(i);
+  return arr;
+}
+function utf8Decode(bytes){
+  if(typeof TextDecoder !== 'undefined') return new TextDecoder('utf-8').decode(bytes);
+  let s = '';
+  for(let i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+  return decodeURIComponent(escape(s));
+}
+function bytesToBase64(bytes){
+  let bin = '';
+  for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function base64ToBytes(b64){
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+function checksum(bytes){
+  let sum = 0;
+  for(let i=0;i<bytes.length;i++) sum = (sum + bytes[i]) % 65521;
+  return sum.toString(36);
+}
+function encodeOxySave(obj){
+  const json = JSON.stringify(obj);
+  const bytes = utf8Encode(json);
+  let b64 = bytesToBase64(bytes);
+  b64 = b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  return CODE_PREFIX + '-' + b64 + '-' + checksum(bytes);
+}
+function decodeOxySave(code){
+  code = (code || '').trim().replace(/\s+/g,'');
+  if(code.indexOf(CODE_PREFIX + '-') !== 0) return { ok:false, msg: L('密文格式不对','Bad cipher format') };
+  const rest = code.slice(CODE_PREFIX.length + 1);
+  const lastDash = rest.lastIndexOf('-');
+  if(lastDash < 0) return { ok:false, msg: L('密文不完整','Incomplete cipher') };
+  let b64 = rest.slice(0, lastDash);
+  const cs = rest.slice(lastDash + 1);
+  if(!b64 || !cs) return { ok:false, msg: L('密文不完整','Incomplete cipher') };
+  b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
+  while(b64.length % 4) b64 += '=';
+  let bytes;
+  try { bytes = base64ToBytes(b64); } catch(e){ return { ok:false, msg: L('密文损坏','Corrupted cipher') }; }
+  if(checksum(bytes) !== cs) return { ok:false, msg: L('校验失败','Checksum failed') };
+  let json;
+  try { json = utf8Decode(bytes); } catch(e){ return { ok:false, msg: L('密文损坏','Corrupted cipher') }; }
+  let obj;
+  try { obj = JSON.parse(json); } catch(e){ return { ok:false, msg: L('数据无效','Invalid data') }; }
+  if(!obj || typeof obj !== 'object') return { ok:false, msg: L('数据无效','Invalid data') };
+  return { ok:true, data:obj };
+}
+
+// =============================================================
+// 存档迁移
+// =============================================================
+let lastExportCode = '';
+let transferShouldClear = false;
+
+function openTransferModal(){
+  transferShouldClear = false;
+  document.getElementById('transferMask').classList.add('show');
+  showTransferChoice();
+}
+function showTransferChoice(){
+  document.getElementById('transferChoice').style.display = '';
+  document.getElementById('transferExport').style.display = 'none';
+  document.getElementById('transferImport').style.display = 'none';
+  document.getElementById('transferBtnsChoice').style.display = 'flex';
+  document.getElementById('transferBtnsExport').style.display = 'none';
+  document.getElementById('transferBtnsImport').style.display = 'none';
+  document.getElementById('transferDesc').textContent =
+    L('把存档变成一段密文，在另一台设备导入', 'Turn your save into a cipher, then import it on another device');
+}
+function closeTransferModal(){
+  if(transferShouldClear){
+    transferShouldClear = false;
+    clearOxySave();
+    toast(L('存档已清空', 'Save cleared'));
   }
-  if (e.code === 'ArrowLeft'  || e.code === 'KeyA'){ e.preventDefault(); keys.left  = true; }
-  if (e.code === 'ArrowRight' || e.code === 'KeyD'){ e.preventDefault(); keys.right = true; }
-}, { passive: false });
-
-window.addEventListener('keyup', function(e){
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.space = false;
-  if (e.code === 'ArrowLeft'  || e.code === 'KeyA') keys.left  = false;
-  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
-});
-
-function setPointerDir(clientX){
-  var rect = canvas.getBoundingClientRect();
-  var x = clientX - rect.left;
-  pointerDir = x < W / 2 ? -1 : 1;
+  document.getElementById('transferMask').classList.remove('show');
+}
+function clearOxySave(){
+  try {
+    localStorage.removeItem(LS_TOTAL);
+    localStorage.removeItem(LS_BALANCE);
+  } catch(e){}
+  totalSaved = 0;
+  savedBalance = 0;
 }
 
-canvas.addEventListener('pointerdown', function(e){
-  e.preventDefault();
-  pointerDown = true;
-  setPointerDir(e.clientX);
-  if (canvas.setPointerCapture){
-    try { canvas.setPointerCapture(e.pointerId); } catch(err){}
+function doExport(){
+  const payload = {
+    game: 'oxy',
+    totalSaved: totalSaved,
+    savedBalance: savedBalance,
+    goldExchanged: goldExchanged,
+    exportedAt: Date.now()
+  };
+  const code = encodeOxySave(payload);
+  lastExportCode = code;
+  document.getElementById('exportCode').textContent = code;
+  document.getElementById('exportMeta').textContent = L(
+    '历史总拯救 ' + totalSaved + ' 人 · 可兑换余额 ' + savedBalance + ' · 已兑换 ' + goldExchanged + ' 枚',
+    'All-time saved ' + totalSaved + ' · Balance ' + savedBalance + ' · Redeemed ' + goldExchanged
+  );
+
+  document.getElementById('transferChoice').style.display = 'none';
+  document.getElementById('transferExport').style.display = '';
+  document.getElementById('transferImport').style.display = 'none';
+  document.getElementById('transferBtnsChoice').style.display = 'none';
+  document.getElementById('transferBtnsExport').style.display = 'flex';
+  document.getElementById('transferBtnsImport').style.display = 'none';
+  document.getElementById('transferDesc').textContent =
+    L('复制这段密文，在另一台设备导入', 'Copy this cipher and import it on another device');
+}
+
+function doCopyCode(){
+  if(!lastExportCode){ toast(L('还没有生成密文', 'No cipher generated yet')); return; }
+  function fallbackCopy(){
+    const ta = document.createElement('textarea');
+    ta.value = lastExportCode;
+    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast(L('密文已复制', 'Cipher copied')); transferShouldClear = true; }
+    catch(e){ toast(L('复制失败', 'Copy failed')); }
+    document.body.removeChild(ta);
   }
-});
-canvas.addEventListener('pointermove', function(e){
-  if (pointerDown) setPointerDir(e.clientX);
-});
-canvas.addEventListener('pointerup',     function(){ pointerDown = false; });
-canvas.addEventListener('pointercancel', function(){ pointerDown = false; });
-canvas.addEventListener('pointerleave',  function(){ pointerDown = false; });
-canvas.addEventListener('contextmenu',   function(e){ e.preventDefault(); });
-
-document.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive: false });
-
-/* ============ 界面切换 ============ */
-function show(id){ document.getElementById(id).classList.remove('hidden'); }
-function hide(id){ document.getElementById(id).classList.add('hidden'); }
-function hideAll(){
-  hide('startScreen'); hide('modeScreen'); hide('overScreen'); hide('winScreen');
-  document.getElementById('updateLogMask').classList.remove('show');
-  document.getElementById('rulesMask').classList.remove('show');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(lastExportCode).then(()=>{
+      toast(L('密文已复制', 'Cipher copied'));
+      transferShouldClear = true;
+    }).catch(fallbackCopy);
+  } else fallbackCopy();
 }
 
-function goToModeSelect(){
-  hideAll();
-  show('modeScreen');
-  state = 'start';
+function doDownloadFile(){
+  if(!lastExportCode){ toast(L('还没有生成密文', 'No cipher generated yet')); return; }
+  try {
+    const blob = new Blob([lastExportCode], { type:'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'oxygen_save_' + Date.now() + '.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    toast(L('已保存为文件', 'Saved as file'));
+    transferShouldClear = true;
+  } catch(e){ toast(L('保存失败', 'Save failed')); }
 }
 
-function startWithMode(m){
-  mode = m;
-  hideAll();
-  keys.space = false; keys.left = false; keys.right = false;
-  pointerDown = false;
-  pointerDir = 0;
-  resetGame();
-}
+function doScreenshot(){
+  if(!lastExportCode){ toast(L('还没有生成密文', 'No cipher generated yet')); return; }
+  try {
+    const text = lastExportCode;
+    const canvas = document.createElement('canvas');
+    const c = canvas.getContext('2d');
+    const lineH = 18;
+    const maxChars = 52;
+    const lines = Math.ceil(text.length / maxChars);
+    canvas.width = 460;
+    canvas.height = 100 + lines * lineH + 40;
 
-/* ============ 返回按钮点击检测 ============ */
-canvas.addEventListener('click', function(e) {
-  if (state !== 'play') return;
-  var rect = canvas.getBoundingClientRect();
-  var mx = e.clientX - rect.left;
-  var my = e.clientY - rect.top;
-  if (mx >= 18 && mx <= 76 && my >= 10 && my <= 38) {
-    state = 'start';
-    if (typeof window.__eggOnGameEnd === 'function' && score > 0) {
-      try { window.__eggOnGameEnd(score); } catch(err){}
+    const bg = c.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, '#0a2a45');
+    bg.addColorStop(1, '#06172a');
+    c.fillStyle = bg;
+    c.fillRect(0, 0, canvas.width, canvas.height);
+
+    c.strokeStyle = 'rgba(120,240,255,0.55)';
+    c.lineWidth = 2;
+    c.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+    c.fillStyle = '#a0f0ff';
+    c.font = 'bold 17px system-ui, sans-serif';
+    c.fillText(L('氧气 · 存档密文', 'Oxygen · Save Cipher'), 22, 34);
+
+    c.fillStyle = 'rgba(160,220,255,0.7)';
+    c.font = '12px system-ui, sans-serif';
+    c.fillText(L('历史总拯救 ' + totalSaved + ' 人 · 余额 ' + savedBalance,
+                'All-time saved ' + totalSaved + ' · Balance ' + savedBalance), 22, 56);
+
+    c.fillStyle = '#a0f0ff';
+    c.font = '12px monospace';
+    for(let i=0;i<lines;i++){
+      c.fillText(text.substr(i*maxChars, maxChars), 22, 86 + i*lineH);
     }
-    hideAll();
-    show('modeScreen');
-    keys.space = false; keys.left = false; keys.right = false;
-    pointerDown = false;
-    pointerDir = 0;
+
+    canvas.toBlob(function(blob){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'oxygen_save_' + Date.now() + '.png';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url), 3000);
+      toast(L('已截屏保存', 'Screenshot saved'));
+      transferShouldClear = true;
+    }, 'image/png');
+  } catch(e){ toast(L('截屏失败', 'Screenshot failed')); }
+}
+
+function showImportView(){
+  document.getElementById('transferChoice').style.display = 'none';
+  document.getElementById('transferExport').style.display = 'none';
+  document.getElementById('transferImport').style.display = '';
+  document.getElementById('transferBtnsChoice').style.display = 'none';
+  document.getElementById('transferBtnsExport').style.display = 'none';
+  document.getElementById('transferBtnsImport').style.display = 'flex';
+  document.getElementById('transferDesc').textContent = L('把密文粘贴到这里', 'Paste the cipher here');
+  document.getElementById('importCode').value = '';
+  document.getElementById('importStatus').innerHTML = L('等待粘贴…', 'Waiting for paste…');
+  setTimeout(()=>document.getElementById('importCode').focus(), 120);
+}
+
+function doConfirmImport(){
+  const code = document.getElementById('importCode').value || '';
+  if(!code.trim()){
+    document.getElementById('importStatus').innerHTML = '<span class="bad">' + L('请先粘贴密文', 'Please paste a cipher first') + '</span>';
+    return;
+  }
+  const res = decodeOxySave(code);
+  if(!res.ok){
+    document.getElementById('importStatus').innerHTML = '<span class="bad">' + L('导入失败：', 'Import failed: ') + res.msg + '</span>';
+    return;
+  }
+  const d = res.data;
+  if(!d || typeof d !== 'object'){
+    document.getElementById('importStatus').innerHTML = '<span class="bad">' + L('数据无效', 'Invalid data') + '</span>';
+    return;
+  }
+  if(!confirm(L('导入会覆盖本机当前进度，确定吗？', 'Importing will overwrite your current progress. Continue?'))) return;
+
+  totalSaved    = parseInt(d.totalSaved)    || 0;
+  savedBalance  = parseInt(d.savedBalance)  || 0;
+  goldExchanged = parseInt(d.goldExchanged) || 0;
+  saveOxyStats();
+
+  document.getElementById('importStatus').innerHTML = '<span class="ok">' + L('导入成功！', 'Imported successfully!') + '</span>';
+  toast(L('存档导入成功', 'Save imported'));
+  setTimeout(()=>{
+    transferShouldClear = false;
+    document.getElementById('transferMask').classList.remove('show');
+  }, 1000);
+}
+
+// =============================================================
+// 关标签页时清空（如果已导出）
+// =============================================================
+window.addEventListener('beforeunload', ()=>{
+  if(transferShouldClear){
+    try {
+      localStorage.removeItem(LS_TOTAL);
+      localStorage.removeItem(LS_BALANCE);
+    } catch(e){}
+  }
+});
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'hidden' && transferShouldClear){
+    try {
+      localStorage.removeItem(LS_TOTAL);
+      localStorage.removeItem(LS_BALANCE);
+    } catch(e){}
   }
 });
 
-document.getElementById('startBtn').addEventListener('click', goToModeSelect);
+// =============================================================
+// 语言切换
+// =============================================================
+function applyLang(){
+  document.documentElement.lang = LANG === 'zh' ? 'zh' : 'en';
+  document.title = L('氧气 · 怕你太累了', "Oxygen · Afraid You're Too Tired");
 
-var modeBtns = document.querySelectorAll('.mode-btn');
-for (var mb = 0; mb < modeBtns.length; mb++){
-  modeBtns[mb].addEventListener('click', function(){
-    startWithMode(this.getAttribute('data-mode'));
+  const btn = document.getElementById('langBtn');
+  if(btn){
+    btn.textContent = LANG === 'zh' ? '🇨🇳' : '🇺🇸';
+    btn.title = LANG === 'zh' ? 'Switch to English' : '切换到中文';
+  }
+
+  document.querySelectorAll('[data-zh]').forEach(el=>{
+    const html = LANG === 'zh' ? el.getAttribute('data-zh') : el.getAttribute('data-en');
+    if(html !== null) el.innerHTML = html;
   });
-}
 
-document.getElementById('retryBtn').addEventListener('click', function(){ startWithMode(mode); });
-document.getElementById('winRetryBtn').addEventListener('click', function(){ startWithMode(mode); });
-document.getElementById('overMenuBtn').addEventListener('click', goToModeSelect);
-document.getElementById('winMenuBtn').addEventListener('click', goToModeSelect);
+  const ta = document.getElementById('importCode');
+  if(ta) ta.placeholder = L('把密文粘贴到这里…', 'Paste the cipher here…');
 
-window.addEventListener('keydown', function(e){
-  if (e.code === 'Space'){
-    if (state === 'start' && !document.getElementById('startScreen').classList.contains('hidden')){
-      e.preventDefault();
-      goToModeSelect();
-    } else if (state === 'over'){
-      e.preventDefault();
-      startWithMode(mode);
-    } else if (state === 'win'){
-      e.preventDefault();
-      startWithMode(mode);
+  const transferMask = document.getElementById('transferMask');
+  if(transferMask.classList.contains('show')){
+    if(document.getElementById('transferImport').style.display !== 'none'){
+      document.getElementById('transferDesc').textContent = L('把密文粘贴到这里', 'Paste the cipher here');
+    } else if(document.getElementById('transferExport').style.display !== 'none'){
+      document.getElementById('transferDesc').textContent = L('复制这段密文，在另一台设备导入', 'Copy this cipher and import it on another device');
+    } else {
+      document.getElementById('transferDesc').textContent = L('把存档变成一段密文，在另一台设备导入', 'Turn your save into a cipher, then import it on another device');
     }
   }
-});
-
-document.getElementById('modeBackBtn').addEventListener('click', function() {
-  hideAll();
-  show('startScreen');
-  state = 'start';
-});
-
-/* ============ 启动 ============ */
-resize();
-initClouds();
-player.ready = true;
-player.x = W / 2;
-player.y = H * 0.58;
-state = 'start';
-
-/* ============ 弹窗事件 ============ */
-document.getElementById('updateLogBtn').addEventListener('click', function() {
-  document.getElementById('updateLogMask').classList.add('show');
-});
-document.getElementById('updateLogCloseBtn').addEventListener('click', function() {
-  document.getElementById('updateLogMask').classList.remove('show');
-});
-document.getElementById('updateLogMask').addEventListener('click', function(e) {
-  if (e.target === this) {
-    document.getElementById('updateLogMask').classList.remove('show');
-  }
-});
-document.getElementById('updateLogBackBtn').addEventListener('click', function() {
-  document.getElementById('updateLogMask').classList.remove('show');
-});
-
-document.getElementById('rulesBtn').addEventListener('click', function() {
-  document.getElementById('rulesMask').classList.add('show');
-});
-document.getElementById('rulesCloseBtn').addEventListener('click', function() {
-  document.getElementById('rulesMask').classList.remove('show');
-});
-document.getElementById('rulesMask').addEventListener('click', function(e) {
-  if (e.target === this) {
-    document.getElementById('rulesMask').classList.remove('show');
-  }
-});
-document.getElementById('rulesBackBtn').addEventListener('click', function() {
-  document.getElementById('rulesMask').classList.remove('show');
-});
-
-window.addEventListener('resize', function(){
-  resize();
-  initClouds();
-});
-
-requestAnimationFrame(loop);
-
-})();
-
-/* =============================================================
-   累计总分存档（v0.9：米皮糖互通已下线，只保留本作统计）
-   ============================================================= */
-var EGG_TOTAL_KEY = 'eggduck_total_score';
-var EGG_REDEEMED_KEY = 'eggduck_redeemed_to_mitang';
-
-var eggTotalScore = 0;
-var eggRedeemed = 0;   /* 老存档字段，现已不再变化，仅保留兼容 */
-
-function loadEggStats() {
-  try {
-    eggTotalScore = parseInt(localStorage.getItem(EGG_TOTAL_KEY)) || 0;
-    eggRedeemed = parseInt(localStorage.getItem(EGG_REDEEMED_KEY)) || 0;
-  } catch(e) {
-    eggTotalScore = 0; eggRedeemed = 0;
-  }
 }
 
-function saveEggStats() {
-  try {
-    localStorage.setItem(EGG_TOTAL_KEY, String(eggTotalScore));
-    localStorage.setItem(EGG_REDEEMED_KEY, String(eggRedeemed));
-  } catch(e) {}
-}
-
-/* =============================================================
-   游戏结束时更新累计总分
-   ============================================================= */
-window.__eggOnGameEnd = function(sc) {
-  try {
-    loadEggStats();
-    eggTotalScore += (sc || 0);
-    saveEggStats();
-  } catch(e) {}
-};
-
-/* =============================================================
-   语言切换按钮
-   ============================================================= */
-document.getElementById('langBtn').addEventListener('click', function() {
+document.getElementById('langBtn').addEventListener('click', ()=>{
   LANG = LANG === 'zh' ? 'en' : 'zh';
   applyLang();
+  toast(L('已切换到中文', 'Switched to English'));
 });
 
-/* =============================================================
-   初始化
-   ============================================================= */
+// =============================================================
+// 绑定弹窗按钮
+// =============================================================
+document.getElementById('btnExport').onclick = doExport;
+document.getElementById('btnImport').onclick = showImportView;
+document.getElementById('btnTransferClose').onclick = closeTransferModal;
+document.getElementById('btnCopyCode').onclick = doCopyCode;
+document.getElementById('btnDownloadFile').onclick = doDownloadFile;
+document.getElementById('btnScreenshot').onclick = doScreenshot;
+document.getElementById('btnExportBack').onclick = showTransferChoice;
+document.getElementById('btnConfirmImport').onclick = doConfirmImport;
+document.getElementById('btnImportBack').onclick = showTransferChoice;
+document.getElementById('importCode').addEventListener('input', function(){
+  const v = this.value.trim();
+  if(!v){ document.getElementById('importStatus').innerHTML = L('等待粘贴…', 'Waiting for paste…'); return; }
+  const res = decodeOxySave(v);
+  if(res.ok) document.getElementById('importStatus').innerHTML = '<span class="ok">' + L('密文有效', 'Valid cipher') + '</span>';
+  else document.getElementById('importStatus').innerHTML = '<span class="bad">' + res.msg + '</span>';
+});
+
+// 点遮罩关闭
+document.getElementById('transferMask').addEventListener('click', function(e){
+  if(e.target === this) closeTransferModal();
+});
+
+// =============================================================
+// 启动
+// =============================================================
+plants = []; motes = []; bubbles = []; particles = []; rings = []; humans = [];
+scrollSpeed = 1.6; distance = 0; shakeTime = 0; redFlash = 0;
+initPlants();
+initMotes();
+score = 0; lives = 3; missed = 0; handledCount = 0; totalHumans = 50;
+
+loadOxyStats();
 applyLang();
+
+loop();
 </script>
 
 </body></html>
